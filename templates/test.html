@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .outer{
+            position: relative;
+        }
+        .inner{
+            position: absolute;
+            top: 23px;
+            left: 30px;
+        }
+        .u{
+            list-style-type: none;
+            border: 1px solid black;
+            box-sizing: border-box;
+            width: 200px;
+            margin: 0px;
+            padding: 0px;
+            height:200px;
+            overflow:auto;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="outer">
+    xxx <input id='x' type="text" placeholder="type..." >
+    </div>
+    <script>
+        let n = 0;
+        async function getdata(food){
+            let response  = await fetch("/getfood?food="+food);
+            let data = await response.json();
+            return data
+        };
+        function renderData(data){
+            let outer = document.querySelector(".outer");
+            if(document.querySelector(".inner")){
+                outer.removeChild(document.querySelector(".inner"))
+            };
+            let div = document.createElement("div");
+            div.classList.add("inner");
+            let ul = document.createElement("ul");
+            ul.classList.add("u");
+            for(let i=0;i<data.length;i++){
+                let li = document.createElement("li");
+                li.appendChild(document.createTextNode(data[i]["name"]));
+                ul.appendChild(li);    
+            }
+            div.appendChild(ul);
+            outer.appendChild(div);
+        }
+
+        document.getElementById("x").addEventListener("input",function(){
+            let value = this.value;
+            console.log(this);
+            if(value===""){
+                let outer = document.querySelector(".outer");
+                if(document.querySelector(".inner")){
+                    outer.removeChild(document.querySelector(".inner"))
+                };
+            }else{
+                if(n <= 10){
+                    n += 1;
+                    console.log(n);
+                    let p = getdata(value);
+                    p.then((result)=>{
+                        n -= 1;
+                        console.log(n);
+                        renderData(result.data);
+                    });
+                }    
+            }    
+        });
+
+
+    </script>
+</body>
+</html>
