@@ -1,0 +1,233 @@
+.basic-information{
+    display: flex;
+    justify-content: center;
+    box-sizing: border-box;
+    padding-top: 50px;
+    padding-bottom: 50px;
+    font-size: 18px;
+    flex-wrap: wrap;
+    font-family:Arial, Helvetica, sans-serif
+}
+
+#welcome{
+    flex: none;
+    border-bottom: 1px lightgray solid;
+    width:70%;
+    height:80px;
+    text-align: center;
+    line-height: 30px;
+    font-size: 22px;
+    color:#555;
+    margin-bottom: 25px;
+}
+
+.form-box{
+    flex: none;
+    width: 550px;
+    background-color: #E8E8E8;
+    border-radius: 10px;
+}
+
+.form{
+    box-sizing: border-box;
+    margin: 0px;
+    padding: 0px;
+    height: 100%;
+    width: 100%;
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-bottom: 20px;
+    border-radius: 10px;
+}
+
+.form>div{
+    box-sizing: border-box;
+    margin-top: 30px;
+
+}
+form span{
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+/* 性別*/
+.choose-gender{
+    color: #757575;
+}
+
+label{
+    display:inline-block;
+    vertical-align: middle;
+    margin-right: 15px;
+}
+
+.choose-gender input{
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width:18px;
+    height:18px;
+
+    background-color:white;
+    border-radius: 50%;
+    border: 1.5px solid white;
+
+    vertical-align: middle;
+    display: inline-block;
+
+    margin:0px;
+    margin-right: 5px;
+}    
+
+.choose-gender input:hover{
+    cursor: pointer;
+}
+
+
+
+/*年齡*/
+.choose-age input{
+    border-radius: 5px;
+    border:1px white solid;
+    width:80%;
+    
+    vertical-align: middle;
+    display: inline-block;
+
+    margin:0px;
+    padding:4px
+} 
+
+
+
+/*身高*/
+.choose-height input{
+    border-radius: 5px;
+    border:1px white solid;
+    width:80%;
+    
+    vertical-align: middle;
+    display: inline-block;
+
+    margin:0px;
+    padding:4px
+} 
+
+/*體重*/
+.choose-weight input{
+    border-radius: 5px;
+    border:1px white solid;
+    width:80%;
+    
+    vertical-align: middle;
+    display: inline-block;
+
+    margin:0px;
+    padding:4px
+} 
+
+#age:focus,#height:focus,#weight:focus{
+    outline: none;
+}
+
+/*活動程度*/
+h3{
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
+
+.choose-activity{
+    color:#757575;
+}
+
+.choose-activity>div{
+    margin-top:5px;
+    margin-bottom: 5px;
+}
+.choose-activity input{
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width:18px;
+    height:18px;
+
+    background-color:white;
+    border-radius: 50%;
+    border: 1.5px solid white;
+
+    vertical-align: middle;
+    display: inline-block;
+
+    margin:0px;
+    margin-right: 5px;
+}  
+
+.choose-activity input{
+    line-height: 20px;
+}
+
+.choose-activity input:hover{
+    cursor: pointer;
+}
+
+
+/*目標*/
+.choose-target{
+    color:#757575;
+}
+.choose-target input{
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width:18px;
+    height:18px;
+
+    background-color:white;
+    border-radius: 50%;
+    border: 1.5px solid white;
+
+    vertical-align: middle;
+    display: inline-block;
+
+    margin:0px;
+    margin-right: 5px;
+}  
+
+.choose-target input:hover{
+    cursor: pointer;
+}
+
+#male:checked,#female:checked,#level1:checked,#level2:checked,
+#level3:checked,#level4:checked,#lose:checked,#maintain:checked,#gain:checked{
+    background-color: #F0754F;
+}
+
+/*提交*/
+.submit{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color:white;
+    border:1px #F0754F solid;
+    background-color: #F0754F;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 700;
+    height:50px;
+    transition: all .3s ease-in-out;
+}
+
+.submit:hover{
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+.describe{
+    color: #555;
+    font-size: 20px;
+    font-weight: 400;
+}
+
+

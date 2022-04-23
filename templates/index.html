@@ -5,19 +5,42 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Grape+Nuts&family=Permanent+Marker&family=Rubik+Bubbles&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/earlyaccess/cwtexyen.css">
+    <link rel="stylesheet" href="{{url_for('static',filename='/css/index.css')}}">
+    <link rel="stylesheet" href="{{url_for('static',filename='/css/header_footer.css')}}">
+    <link rel="stylesheet" href="{{url_for('static',filename='/css/sign.css')}}">
 </head>
 <body>
-    <h1>My chat room</h1>
-    <form action="/chat">
-        <div>
-            <label>Enter your username:</label>
-            <input type="text" name="username">    
+    <div class="section-1">
+        <div class="nav">
+            <div class="header-1">
+                What U Eat
+            </div>
         </div>
-        <div>
-            <label>Enter room id:</label>
-            <input type="text" name="room">    
+    </div>
+    <div class="section-2">
+        <div class="signinbox">
+            <div class="content" style="height: 250px;">
+                <div class="head">登入會員帳號</div>
+                <input class="email" placeholder="輸入電子信箱" type="text">
+                <input class="pass" placeholder="輸入密碼" type="password">
+                <select name="identity">
+                    <option value="0">Choose your identity</option>
+                    <option value="1">General user</option>
+                    <option value="2">Nutritionist</option>
+                </select>
+                <div id="signbtn">登入帳戶</div>
+                <div class="tosignup">還沒有帳戶?點此註冊</div>
+            </div>
         </div>
-        <button type="submit">submit</button>
-    </form>
+    </div>
+    
+    <div class="section-4">
+        <span>COPYRIGHT © 2022 What U Eat</span>
+    </div>
+    <script type="text/javascript" src="{{url_for('authen.static',filename='/js/sign.js')}}"></script>
 </body>
 </html>

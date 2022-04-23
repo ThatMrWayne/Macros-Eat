@@ -36,17 +36,18 @@ TABLES['food_house'] = (
     "  `food_id` bigint NOT NULL AUTO_INCREMENT,"
     "  `member_id` bigint,"
     "  `food_name` varchar(255) NOT NULL,"
-    "  `protein` int NOT NULL," #g
-    "  `fat` int NOT NULL," #g
-    "  `carbs` int NOT NULL," #g
+    "  `protein` float(4,1) NOT NULL," #g
+    "  `fat` float(4,1) NOT NULL," #g
+    "  `carbs` float(4,1) NOT NULL," #g
     "  PRIMARY KEY (`food_id`),"
+    "  FULLTEXT (`food_name`) WITH PARSER ngram,"
     "  FOREIGN KEY(member_id) REFERENCES members(member_id) ON DELETE CASCADE ON UPDATE CASCADE"
     ")")    
 
 #day record
 TABLES['records'] = (
     "CREATE TABLE IF NOT EXISTS `records` ("
-    "  `record_id` bigint NOT NULL,"
+    "  `record_id` bigint NOT NULL AUTO_INCREMENT,"
     "  `create_at` bigint NOT NULL,"
     "  `member_id` bigint NOT NULL,"
     "  `protein` int NOT NULL," #%
@@ -60,13 +61,14 @@ TABLES['records'] = (
 #food intakes
 TABLES['intakes'] = (
     "CREATE TABLE IF NOT EXISTS `intakes` ("
-    "  `intake_id` bigint NOT NULL,"
+    "  `intake_id` bigint NOT NULL AUTO_INCREMENT,"
     "  `record_id` bigint NOT NULL,"
     "  `food_name` varchar(255) NOT NULL,"
-    "  `protein` int NOT NULL," #g
-    "  `fat` int NOT NULL," #g
-    "  `carbs` int NOT NULL," #g
-    "  `amount` int NOT NULL," #g
+    "  `protein` float(4,1) NOT NULL," #g
+    "  `fat` float(4,1) NOT NULL," #g
+    "  `carbs` float(4,1) NOT NULL," #g
+    "  `amount` float(4,1) NOT NULL," #g
+    "  `member_id` bigint NOT NULL," 
     "  PRIMARY KEY (`intake_id`),"
     "  FOREIGN KEY(`record_id`) REFERENCES records(`record_id`) ON DELETE CASCADE ON UPDATE CASCADE"
     ")")  
@@ -89,10 +91,10 @@ TABLES['diet_plans'] = (
 #weight
 TABLES['weight_records'] = (
     "CREATE TABLE IF NOT EXISTS `weight_records` ("
-    "  `weight_id` bigint NOT NULL,"
+    "  `weight_id` bigint NOT NULL AUTO_INCREMENT,"
     "  `create_at` bigint NOT NULL,"
     "  `member_id` bigint NOT NULL,"
-    "  `weight` int NOT NULL," #kg
+    "  `weight` float(4,1) NOT NULL," #kg
     "  PRIMARY KEY (`weight_id`),"
     "  FOREIGN KEY(`member_id`) REFERENCES members(`member_id`) ON DELETE CASCADE ON UPDATE CASCADE"
     ")")  
@@ -106,7 +108,7 @@ class DataBase():
                 'user': MYSQL_USER,
                 'password': MYSQL_PASSWORD,
                 'host': '127.0.0.1',
-                'database': 'website',
+                'database': 'whatueat',
                 'raise_on_warnings': True,
                 }
             # create connection
@@ -120,8 +122,9 @@ class DataBase():
                 print(err.msg)
             exit(1)
 
-        """
-        tables=['members','food_house','records','intakes','diet_plans','weight_records']
+        '''   
+        #tables=['food_house','records','intakes','diet_plans','weight_records']
+        tables=['weight_records']
         for table in tables:
         #建立資料表
             cnx = self.cnxpool.get_connection()
@@ -137,8 +140,8 @@ class DataBase():
             finally:
                 cursor.close()
                 cnx.close() 
+           '''  
 
-            """
 
 
 

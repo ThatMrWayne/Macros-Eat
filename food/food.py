@@ -16,13 +16,33 @@ from utils import Utils_obj
 
 food = Blueprint('food', __name__,static_folder='static',static_url_path='/food')
 
+
+#decorator for /api/my-food route
+def jwt_required_for_food():
+    def wrapper(fn):
+        @wraps(fn)
+        def decorator(*args, **kwargs):
+            try:
+                verify_jwt_in_request()
+            except:
+                print('access_token已失效 或 request根本沒有JWT')
+                return jsonify({"error":True,"message":"拒絕存取"}), 403
+            return fn(*args, **kwargs)
+        return decorator
+    return wrapper
+
+
+
+
 def verify_food_info(input):
-    result=False
-    if (type(input["protein"]) != float) or (input["protein"]<0):
+    result=True
+    if (type(input["protein"]) not in [float,int]) or (input["protein"]<0):
         result = False
-    elif (type(input["fat"]) != float) or (input["fat"]<0):
+    elif (type(input["fat"]) not in [float,int]) or (input["fat"]<0):
         result = False
-    elif (type(input["carbs"]) != float) or (input["carbs"]<0):
+    elif (type(input["carbs"]) not in [float,int]) or (input["carbs"]<0):
+        result = False 
+    elif (type(input["food_name"])!= int):
         result = False    
     return result     
 
@@ -127,8 +147,6 @@ def handle_get_my_food_data(request):
                 "message":"不好意思,資料庫暫時有問題,維修中"}
         return jsonify(response_msg), 500    
     return res
-
-
 def handle_get_public_food_data(request):
     connection = db.get_food_cnx() #取得景點相關操作的自定義connection物件
     if isinstance(connection,Connection): #如果有順利取得連線
@@ -172,6 +190,7 @@ def foods():
 
 #這個是用來在新增食物紀錄時,在search bar 搜尋時on the fly search
 @food.route('/api/public-food', methods=["GET"])
+@jwt_required_for_food()
 def public_food():
     get_food_result = handle_get_public_food_data(request)
     return get_food_result

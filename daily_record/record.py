@@ -15,6 +15,23 @@ from utils import Utils_obj
 record = Blueprint('record', __name__,static_folder='static',static_url_path='/record')
 
 
+#decorator for /api/reocrds route
+def jwt_required_for_record():
+    def wrapper(fn):
+        @wraps(fn)
+        def decorator(*args, **kwargs):
+            try:
+                verify_jwt_in_request()
+            except:
+                print('access_token已失效 或 request根本沒有JWT')
+                return jsonify({"error":True,"message":"拒絕存取"}), 403
+            return fn(*args, **kwargs)
+        return decorator
+    return wrapper
+
+
+
+
 def verify_record_info(input):
     result=True
     if (type(input["protein"]) != int ) or (input["protein"]<0): #%
@@ -26,7 +43,9 @@ def verify_record_info(input):
     elif (type(input["plan_calories"]) != int ) or (input["plan_calories"]<0):
         result = False             
     elif  input["protein"]+input["fat"]+input["carbs"]!=100:
-        result = False    
+        result = False 
+    elif (type(input["create_at"]) != int):
+        result = False       
     return result     
 
 
@@ -36,9 +55,9 @@ def organize_record_data(data):
         "day_record":{
             "record_id": first_row["record_id"],
             "plan_calories": first_row["plan_calories"],
-            "protein": first_row["protein"], #%
-            "fat": first_row["fat"], #%
-            "carb": first_row["carb"] #%
+            "protein": first_row["record_protein"], #%
+            "fat": first_row["record_fat"], #%
+            "carbs": first_row["record_carbs"] #%
         },
         "food_record":None,
     }
@@ -50,7 +69,7 @@ def organize_record_data(data):
                 "food_name": row["food_name"],
                 "protein": row["protein"], #g
                 "fat": row["fat"], #g
-                "carb": row["carb"], #g
+                "carbs": row["carbs"], #g
                 "amount": row["amount"] #g
             }
             result["food_record"].append(temp)
@@ -73,7 +92,7 @@ def handle_add_record(request):
                           "error":True,
                           "message":"新增紀錄失敗"}
             return jsonify(response_msg), 400 
-        labels = ["plan_calories","protein","fat","carbs"]
+        labels = ["create_at","plan_calories","protein","fat","carbs"]
         input = {}
         for label in labels:
             input[label] = request_data.get(label)
@@ -151,7 +170,7 @@ def handle_update_record(request):
                           "error":True,
                           "message":"更新失敗,缺少更新資料"}
             return jsonify(response_msg), 400
-        labels = ["plan_calories","protein","fat","carbs"]
+        labels = ["create_at","plan_calories","protein","fat","carbs"]
         input = {}
         for label in labels:
             input[label] = request_data.get(label)
@@ -197,7 +216,8 @@ def handle_update_record(request):
 
 
 #要驗證JWT
-@record.route('/api/reocrds', methods=["GET","POST","PATCH"])
+@record.route('/api/records', methods=["GET","POST","PATCH"])
+@jwt_required_for_record()
 def records():
     if request.method == "POST": #如果是POST,代表要新增日紀錄
         add_record_result = handle_add_record(request)

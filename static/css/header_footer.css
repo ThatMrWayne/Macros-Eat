@@ -1,0 +1,171 @@
+/*body margin設為0*/
+body{
+    margin: 0px;
+    /*font-family:"Caveat Brush,cursive,Noto Sans TC, sans-serif";*/
+    position: relative;
+    min-height: 100vh;
+    font-family: 'Caveat Brush', cursive;
+    font-family: 'Grape Nuts', cursive;
+    font-family: 'Permanent Marker', cursive;
+    font-family: 'Rubik Bubbles', cursive;
+}
+/*section1的部分*/
+.section-1{
+    display: flex;
+    justify-content:center;
+    align-items: center;
+    width:100%;
+    background: #2D303C; /*要設定白色要不然往下滑時,下面的內容會透過去選單列*/
+    
+}
+/*選單列外容器*/
+.nav{
+    width:1200px;
+    flex:none;
+    display: flex;
+    justify-content:space-between;
+    align-items: center;
+    height: 100px;
+    
+}
+.header-1{
+    flex:none;
+    width:300px;
+    font-size:35px;
+    font-weight:bold;
+    color: #F0754F;
+    margin-right: 10px;
+    margin-left: 10px;
+}
+
+.header-1:hover{
+    cursor: pointer;
+}
+
+.header-2{
+    flex: auto;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    color:#666666;
+    font-size:16px;
+    font-family:"Noto Sans TC", sans-serif;
+}
+
+.header-2 span{
+    font-size:16px;
+}
+
+
+
+.section-4{
+    font-family:"Noto Sans TC", sans-serif;
+    font-size: 16px;
+    color:#FFFFFF;
+    font-weight: bold;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 104px;
+    position:absolute;
+    bottom:-104px;
+    width:100%;   
+    border-top:1px lightgray solid;
+}
+.section-4>span{
+    flex: none;
+    display: block;
+}
+
+
+
+
+.login{
+    flex: none;
+    margin-right: 10px;
+}
+
+
+#signout{
+    display: block;
+    height:20px;
+    position: relative;
+    top:-2px;
+}
+#signout:hover{
+    cursor: pointer;
+}
+
+
+.login{
+    position: relative;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f1f1f1;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    right:0px;
+    top:22px;
+    border: 0.5px #f1f1f1 solid;
+    border-radius: 5px;
+    z-index: 2;
+  }
+
+.dropdown-content div{
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+#user-email{
+    border-bottom: 0.5px #c0c0c0 solid;
+    padding-bottom: 3px;
+}
+
+
+#logout{
+    padding-top: 3px;
+    padding-bottom: 3px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+@keyframes slide{
+    0%{opacity:0}
+    50%{opacity:0.5}
+    100%{opacity:1}
+}
+
+.show-dropdown{
+    display: block;
+    animation: slide 0.5s;    
+}
+
+#logout:hover{
+      cursor: pointer;
+      background-color: #d3d3d3;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@media(max-width:1200px){
+    .nav{flex:auto};/*小於1200px時,選單列寬度要跟螢幕一樣*/
+    .header-1{margin-left: 10px}
+   
+}

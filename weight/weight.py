@@ -15,7 +15,19 @@ from utils import Utils_obj
 weight = Blueprint('weight', __name__,static_folder='static',static_url_path='/weight')
 
 
-
+#decorator for /api/weight route
+def jwt_required_for_weight():
+    def wrapper(fn):
+        @wraps(fn)
+        def decorator(*args, **kwargs):
+            try:
+                verify_jwt_in_request()
+            except:
+                print('access_token已失效 或 request根本沒有JWT')
+                return jsonify({"error":True,"message":"拒絕存取"}), 403
+            return fn(*args, **kwargs)
+        return decorator
+    return wrapper
 
 def handle_get_weight(request):
     start_date = request.args.get("sdate")
@@ -69,7 +81,7 @@ def handle_update_weight(request):
                           "message":"更新失敗,更新資料不完整"}
             return jsonify(response_msg), 400
         #後端也要更新的資料正不正確 防止有人不是從瀏覽器更新
-        if input["new_weight"] > 200 or input["new_weight"]<30:
+        if  (type(input["new_weight"]) not in [int, float]) or (input["new_weight"] > 200) or (input["new_weight"]<30):
             response_msg={
                           "error":True,
                           "message":"更新失敗,體重不正確"}
@@ -120,7 +132,7 @@ def handle_add_weight(request):
                           "message":"新增紀錄失敗"}
             return jsonify(response_msg), 400 
         #後端也要驗證正不正確 防止有人不是從瀏覽器
-        if input["weight"] > 200 or input["weight"]<30:
+        if (type(input["weight"]) not in [int, float]) or (input["weight"] > 200) or (input["weight"]<30):
             response_msg={
                           "error":True,
                           "message":"更新失敗,體重不正確"}
@@ -129,7 +141,7 @@ def handle_add_weight(request):
         connection = db.get_weight_cnx() #取得體重操作相關的自定義connection物件
         if isinstance(connection,Connection): #如果有順利取得連線
             user_id = Utils_obj.get_member_id_from_jwt(request)
-            result = connection.insert_new_diet(input,user_id)
+            result = connection.insert_new_weight(input,user_id)
             if result == "error": #如果檢查回傳結果是"error",代表資料庫query時發生錯誤
                 response_msg={
                             "error":True,
@@ -138,6 +150,11 @@ def handle_add_weight(request):
             elif result == True: 
                 response_msg={"ok": True}
                 return jsonify(response_msg), 201 #api test ok
+            else:
+                response_msg={
+                            "error":True,
+                            "message":"已有該日紀錄"}
+                return jsonify(response_msg), 400
         elif connection == "error":  #如果沒有順利取得連線
             response_msg={
                         "error":True,
@@ -150,6 +167,7 @@ def handle_add_weight(request):
 
 #要驗證JWT
 @weight.route('/api/weight', methods=["GET","POST","PATCH"])
+@jwt_required_for_weight()
 def records():
     if request.method == "POST": #如果是POST,代表要新增日紀錄
         add_weight_result = handle_add_weight(request)

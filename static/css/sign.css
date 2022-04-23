@@ -1,0 +1,220 @@
+
+/*整個登入匡*/
+.signinbox,.signupbox{
+    box-sizing: border-box;
+    border-radius: 6px;
+    width: 340px;
+    flex: none;
+
+
+
+}
+
+/*登入匡上面那小條顏色*/
+.strip{
+    box-sizing: border-box;
+    background: linear-gradient(270deg, #F0754F 0%, #F0754F 100%);
+    height:10px;
+    width:100%;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;;
+}
+
+/*登入匡主內容*/
+.content{
+    width:100%;
+    background: lightgrey;
+    font-family:"Caveat Brush,Noto Sans TC", sans-serif;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    position: relative;
+    top:-50px;
+}
+
+/*登入會員系統字&x圖案*/
+.head{
+    font-size: 24px;
+    box-sizing: border-box;
+    text-align: center;
+    font-weight: 700;
+    flex:none;
+    width:91%;
+    height:30px;
+    color:#666666;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    position: relative;
+    left:50%;
+    transform: translateX(-50%);
+}
+
+/*x圖案*/
+.icon-close{
+    position:absolute;
+    right:0px;
+    top:0px;
+}
+
+.icon-close:hover{
+    cursor: pointer;
+}
+
+
+
+/*姓名輸入匡*/
+.name{
+    flex:none;
+    width: 91%;
+    height:47px;
+    box-sizing: border-box;
+    display:block;
+    padding:15px;
+    border-radius: 5px;
+    border:0.5px solid #CCCCCC;
+    margin-bottom: 10px;
+    position: relative;
+    left:50%;
+    transform: translateX(-50%);
+}
+
+.name::-webkit-input-placeholder{
+    font-size: 16px;
+}
+
+/*email輸入匡*/
+.email{
+    flex:none;
+    width: 91%;
+    height:47px;
+    box-sizing: border-box;
+    display:block;
+    padding:15px;
+    border-radius: 5px;
+    border:0.5px solid #CCCCCC;
+    margin-bottom: 10px;
+    position: relative;
+    left:50%;
+    transform: translateX(-50%);
+}
+
+.email::-webkit-input-placeholder{
+    font-size: 16px;
+}
+
+/*密碼輸入匡*/ 
+.pass{
+    flex:none;
+    width: 91%;
+    height:47px;
+    box-sizing: border-box;
+    display:block;
+    padding:15px;
+    border-radius: 5px;
+    border:0.5px solid #CCCCCC;
+    margin-bottom: 10px;
+    position: relative;
+    left:50%;
+    transform: translateX(-50%);
+}
+.pass::-webkit-input-placeholder{
+    font-size: 16px;
+}
+
+
+select{
+    flex: none;
+    width: 91%;
+    height: 47px;
+    box-sizing: border-box;
+    display: block;
+    padding: 15px;
+    border-radius: 5px;
+    border: 0.5px solid #CCCCCC;
+    margin-bottom: 10px;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);    
+}
+
+
+
+
+
+/*登入,註冊鈕*/
+#signbtn{
+    flex:none;
+    width:91%;
+    height:47px;
+    box-sizing: border-box;
+    display:block;
+    padding:10px;
+    border-radius: 2px;
+    background-color: #F0754F;
+    font-weight: 400;
+    font-size: 19px;
+    color:white;
+    text-align: center;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    position: relative;
+    left:50%;
+    transform: translateX(-50%);
+    transition-property:background-color;
+    transition-duration:0.5s;
+   
+}
+
+
+
+#signbtn:hover{
+    background: #F0754F;
+    cursor: pointer;
+    box-shadow: 0px 6px 2px #999;
+
+}
+
+#signbtn:active{
+    box-shadow: 0px 3px 2px #666;
+    
+}
+
+/*還沒有帳號嗎 or 已經有帳好了嗎*/
+.tosignup,.tosignin{
+    flex:none;
+    width:91%;
+    height:22px;
+    box-sizing: border-box;
+    display:block;
+    font-weight: 400;
+    font-size: 16px;
+    color:#666666;
+    text-align: center;
+    position: relative;
+    left:50%;
+    transform: translateX(-50%);
+    padding-bottom: 12px;
+}
+
+.tosignin:hover{
+    cursor: pointer;
+    color: rgb(23, 36, 36); 
+}
+
+.tosignup:hover{
+    cursor:pointer;
+    color:rgb(23, 36, 36); 
+}
+
+/**登入註冊成功與否訊息**/
+.message{
+    text-align: center;
+    color:rgb(23, 36, 36);
+    margin-bottom: 3px;
+}
+
+.condition{
+    padding-left: 24px;
+    margin: 0px;
+    text-align: left;
+    
+}

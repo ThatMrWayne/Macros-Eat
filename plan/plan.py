@@ -18,9 +18,28 @@ from utils import Utils_obj
 
 plan = Blueprint('plan',__name__,static_folder='static',static_url_path='/plan')
 
+#decorator for /api/diet-plans route
+def jwt_required_for_plan():
+    def wrapper(fn):
+        @wraps(fn)
+        def decorator(*args, **kwargs):
+            try:
+                verify_jwt_in_request()
+            except:
+                print('access_token已失效 或 request根本沒有JWT')
+                return jsonify({"error":True,"message":"拒絕存取"}), 403
+            return fn(*args, **kwargs)
+        return decorator
+    return wrapper
+
+
+
+
+
+
 
 def verify_diet_info(input):
-    result=False
+    result=True
     if (type(input["protein"]) != int ) or (input["protein"]<0):
         result = False
     elif (type(input["fat"]) != int ) or (input["fat"]<0):
@@ -30,7 +49,9 @@ def verify_diet_info(input):
     elif (type(input["plan_calories"]) != int ) or (input["plan_calories"]<0):
         result = False             
     elif  input["protein"]+input["fat"]+input["carbs"]!=100:
-        result = False    
+        result = False   
+    elif (type(input["create_at"])!= int ):
+        result = False     
     return result     
 
 
@@ -53,7 +74,7 @@ def handle_add_diet_plan(request):
                           "error":True,
                           "message":"新增飲食計畫失敗"}
             return jsonify(response_msg), 400
-        labels = ["plan_calories","protein","fat","carbs"]
+        labels = ["create_at","plan_calories","protein","fat","carbs"]
         input = {}
         for label in labels:
             input[label] = request_data.get(label)
@@ -125,7 +146,7 @@ def handle_update_diet_plan(request):
         except:
             response_msg={
                           "error":True,
-                          "message":"更新失敗"}
+                          "message":"更新失敗,缺少更新資料"}
             return jsonify(response_msg), 400
         labels = ["plan_id","plan_calories","protein","fat","carbs"]
         input = {}
@@ -135,7 +156,7 @@ def handle_update_diet_plan(request):
         if None in input.values():
             response_msg={
                           "error":True,
-                          "message":"更新失敗"}
+                          "message":"更新失敗,缺少更新資料"}
             return jsonify(response_msg), 400
         #後端也要更新的資料正不正確 防止有人不是從瀏覽器更新
         verify_result = verify_diet_info(input)
@@ -188,7 +209,8 @@ def handle_get_diet_plans(request):
 
 
 #要驗證JWT
-@plan.route('/api/diet-plans', methods=["GET","POST","PATCH","DELETE"])
+@plan.route('/api/plans', methods=["GET","POST","PATCH","DELETE"])
+@jwt_required_for_plan()
 def plans():
     if request.method == "POST": #如果是POST,代表要新增飲食計畫
         add_diet_plan_result = handle_add_diet_plan(request)

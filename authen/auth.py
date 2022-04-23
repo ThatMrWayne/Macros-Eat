@@ -1,8 +1,8 @@
 import json
-from pickle import FALSE
 import re
 import datetime
 from flask import request
+from flask import session
 from flask import Blueprint
 from flask import make_response
 from flask import jsonify 
@@ -13,23 +13,23 @@ from flask_jwt_extended import decode_token
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from model import db
-from model.connection import Connection
+from model import Connection
 from utils import Utils_obj
+
 
 auth = Blueprint('authen', __name__,static_folder='static',static_url_path='/auth')
 
 
-#decorator for /api/user route
+#decorator for /api/users route
 def jwt_required_for_user():
     def wrapper(fn):
         @wraps(fn)
         def decorator(*args, **kwargs):
-            if request.method == 'GET': #如果是GET,代表要取得當前登入使用者資料,要驗證JWT
-                try:
-                    verify_jwt_in_request()
-                except:
-                    print('access_token已失效 或 request根本沒有JWT')
-                    return jsonify({"data":None}), 200
+            try:
+                verify_jwt_in_request()
+            except:
+                print('access_token已失效 或 request根本沒有JWT')
+                return jsonify({"error":True,"message":"拒絕存取"}), 403
             return fn(*args, **kwargs)
         return decorator
     return wrapper
@@ -92,9 +92,13 @@ def handle_signup(request):
         name = request_data.get("name")
         email = request_data.get("email")
         password = request_data.get("password")
-        signup_date = request_data.get("signup_date")
+        identity = request_data.get("identity")
+        if identity ==1:
+            signup_date = request_data.get("signup_date")
+        else: #代表是註冊成營養師
+            signup_date = None
         #如果有傳json檔,但裡面根本沒有name,email,pawword
-        if not name or not email or not password or not signup_date:
+        if not name or not email or not password:
             response_msg={
                           "error":True,
                           "message":"註冊失敗"}
@@ -109,7 +113,7 @@ def handle_signup(request):
         #取得連線物件
         connection = db.get_auth_cnx() #取得驗證登入註冊相關操作的自定義connection物件
         if isinstance(connection,Connection): #如果有順利取得連線
-            result = connection.check_if_member_exist(email)
+            result = connection.check_if_member_exist(email,identity)
             if result == "error": #如果檢查回傳結果是"error",代表資料庫query時發生錯誤
                 response_msg={
                             "error":True,
@@ -125,7 +129,7 @@ def handle_signup(request):
                 hash_password = generate_password_hash(password)
                 #新增會員資料
                 connection = db.get_auth_cnx() #要在拿一次因為每次執行完都會把cnx丟回去
-                result = connection.insert_new_member(signup_date,name, email, hash_password)
+                result = connection.insert_new_member(name, email, hash_password,identity,signup_date)
                 if result == "error": #如果回傳結果是"error",代表資料庫insert時發生錯誤
                     response_msg={
                             "error":True,
@@ -133,7 +137,7 @@ def handle_signup(request):
                     return jsonify(response_msg), 500
                 elif result == True: #如果檢查回傳結果是true代表新增會員到資料庫成功
                     response_msg={ "ok":True }
-                    return jsonify(response_msg), 200 #api test ok
+                    return jsonify(response_msg), 201 #api test ok
         elif connection == "error":  #如果沒有順利取得連線
             response_msg={
                         "error":True,
@@ -149,6 +153,7 @@ def handle_signin(request):
             return jsonify(response_msg), 400 #api test ok
         email = request_data.get("email")
         password = request_data.get("password")
+        identity = request_data.get("identity")
         if not email or not password: #如果沒有給email或password,失敗
             response_msg={
                           "error":True,
@@ -156,7 +161,7 @@ def handle_signin(request):
             return jsonify(response_msg), 400
         connection = db.get_auth_cnx()    #取得驗證登入註冊相關操作的自定義connection物件
         if isinstance(connection,Connection): #如果有順利取得連線
-            result = connection.confirm_member_information(email) #先確認有沒有這個email帳號 
+            result = connection.confirm_member_information(email,identity) #先確認有沒有這個email帳號 
             if result == "error": #代表查詢失敗
                 response_msg={
                             "error":True,
@@ -167,21 +172,31 @@ def handle_signin(request):
                 check_result = check_password_hash(result["hash_password"],password)
                 if check_result:
                     #產生JWT_token
-                    access_token = create_access_token(identity=json.dumps({'email':email,'id':result["member_id"]}),expires_delta=datetime.timedelta(days=5))
+                    if identity ==1:
+                        access_token = create_access_token(identity=json.dumps({'email':email,'id':result["member_id"],'name':result["name"],'identity':identity}),expires_delta=datetime.timedelta(days=5))
+                    elif identity ==2:
+                        access_token = create_access_token(identity=json.dumps({'email':email,'id':result["nutri_id"],'name':result["name"],'identity':identity}),expires_delta=datetime.timedelta(days=5))
+
                     #要查看是不是第一次登入
-                    if result["initial"]==1:
-                        #再把initial改成false
-                        connection = db.get_auth_cnx() 
-                        change_initial = connection.change_initial_state(email)   
-                        if change_initial == True:
-                            response_msg = {"ok":True,"initial":True}                      
+                    if identity==1:
+                        if result["initial"]==1:
+                            #再把initial改成false
+                            connection = db.get_auth_cnx() 
+                            change_initial = connection.change_initial_state(email)   
+                            if change_initial == True:
+                                session["id"] = result["member_id"] #存一個email cookie 給之後disconnect用
+                                response_msg = {"ok":True,"initial":True}                      
+                            else:
+                                response_msg={
+                                "error":True,
+                                "message":"不好意思,資料庫暫時有問題,維修中"}
+                                return jsonify(response_msg), 500 
                         else:
-                            response_msg={
-                            "error":True,
-                            "message":"不好意思,資料庫暫時有問題,維修中"}
-                            return jsonify(response_msg), 500 
-                    else:
-                        response_msg = {"ok":True,"initial":False}    
+                            session["id"] = result["member_id"]
+                            response_msg = {"ok":True,"initial":False}  
+                    elif identity==2:
+                        session["id"] = result["nutri_id"]
+                        response_msg = {"ok":True,"initial":None} 
                     res = make_response(json.dumps(response_msg,ensure_ascii=False),200)
                     res.headers["access_token"] = access_token #把jwt塞在response header
                     return res  #api test ok
@@ -205,7 +220,8 @@ def handle_get_user_data(request):
     connection = db.get_auth_cnx() #取得驗證登入註冊相關操作的自定義connection物件
     if isinstance(connection,Connection): #如果有順利取得連線
         user_id = Utils_obj.get_member_id_from_jwt(request) #使用utils物件的靜態方法取得jwt裡的資訊
-        result = connection.retrieve_member_information(user_id) 
+        user_identity = Utils_obj.get_member_identity_from_jwt(request)
+        result = connection.retrieve_member_information(user_id,user_identity) 
         if result == "error":
             response_msg={
                         "error":True,
@@ -269,7 +285,7 @@ def handle_update_user_data(request):
 
 
 @auth.route('/api/users', methods=["GET","PUT"])
-#@jwt_required_for_user()
+@jwt_required_for_user()
 def user():
     if request.method == "GET": #如果是GET,代表要取得當前登入使用者資料,要驗證JWT
         get_user_data_result = handle_get_user_data(request)
@@ -292,3 +308,4 @@ def signin():
 @auth.route('/api/users/signout',methods=["DELETE"])
 def signout():
     return jsonify({"ok":True}), 200 #api test ok    
+        

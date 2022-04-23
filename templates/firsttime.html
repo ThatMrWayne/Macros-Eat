@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Grape+Nuts&family=Permanent+Marker&family=Rubik+Bubbles&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/earlyaccess/cwtexyen.css">
+    <link rel="stylesheet" href="{{url_for('static',filename='/css/firsttime.css')}}">
+    <link rel="stylesheet" href="{{url_for('static',filename='/css/header_footer.css')}}">
+    <title>填寫資料</title>
+</head>
+<body>
+    <div class="section-1">
+        <div class="nav">
+            <div class="header-1">
+                What U Eat
+            </div>
+        </div>
+    </div>
+    <div class="basic-information">
+        <div id="welcome">
+            Welcome！</br>
+            Please fiil in personal information, we'll provide recommended diet plan for you later~  
+        </div>
+        <div class="form-box">
+            <form class="form">
+                <div class="choose-gender">
+                    <span class="describe">Gender :</span>
+                    <input id="male" type="radio" name="gender" value="male">
+                    <label for="male">male</label>
+                    <input id="female" type="radio" name="gender" value="female">
+                    <label for="female">female</label>
+                </div>
+                <div class="choose-age">
+                    <span class="describe age">Age :</span>
+                    <input id="age"  name="age" type="text">
+                </div>
+                <div class="choose-height">
+                    <span class="describe height">Height :</span>
+                    <input id="height"  name="height" type="text">
+                </div>
+                <div class="choose-weight">
+                    <span class="describe weight">Weight :</span>
+                    <input id="weight"  name="weight" type="text">
+                </div>
+                <div class="choose-activity">
+                    <h3 class="describe">Activity Level :</h3>
+                    <div id="zero">
+                        <input id="level1" type="radio" name="activity" value="level1">
+                        <label for="level1">sedentary</label>
+                    </div>
+                    <div id="light">
+                        <input id="level2" type="radio" name="activity" value="level2">
+                        <label for="level2">light activity (exercise 1~2 days per week)</label>
+                    </div>   
+                    <div id="moderate">
+                        <input id="level3" type="radio" name="activity" value="level3">
+                        <label for="level3">moderate activity (exercise 3~4 days per week)</label>
+                    </div> 
+                    <div id="heavy">
+                        <input id="level4" type="radio" name="activity" value="level4">
+                        <label for="level4">very activate (exercise > 5 days per week)</label>
+                    </div>    
+                </div>
+                <div class="choose-target">
+                    <span class="describe">Target :</span>
+                    <input id="lose" type="radio" name="target" value="lose">
+                    <label for="lose">Lose weight</label>
+                    <input id="maintain" type="radio" name="target" value="maintain">
+                    <label for="maintain">Maintain</label>
+                    <input id="gain" type="radio" name="target" value="gain">
+                    <label for="gain">Gain weight</label>
+                </div>
+                <div class="submit">Calculate</div>
+            </form>   
+
+        </div>
+    </div>  
+    <div class="section-4">
+        <span>COPYRIGHT © 2022 What U Eat</span>
+    </div>
+    <script type="text/javascript" src="/js/firsttime.js"></script>
+
+</body>
+</html>
