@@ -82,9 +82,9 @@ def first():
 		return redirect('/')
 	else:	
 		return render_template("firsttime.html")
-@app.route("/records")
+@app.route("/record")
 def record():
-	return render_template("records.html")
+	return render_template("record.html")
 
 
 

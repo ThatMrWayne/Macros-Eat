@@ -365,7 +365,7 @@ async function sendJWT(jwt){
         if(response.ok){
                 // 進到首頁時,如果已登入過就轉到紀錄畫面
                 if(window.location.pathname==='/'){
-                    window.location.href='/records';
+                    window.location.href='/record';
                 }else if(window.location.pathname==='/records'){
                     // 4/24 這邊要動態render出records頁面
 
