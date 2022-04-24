@@ -1,4 +1,5 @@
-async function submit_information(){
+//送出更新資料
+async function submit_information(payload,jwt){
     try{
         let response = await fetch('/api/users',{
                                      method: 'put',
@@ -6,13 +7,15 @@ async function submit_information(){
                                      headers: {"Authorization" : `Bearer ${jwt}`,'Content-Type': 'application/json'}
                                     });
         let result = await response.json();                            
-        if(response.ok){ //付款完成,不論成功或失敗
-            console.log(result)
-            window.location.href=`/thankyou?number=${result.data.number}`
+        if(response.ok){ //更新會員資料完成
+            console.log(result);
+            window.location.replace('/records') //轉到紀錄主畫面
         }else if (response.status === 403){
             console.log('JWT已失效,請重新登入');
             localStorage.removeItem("JWT");
-            window.location.reload();
+            window.location.href = '/';
+        }else if (response.status === 400){
+            console.log(result)
         }else{
             console.log('伺服器錯誤');
         }
@@ -22,13 +25,82 @@ async function submit_information(){
     }    
 }
 
+//產生提示訊息
+function show_tip(message,attr){
+    const tip = document.querySelector('.tip');
+    if(tip){
+        document.documentElement.style.setProperty('--color',"none");
+        tip.remove();
+    }
+    let div = document.createElement("div");
+    div.appendChild(document.createTextNode(message));
+    div.classList.add("tip");
+    let span = document.querySelector(attr);
+    span.after(div);
+    document.documentElement.style.setProperty('--color',"#F0754F");
+}
+
+//檢查表單的資料
+function validate_form(){
+    let age = document.getElementById("age");
+    let height = document.getElementById("height");
+    let weight = document.getElementById("weight");
+    let result = true;
+    if(!age.value || !Number(age.value)){
+        show_tip('Enter a valid age','.age');
+        result = false;
+        return result;
+    }else if(Number(age.value)<13 || Number(age.value)>80){
+        show_tip('Between 13 and 80','.age');
+        result = false;
+        return result;
+    }else if(!height.value || !Number(height.value) || Number(height.value)<30 || Number(height.value)>230){
+        show_tip('Enter a valid height','.height');
+        console.log('hhh');
+        result = false;
+        return result;
+    }else if(!weight.value || !Number(weight.value) || Number(weight.value)<30 || Number(height.value)>500){
+        show_tip('Enter a valid weight','.weight');
+        result = false;
+        return result;
+    }
+    return result
+}
+
+
+//組織表單資料成json檔
+function organize_form(){
+    let formdata = new FormData(document.querySelector('.form'));
+    let data={}
+    for(let pair of formdata.entries()){
+        if(pair[0]==='age'){
+            let n = Math.round(Number(pair[1]));
+            data[pair[0]]=n;
+        }else if(pair[0]==='weight' || pair[0]==='height'){
+            let n  = Number(Number(pair[1]).toFixed(1));
+            data[pair[0]]=n;
+        }else{
+            data[pair[0]]=Number(pair[1]);
+        }
+    };
+    console.log(data);
+    return JSON.stringify(data)
+}
 
 
 
 
 window.addEventListener("load",()=>{
     let button = document.querySelector(".submit");
+    //註冊按下calculate鈕事件
     button.addEventListener("click",()=>{
-        submit_information();
+        //先檢查表單資料都對不對&有沒有填
+        let validate = validate_form();
+        if(validate){
+            let jwt = localStorage.getItem("JWT");
+            let json_data = organize_form();
+            submit_information(json_data,jwt);
+        }
+        
     })
 })

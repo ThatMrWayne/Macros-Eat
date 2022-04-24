@@ -47,25 +47,22 @@ def verify_signup_info(email,password):
 #驗證更新資訊function
 def verify_update_info(input):
     result = None
-    if (not type(input["sex"]) is int) or (not 0<=input["sex"]<=1):
-        print(input["sex"])
-        print(type(input["sex"]))
-        print('a')
+    if (not type(input["gender"]) is int) or (not 0<=input["gender"]<=1):
         result = False
-    elif (not type(input["height"]) in [int, float] ) or (not 60<=input["height"]<=250):
+    elif (not type(input["height"]) in [int, float] ) or (not 30<=input["height"]<=230):
         print('b')
         print(type(input["height"]))
         result = False
-    elif (not type(input["weight"]) in [int, float] )  or (not 11<=input["weight"]<=200):
+    elif (not type(input["weight"]) in [int, float] )  or (not 30<=input["weight"]<=500):
         print('c')
         result = False    
     elif (not type(input["habit"]) is int) or (not 1<=input["habit"]<=4):
         print('d')
         result = False  
-    elif (not type(input["target"]) is int) or (not 0<=input["target"]<=2):
+    elif (not type(input["target"]) is int) or (not 1<=input["target"]<=3):
         print('e')
         result = False    
-    elif (not type(input["age"]) is int) or (not 12<=input["age"]<=100):
+    elif (not type(input["age"]) is int) or (not 13<=input["age"]<=80):
         print('e')
         result = False     
     else:
@@ -73,7 +70,39 @@ def verify_update_info(input):
     return result        
 
 
-           
+#計算推薦飲食function
+def calc_plan(input):
+    bmr =(10 * round(input["weight"],1)) + (6.25 * round(input["height"],1)) - (5 * input["age"])
+    if input["gender"] == 0:
+        bmr = bmr - 161
+    elif input["gender"] == 1:
+        bmr = bmr + 5
+    pal = {1:1.2,2:1.375,3:1.55,4:1.725}    
+    calo_degree = {1:0.8,2:1,3:1.2}
+    tdee = bmr * pal[input["habit"]]
+    calos = int(tdee * calo_degree[input["target"]])
+    create_at = int(datetime.datetime.now().timestamp()) 
+    #轉成台灣時區
+    gmtTimeDelta = datetime.timedelta(hours=8)
+    gmtTZObject = datetime.timezone(gmtTimeDelta,name="GMT")
+    d = datetime.datetime.fromtimestamp(create_at).astimezone(gmtTZObject)
+    s = d.strftime("%Y/%m/%d %H:%M:%S")
+    plan_name = "recommended plan at " + s
+    recommended = {
+                    "plan_name": plan_name,
+                    "create_at": create_at,
+                    "plan_calories": calos,
+                    "protein": 40,
+                    "fat": 30,
+                    "carbs":30
+                    }
+    return recommended
+
+
+
+
+
+
 
 
 
@@ -234,7 +263,7 @@ def handle_get_user_data(request):
                         "error":True,
                         "message":"不好意思,資料庫暫時有問題,維修中"}
             return jsonify(response_msg), 500    
-def handle_update_user_data(request):
+def handle_update_user_data(request): #update會員資料的時候就要一併產生推薦飲食計畫
       #前端送過來的是json檔
         try:
             request_data = request.get_json()
@@ -244,7 +273,7 @@ def handle_update_user_data(request):
                           "error":True,
                           "message":"更新失敗"}
             return jsonify(response_msg), 400 #api test ok
-        labels = ["sex","height","weight","habit","target","age"]
+        labels = ["gender","height","weight","habit","target","age",]
         input = {}
         for label in labels:
             input[label] = request_data.get(label)
@@ -273,6 +302,12 @@ def handle_update_user_data(request):
                 return jsonify(response_msg), 500
             elif result == True: #更新成功
                 response_msg={ "ok":True }
+                #計算推薦飲食並存入資料庫
+                recommended_plan = calc_plan(input)
+                connection = db.get_diet_plan_cnx()
+                insert_plan = connection.insert_new_diet_plan(recommended_plan,user_id)
+                if insert_plan == True:
+                    print('新增推薦計畫成功')
                 return jsonify(response_msg), 200 #api test ok
         elif connection == "error":  #如果沒有順利取得連線
             response_msg={

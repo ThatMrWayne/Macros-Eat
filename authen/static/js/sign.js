@@ -128,7 +128,7 @@ async function sendAuthSignIn(data){
                 if(result["initial"] === true){ //表示是第一次登入,要轉到填寫資料畫面
                     window.location.href="/firsttime"
                 }else{
-                    window.location.href="/firsttime"
+                    window.location.href="/records"
                 }
         }else if(response.status === 400){ //代表1.密碼錯誤2.沒有此信箱會員
                 showMessage(result.message,true,null)
@@ -363,10 +363,12 @@ async function sendJWT(jwt){
                                     });
         let result = await response.json();                         
         if(response.ok){
-                // 進到首頁時,如果已登入過就轉到測試頁面
+                // 進到首頁時,如果已登入過就轉到紀錄畫面
                 if(window.location.pathname==='/'){
-                    window.location.href='/firsttime';
-                }else if(window.location.pathname==='/test'){
+                    window.location.href='/records';
+                }else if(window.location.pathname==='/records'){
+                    // 4/24 這邊要動態render出records頁面
+
                     //右上角放小頭像
                     let login = document.querySelector('.login');
                     let img  = new Image();
@@ -396,10 +398,13 @@ async function sendJWT(jwt){
                     console.log('準備連socket')
                     
                     socket_connect();
+                }else if(window.location.pathname==='/chat'){
+                    //這邊做動態render諮詢頁面
                 }
         }else{
             console.log('jwt已失效');
             localStorage.removeItem("JWT");
+            window.location.replace('/') //導回首頁
         };
     }catch(message){
         console.log(`${message}`)
@@ -417,15 +422,15 @@ function init_sign(){
     let jwt = localStorage.getItem("JWT");
     if(jwt){ //如果已經有jwt,加在header上送出request
         sendJWT(jwt);
-    }else if (window.location.pathname!=='/'){
-        window.location.replace('/');
-    }else{
+    }else if (window.location.pathname ==='/'){
         let goto_signup = document.querySelector(".tosignup");
         goto_signup.addEventListener("click",()=>{
             switchBox(false)
         });    
         let signin_button = document.getElementById("signbtn");
         signin_button.addEventListener("click",function(){handleSignIn()});
+    }else{
+       window.location.replace('/');
     }
 }    
 

@@ -12,6 +12,18 @@ from model.connection import Weight_connection
 
 TABLES = {}
 #members
+TABLES['nutris'] = (
+    "CREATE TABLE IF NOT EXISTS `nutris` ("
+    "  `nutri_id` bigint NOT NULL AUTO_INCREMENT,"
+    "  `name` varchar(255) NOT NULL,"
+    "  `email` varchar(255) NOT NULL,"
+    "  `hash_password` varchar(255) NOT NULL,"
+    "  `identity` int NOT NULL,"
+    "  PRIMARY KEY (`nutri_id`),"
+    "  UNIQUE KEY(`email`)"
+    ")")
+
+
 TABLES['members'] = (
     "CREATE TABLE IF NOT EXISTS `members` ("
     "  `member_id` bigint NOT NULL AUTO_INCREMENT,"
@@ -20,19 +32,20 @@ TABLES['members'] = (
     "  `hash_password` varchar(255) NOT NULL,"
     "  `signup_date` bigint NOT NULL," #discuss with ta
     "  `age` int ,"
-    "  `height` float,"
-    "  `weight` float,"
+    "  `height` float(4,1),"
+    "  `weight` float(4,1),"
     "  `habit` int,"
     "  `target` int,"
-    "  `sex` int,"
+    "  `gender` int,"
     "  `initial` boolean,"
+    "  `identity` int NOT NULL,"
     "  PRIMARY KEY (`member_id`),"
     "  UNIQUE KEY(`email`)"
     ")")
 
 #food store house
-TABLES['food_house'] = (
-    "CREATE TABLE IF NOT EXISTS `food_house` ("
+TABLES['food'] = (
+    "CREATE TABLE IF NOT EXISTS `food` ("
     "  `food_id` bigint NOT NULL AUTO_INCREMENT,"
     "  `member_id` bigint,"
     "  `food_name` varchar(255) NOT NULL,"
@@ -74,8 +87,8 @@ TABLES['intakes'] = (
     ")")  
 
 #diet plans (4/19 checked)
-TABLES['diet_plans'] = (
-    "CREATE TABLE IF NOT EXISTS `diet_plans` ("
+TABLES['plans'] = (
+    "CREATE TABLE IF NOT EXISTS `plans` ("
      " `plan_id` bigint NOT NULL AUTO_INCREMENT,"
     "  `create_at` bigint NOT NULL,"
     "  `member_id` bigint NOT NULL,"
@@ -89,8 +102,8 @@ TABLES['diet_plans'] = (
     ")")  
 
 #weight
-TABLES['weight_records'] = (
-    "CREATE TABLE IF NOT EXISTS `weight_records` ("
+TABLES['weight'] = (
+    "CREATE TABLE IF NOT EXISTS `weight` ("
     "  `weight_id` bigint NOT NULL AUTO_INCREMENT,"
     "  `create_at` bigint NOT NULL,"
     "  `member_id` bigint NOT NULL,"
@@ -123,8 +136,8 @@ class DataBase():
             exit(1)
 
         '''   
-        #tables=['food_house','records','intakes','diet_plans','weight_records']
-        tables=['weight_records']
+        tables=['members','food','records','intakes','plans','weight']
+        #tables=['members']
         for table in tables:
         #建立資料表
             cnx = self.cnxpool.get_connection()
@@ -140,7 +153,7 @@ class DataBase():
             finally:
                 cursor.close()
                 cnx.close() 
-           '''  
+            '''
 
 
 

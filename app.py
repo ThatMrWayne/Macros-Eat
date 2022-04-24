@@ -76,11 +76,20 @@ app.wsgi_app = TestMiddleWare(app.wsgi_app)
 @app.route("/")
 def index():
 	return render_template("index.html")
-
-
 @app.route("/firsttime")
 def first():
-	return render_template("firsttime.html")
+	if request.headers.get("referer") != 'http://172.20.10.2:3100/':
+		return redirect('/')
+	else:	
+		return render_template("firsttime.html")
+@app.route("/records")
+def record():
+	return render_template("records.html")
+
+
+
+
+
 
 
 @app.route("/test")

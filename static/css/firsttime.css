@@ -12,20 +12,22 @@
 #welcome{
     flex: none;
     border-bottom: 1px lightgray solid;
-    width:70%;
-    height:80px;
+    width:90%;
+    height:90px;
     text-align: center;
     line-height: 30px;
     font-size: 22px;
     color:#555;
-    margin-bottom: 25px;
+    margin-bottom: 35px;
+    word-wrap: break-word;
 }
 
 .form-box{
     flex: none;
-    width: 550px;
+    width: 560px;
     background-color: #E8E8E8;
     border-radius: 10px;
+    box-shadow: 5px 8px 10px 6px rgb(0 0 0 / 20%);
 }
 
 .form{
@@ -34,21 +36,20 @@
     padding: 0px;
     height: 100%;
     width: 100%;
-    padding-left: 15px;
-    padding-right: 15px;
-    padding-bottom: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-bottom: 32px;
     border-radius: 10px;
 }
 
 .form>div{
     box-sizing: border-box;
-    margin-top: 30px;
+    margin-top: 32px;
 
 }
 form span{
     display: inline-block;
     vertical-align: middle;
-    margin-right: 5px;
 }
 
 /* 性別*/
@@ -83,52 +84,81 @@ label{
 .choose-gender input:hover{
     cursor: pointer;
 }
+.gender{
+    width:80px;
+}
 
 
 
 /*年齡*/
+.choose-age{
+    position: relative;
+}
+
 .choose-age input{
     border-radius: 5px;
     border:1px white solid;
-    width:80%;
+    width: 70%;
+
     
     vertical-align: middle;
     display: inline-block;
 
     margin:0px;
-    padding:4px
+    padding:8px;
 } 
+
+.age{
+    width:80px;
+}
+
+
 
 
 
 /*身高*/
+.choose-height{
+    position: relative;
+}
 .choose-height input{
     border-radius: 5px;
     border:1px white solid;
-    width:80%;
+    width:70%;
     
     vertical-align: middle;
     display: inline-block;
 
     margin:0px;
-    padding:4px
+    padding:8px
 } 
 
+.height{
+    width:80px;
+}
+
 /*體重*/
+.choose-weight{
+    position: relative;
+}
+
 .choose-weight input{
     border-radius: 5px;
     border:1px white solid;
-    width:80%;
+    width:70%;
     
     vertical-align: middle;
     display: inline-block;
 
     margin:0px;
-    padding:4px
+    padding:8px
 } 
 
 #age:focus,#height:focus,#weight:focus{
     outline: none;
+}
+
+.weight{
+    width:80px;
 }
 
 /*活動程度*/
@@ -194,6 +224,10 @@ h3{
     margin-right: 5px;
 }  
 
+.target{
+    width:80px;
+}
+
 .choose-target input:hover{
     cursor: pointer;
 }
@@ -228,6 +262,41 @@ h3{
     color: #555;
     font-size: 20px;
     font-weight: 400;
+}
+
+/*提示訊息*/
+:root{
+    --color: none;
+}
+
+.tip{
+    color: white;
+    font-size: 16px;
+    position: absolute;
+    height: fit-content;
+    box-sizing: border-box;
+    bottom: -25px;
+    background-color: #F0754F;
+    padding-left:4px;
+    padding-right: 4px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    border-radius: 4px;
+    box-shadow: 2px 2px 1px 1px rgba(0, 0, 0, 0.2);
+    border-top: none;
+
+}
+
+.tip::after{
+    content:'';
+    height: 0;
+    display: block;
+    position: absolute;
+    top:-9px;
+    left:3px;
+    border-bottom: 10px solid var(--color);
+    border-right: 8px solid transparent;
+    border-left: 8px solid transparent;
 }
 
 

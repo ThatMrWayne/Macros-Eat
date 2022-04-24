@@ -23,55 +23,55 @@
     <div class="basic-information">
         <div id="welcome">
             Welcome！</br>
-            Please fiil in personal information, we'll provide recommended diet plan for you later~  
+            Please fill in personal information, we'll provide recommended diet plan for you later~  
         </div>
         <div class="form-box">
             <form class="form">
                 <div class="choose-gender">
-                    <span class="describe">Gender :</span>
-                    <input id="male" type="radio" name="gender" value="male">
+                    <span class="describe gender">Gender :</span>
+                    <input id="male" type="radio" name="gender" value="1" checked>
                     <label for="male">male</label>
-                    <input id="female" type="radio" name="gender" value="female">
+                    <input id="female" type="radio" name="gender" value="0">
                     <label for="female">female</label>
                 </div>
                 <div class="choose-age">
                     <span class="describe age">Age :</span>
-                    <input id="age"  name="age" type="text">
+                    <input id="age"  name="age" type="text" placeholder="Age" inputmode="decimal">
                 </div>
                 <div class="choose-height">
                     <span class="describe height">Height :</span>
-                    <input id="height"  name="height" type="text">
+                    <input id="height"  name="height" type="text" placeholder="Height (cm)" inputmode="decimal">
                 </div>
                 <div class="choose-weight">
                     <span class="describe weight">Weight :</span>
-                    <input id="weight"  name="weight" type="text">
+                    <input id="weight"  name="weight" type="text" placeholder="Weight (kg)" inputmode="decimal">
                 </div>
                 <div class="choose-activity">
                     <h3 class="describe">Activity Level :</h3>
                     <div id="zero">
-                        <input id="level1" type="radio" name="activity" value="level1">
-                        <label for="level1">sedentary</label>
+                        <input id="level1" type="radio" name="habit" value="1" checked>
+                        <label for="level1">sedentary (little/no exercise)</label>
                     </div>
                     <div id="light">
-                        <input id="level2" type="radio" name="activity" value="level2">
-                        <label for="level2">light activity (exercise 1~2 days per week)</label>
+                        <input id="level2" type="radio" name="habit" value="2">
+                        <label for="level2">light activity (exercise 1~2 times/week)</label>
                     </div>   
                     <div id="moderate">
-                        <input id="level3" type="radio" name="activity" value="level3">
-                        <label for="level3">moderate activity (exercise 3~4 days per week)</label>
+                        <input id="level3" type="radio" name="habit" value="3">
+                        <label for="level3">moderate activity (exercise 3~4 times/week)</label>
                     </div> 
                     <div id="heavy">
-                        <input id="level4" type="radio" name="activity" value="level4">
-                        <label for="level4">very activate (exercise > 5 days per week)</label>
+                        <input id="level4" type="radio" name="habit" value="4">
+                        <label for="level4">very activate (exercise >5 times/week)</label>
                     </div>    
                 </div>
                 <div class="choose-target">
-                    <span class="describe">Target :</span>
-                    <input id="lose" type="radio" name="target" value="lose">
+                    <span class="describe target">Target :</span>
+                    <input id="lose" type="radio" name="target" value="1">
                     <label for="lose">Lose weight</label>
-                    <input id="maintain" type="radio" name="target" value="maintain">
+                    <input id="maintain" type="radio" name="target" value="2" checked>
                     <label for="maintain">Maintain</label>
-                    <input id="gain" type="radio" name="target" value="gain">
+                    <input id="gain" type="radio" name="target" value="3">
                     <label for="gain">Gain weight</label>
                 </div>
                 <div class="submit">Calculate</div>
@@ -80,7 +80,7 @@
         </div>
     </div>  
     <div class="section-4">
-        <span>COPYRIGHT © 2022 What U Eat</span>
+        <span>COPYRIGHT © 2022 ThatMrWayne</span>
     </div>
     <script type="text/javascript" src="/js/firsttime.js"></script>
 

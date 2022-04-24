@@ -108,8 +108,8 @@ class Auth_connection(Connection):
     def update_member_info(self,input,id):
         result, msg = None, None
         cursor = self.cnx.cursor(dictionary=True)
-        query = "UPDATE members SET sex = %(sex)s, height = %(height)s, weight=%(weight)s, habit=%(habit)s,target=%(target)s,age=%(age)s WHERE member_id=%(id)s" 
-        input_data = {'sex':input["sex"],"height": round(input["height"],1), "weight": round(input["weight"],1), 
+        query = "UPDATE members SET gender = %(gender)s, height = %(height)s, weight=%(weight)s, habit=%(habit)s,target=%(target)s,age=%(age)s WHERE member_id=%(id)s" 
+        input_data = {'gender':input["gender"],"height": round(input["height"],1), "weight": round(input["weight"],1), 
         'habit': input["habit"], 'target':input["target"],"age":input["age"],"id":id}
         try:
             cursor.execute(query, input_data)
@@ -150,7 +150,7 @@ class Food_connection(Connection):
     def insert_new_food(self,request_data,user_id):
         result, msg = None, None
         cursor = self.cnx.cursor(dictionary=True)
-        query = "INSERT INTO food_house VALUES (DEFAULT,%(member_id)s,%(food_name)s,%(protein)s,%(fat)s,%(carbs)s)"
+        query = "INSERT INTO food VALUES (DEFAULT,%(member_id)s,%(food_name)s,%(protein)s,%(fat)s,%(carbs)s)"
         input_data = {'member_id': user_id, 'food_name': request_data["food_name"], 'protein': request_data["protein"], 'fat':request_data["fat"], 'carbs':request_data["carbs"]}
         try:
             cursor.execute(query, input_data)
@@ -171,7 +171,7 @@ class Food_connection(Connection):
     def delete_food(self,food_id,user_id):
         result, msg = None, None
         cursor = self.cnx.cursor(buffered=True)
-        query = "DELETE FROM food_house WHERE food_id = %(food_id)s AND member_id=%(member_id)s" 
+        query = "DELETE FROM food WHERE food_id = %(food_id)s AND member_id=%(member_id)s" 
         input_data = {'food_id':food_id,"member_id": user_id}
         try:
             cursor.execute(query, input_data)
@@ -201,7 +201,7 @@ class Food_connection(Connection):
         cursor= self.cnx.cursor(dictionary=True)
         try:
             query = ("SELECT food_id, food_name, protein, fat, carbs from "
-            "food_house WHERE member_id = %(member_id)s ORDER BY food_id LIMIT %(st)s, 11 ")
+            "food WHERE member_id = %(member_id)s ORDER BY food_id LIMIT %(st)s, 11 ")
             cursor.execute(query,{"member_id":user_id,'st':int(page)*10})
             food_data = cursor.fetchall() #可能是空的[]   
             #查看有沒有下一頁
@@ -231,7 +231,7 @@ class Food_connection(Connection):
         cursor= self.cnx.cursor(dictionary=True)
         try:
             keyword_query = ("SELECT food_id, food_name, protein, fat, carbs from "
-            "food_house WHERE MATCH(`food_name`) AGAINST( %(food)s IN NATURAL LANGUAGE MODE )") 
+            "food WHERE MATCH(`food_name`) AGAINST( %(food)s IN NATURAL LANGUAGE MODE )") 
             cursor.execute(keyword_query,{"food":keyword})
             food_data = cursor.fetchall() #可能是空的[]
    
@@ -253,7 +253,7 @@ class Plan_connection(Connection):
     def insert_new_diet_plan(self,request_data,user_id):
         result, msg = None, None
         cursor = self.cnx.cursor(dictionary=True)
-        query = "INSERT INTO diet_plans VALUES (DEFAULT,%(create_at)s,%(member_id)s,%(protein)s,%(fat)s,%(carbs)s,%(plan_calories)s,%(plan_name)s)"
+        query = "INSERT INTO plans VALUES (DEFAULT,%(create_at)s,%(member_id)s,%(protein)s,%(fat)s,%(carbs)s,%(plan_calories)s,%(plan_name)s)"
         input_data = {'member_id': user_id, 'create_at' : request_data["create_at"] ,'plan_name': request_data.get("plan_name") ,'plan_calories': request_data["plan_calories"], 'protein': request_data["protein"], 'fat':request_data["fat"], 'carbs':request_data["carbs"]}
         try:
             cursor.execute(query, input_data)
@@ -274,7 +274,7 @@ class Plan_connection(Connection):
     def update_diet_info(self,input,user_id):
         result, msg = None, None
         cursor = self.cnx.cursor(dictionary=True)
-        query = "UPDATE diet_plans SET plan_calories = %(plan_calories)s, protein = %(protein)s , fat = %(fat)s , carbs=%(carbs)s WHERE plan_id = %(plan_id)s AND member_id = %(member_id)s" 
+        query = "UPDATE plans SET plan_calories = %(plan_calories)s, protein = %(protein)s , fat = %(fat)s , carbs=%(carbs)s WHERE plan_id = %(plan_id)s AND member_id = %(member_id)s" 
         input_data = {'member_id': user_id, 'plan_calories':input["plan_calories"],'plan_id':input["plan_id"],"protein": input["protein"],"fat":input["fat"],"carbs":input["carbs"]}
         try:
             cursor.execute(query, input_data)
@@ -301,7 +301,7 @@ class Plan_connection(Connection):
     def delete_diet(self,plan_id,user_id):
         result, msg = None, None
         cursor = self.cnx.cursor(buffered=True)
-        query = "DELETE FROM diet_plans WHERE plan_id = %(plan_id)s AND member_id=%(member_id)s" 
+        query = "DELETE FROM plans WHERE plan_id = %(plan_id)s AND member_id=%(member_id)s" 
         input_data = {'plan_id':plan_id,"member_id": user_id}
         try:
             cursor.execute(query, input_data)
@@ -330,7 +330,7 @@ class Plan_connection(Connection):
         cursor= self.cnx.cursor(dictionary=True)
         try:
             query = ("SELECT plan_id, plan_name, plan_calories,protein, fat, carbs from "
-            "diet_plans WHERE member_id = %(member_id)s") #member_id foreign key is non-clustered index
+            "plans WHERE member_id = %(member_id)s") #member_id foreign key is non-clustered index
             cursor.execute(query,{"member_id":user_id})
             diet_data = cursor.fetchall() #可能是空的[]    
             result={
@@ -505,8 +505,8 @@ class Weight_connection(Connection):
     def insert_new_weight(self,input,user_id):
         result, msg = None, None
         cursor = self.cnx.cursor(dictionary=True)
-        query1 = "SELECT weight_id FROM weight_records WHERE member_id = %(member_id)s AND create_at = %(create_at)s"
-        query2 = "INSERT INTO weight_records VALUES (DEFAULT,%(create_at)s,%(member_id)s,%(weight)s)"
+        query1 = "SELECT weight_id FROM weight WHERE member_id = %(member_id)s AND create_at = %(create_at)s"
+        query2 = "INSERT INTO weight VALUES (DEFAULT,%(create_at)s,%(member_id)s,%(weight)s)"
         input_data = {'member_id': user_id, 'create_at':input['create_at'], 'weight':input["weight"]}
         try:
             #先確認該日有無體重紀錄
@@ -533,7 +533,7 @@ class Weight_connection(Connection):
     def update_weight(self,input,user_id): 
         result, msg = None, None
         cursor = self.cnx.cursor()
-        query = "UPDATE weight_records SET weight = %(new_weight)s WHERE member_id = %(member_id)s AND create_at = %(create_at)s" 
+        query = "UPDATE weight SET weight = %(new_weight)s WHERE member_id = %(member_id)s AND create_at = %(create_at)s" 
         input_data = {'member_id': user_id, 'create_at':input["create_at"], "new_weight":input["new_weight"]}
         try:
             cursor.execute(query, input_data)
@@ -562,7 +562,7 @@ class Weight_connection(Connection):
         cursor= self.cnx.cursor(dictionary=True)
         try:
             query = ("SELECT create_at, weight "
-            "from weight_records WHERE member_id = %(member_id)s AND (create_at BETWEEN %(start_date)s AND %(end_date)s) ORDER BY create_at")
+            "from weight WHERE member_id = %(member_id)s AND (create_at BETWEEN %(start_date)s AND %(end_date)s) ORDER BY create_at")
             cursor.execute(query,{"member_id":user_id,"start_date":start_date,"end_date":end_date})
             record = cursor.fetchall() #可能是none    
         except mysql.connector.Error as err:
