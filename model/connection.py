@@ -86,7 +86,7 @@ class Auth_connection(Connection):
         cursor = self.cnx.cursor(dictionary=True)
         #2022/4/8: members要加一欄idendity,要另外加一個新表:營養師
         if identity ==1:
-            query = "SELECT member_id, name, email, height, weight, target,identity FROM members WHERE member_id=%(id)s"
+            query = "SELECT member_id, name, email, height, weight, target, identity, initial FROM members WHERE member_id=%(id)s"
         elif identity == 2:
             query = "SELECT nutri_id, name, email, identity FROM nutris WHERE nutri_id=%(id)s"
 

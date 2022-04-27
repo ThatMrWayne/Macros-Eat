@@ -201,31 +201,17 @@ def handle_signin(request):
                 check_result = check_password_hash(result["hash_password"],password)
                 if check_result:
                     #產生JWT_token
-                    if identity ==1:
-                        access_token = create_access_token(identity=json.dumps({'email':email,'id':result["member_id"],'name':result["name"],'identity':identity}),expires_delta=datetime.timedelta(days=5))
+                    if identity ==1 and result["initial"]==1: #表示是第一次登入
+                        access_token = create_access_token(identity=json.dumps({'email':email,'id':result["member_id"],'name':result["name"],'identity':identity,'initial':True}),expires_delta=datetime.timedelta(days=5))
+                        response_msg = {"ok":True,"initial":True}
+                    elif identity ==1 and result["initial"]==0: #表示不是第一次登入
+                        access_token = create_access_token(identity=json.dumps({'email':email,'id':result["member_id"],'name':result["name"],'identity':identity,'initial':False}),expires_delta=datetime.timedelta(days=5))
+                        session["id"] = result["member_id"]
+                        response_msg = {"ok":True,"initial":False}                      
                     elif identity ==2:
-                        access_token = create_access_token(identity=json.dumps({'email':email,'id':result["nutri_id"],'name':result["name"],'identity':identity}),expires_delta=datetime.timedelta(days=5))
-
-                    #要查看是不是第一次登入
-                    if identity==1:
-                        if result["initial"]==1:
-                            #再把initial改成false
-                            connection = db.get_auth_cnx() 
-                            change_initial = connection.change_initial_state(email)   
-                            if change_initial == True:
-                                session["id"] = result["member_id"] #存一個email cookie 給之後disconnect用
-                                response_msg = {"ok":True,"initial":True}                      
-                            else:
-                                response_msg={
-                                "error":True,
-                                "message":"不好意思,資料庫暫時有問題,維修中"}
-                                return jsonify(response_msg), 500 
-                        else:
-                            session["id"] = result["member_id"]
-                            response_msg = {"ok":True,"initial":False}  
-                    elif identity==2:
                         session["id"] = result["nutri_id"]
-                        response_msg = {"ok":True,"initial":None} 
+                        access_token = create_access_token(identity=json.dumps({'email':email,'id':result["nutri_id"],'name':result["name"],'identity':identity}),expires_delta=datetime.timedelta(days=5))
+                        response_msg = {"ok":True,"initial":None}
                     res = make_response(json.dumps(response_msg,ensure_ascii=False),200)
                     res.headers["access_token"] = access_token #把jwt塞在response header
                     return res  #api test ok
@@ -294,6 +280,8 @@ def handle_update_user_data(request): #update會員資料的時候就要一併�
         connection = db.get_auth_cnx() #取得驗證登入註冊相關操作的自定義connection物件
         if isinstance(connection,Connection): #如果有順利取得連線
             user_id = Utils_obj.get_member_id_from_jwt(request)
+            email = Utils_obj.get_email_from_jwt(request)
+            name = Utils_obj.get_member_name_from_jwt(request)
             result = connection.update_member_info(input,user_id)
             if result == "error": #如果檢查回傳結果是"error",代表資料庫query時發生錯誤
                 response_msg={
@@ -308,6 +296,29 @@ def handle_update_user_data(request): #update會員資料的時候就要一併�
                 insert_plan = connection.insert_new_diet_plan(recommended_plan,user_id)
                 if insert_plan == True:
                     print('新增推薦計畫成功')
+                else:
+                    response_msg={
+                    "error":True,
+                    "message":"不好意思,資料庫暫時有問題,維修中"}
+                    return jsonify(response_msg), 500    
+                #查看jwt裡的initial如果=true,代表是第一次更新資料
+                initial = Utils_obj.get_member_initial_from_jwt(request) 
+                if initial == True:
+                    connection = db.get_auth_cnx() 
+                    change_initial = connection.change_initial_state(email)   
+                    if change_initial == True:
+                        session["id"] = user_id #存一個email cookie 給之後disconnect用 
+                        #送一個新的JWT
+                        new_access_token = create_access_token(identity=json.dumps({'email':email,'id':user_id,'name':name,'identity':1,'initial':False}),expires_delta=datetime.timedelta(days=5))  
+                        res = make_response(json.dumps(response_msg,ensure_ascii=False),200)
+                        res.headers["access_token"] = new_access_token #把jwt塞在response header
+                        print('幹幹叫')      
+                        return res         
+                    else:
+                        response_msg={
+                        "error":True,
+                        "message":"不好意思,資料庫暫時有問題,維修中"}
+                        return jsonify(response_msg), 500                   
                 return jsonify(response_msg), 200 #api test ok
         elif connection == "error":  #如果沒有順利取得連線
             response_msg={

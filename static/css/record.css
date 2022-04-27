@@ -80,17 +80,83 @@ div{
 
 .right-record{
     display: grid;
-    grid-template-rows: 7fr 3fr;
+    grid-template-rows: 6.5fr 3.5fr;
+    border-left: 2px lightgray solid;
 
 }
 
 .chart{
-    border: 1px blue solid;
+    border-bottom: 3px lightgray solid;
 }
 
 .plan-nutrition{
-    border: 1px blue solid;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
 }
+
+/*目前攝取 */
+.current-status{
+    border-right: 1px solid lightgray;
+}
+.plan-nutrition > .current-status > .current-title{
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+div.current{
+    padding-left: 30px;
+    padding-right: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 5px;
+    margin-bottom: 5px;
+ }
+
+ div.current span{
+     display: inline-block;
+ }
+
+/*計畫攝取 */
+.plan-nutrition > .planned > .target-title{
+
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.plan-nutrition > .planned > .target-title > .edit-button{
+    position: absolute;
+    right:30px;
+    display:inline-block;
+    border-radius: 5px;
+    border:1px solid lightslategray
+}
+
+
+div.plan{
+    padding-left: 30px;
+    padding-right: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 5px;
+    margin-bottom: 5px;
+ }
+
+ div.plan span{
+     display: inline-block;
+ }
+
+
+
+
+
+
+
+
+
 
 .left-record{
     display: flex;
@@ -105,6 +171,9 @@ div{
     height:80%;
     border-radius: 10px;
     box-shadow: 3px 3px 5px 4px rgb(0 0 0 / 10%);
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 9fr
 }
 #input-area{
     position: relative;
@@ -114,7 +183,7 @@ div{
     padding-left: 5px;
     padding-top: 10px;
     padding-bottom: 15px;
-    border-bottom: 1px lightgray solid;
+    border-bottom: 3px lightgray solid;
 }
 #food_name{
     flex: none;
@@ -163,21 +232,25 @@ div{
     width: 100%;
 }
 
+
 .consume-food{
-    border: 1px black solid;
     margin-top: 15px;
+    overflow: auto;
 }
 
-.consume-food>ul{
+.consume-food > ul{
     list-style: none;
     margin: 0px;
     padding-left: 10px;
     box-sizing: border-box;
 }
 
-.consume-food>ul>li{
-    border: 1px blue solid;
-
+.consume-food > ul > li{
+    display: flex;
+    justify-content: space-around;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border-bottom: 1px lightgray solid;
 }
 
 

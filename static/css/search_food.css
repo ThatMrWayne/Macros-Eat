@@ -1,0 +1,15 @@
+.search-result{
+    position: absolute;
+    top: 23px;
+    left: 30px;
+}
+.u{
+    list-style-type: none;
+    border: 1px solid black;
+    box-sizing: border-box;
+    width: 200px;
+    margin: 0px;
+    padding: 0px;
+    height:200px;
+    overflow:auto;
+}

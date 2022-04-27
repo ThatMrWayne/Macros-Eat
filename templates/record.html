@@ -8,309 +8,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Grape+Nuts&family=Permanent+Marker&family=Rubik+Bubbles&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/earlyaccess/cwtexyen.css">
-    <link rel="stylesheet" href="{{url_for('static',filename='/css/record.css')}}">
-    <style>
-        body{
-            padding: 0px;
-            margin: 0px;
-            box-sizing: border-box;
-            background-color: rgb(240,240,240);
-        }
-        div{
-            box-sizing: border-box;
-        }
-
-        .navmenu{
-            position: fixed;
-            top: 0px;
-            bottom:0px;
-            width:220px;
-            background-color: #2D303C;
-        }
-
-        .navmenu-brand{
-            width: 100%;
-            height:200px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
-        .navmenu-brand-logo{
-            color:#F0754F;
-            font-family: 'Caveat Brush', cursive;
-            font-family: 'Grape Nuts', cursive;
-            font-family: 'Permanent Marker', cursive;
-            font-family: 'Rubik Bubbles', cursive;
-            font-size: 38px;
-            flex: none;
-            position: relative;
-            right:30px;
-        }
-        .logo{
-            width:50px;
-            position: absolute;
-            bottom: 6px;
-            transform: translateX(10px);
-        }
-
-        .main-container{
-            display: grid;
-            grid-template-columns: 1fr;
-            grid-template-rows: 1.5fr 8.5fr;
-            margin-left: 220px;
-            min-height: 100vh;
-        }
-
-        @keyframes blink{
-            0%{opacity: 0.1;}
-            50%{opacity: 1}
-            100%{opacity: 0.1;}
-        }
-
-        .loading{
-            color:#F0754F ;
-            position: relative;
-            animation: blink 2s infinite;
-            font-size: 25px;
-            text-align: center;
-            padding-top: 80px;
-        }
-        .calender-container{
-            border-bottom: 3px rgb(211,211,211,0.5) solid;
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            background-color:rgb(225,225,225);
-
-        }
-
-        .record-container{
-           display: grid;
-           grid-template-columns: 1fr 1fr;
-        }
-
-        .right-record{
-            display: grid;
-            grid-template-rows: 7fr 3fr;
-
-        }
-
-        .chart{
-            border: 1px blue solid;
-        }
-
-        .plan-nutrition{
-            border: 1px blue solid;
-        }
-
-        .left-record{
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .intake-record{
-            border: 0.5px lightgray solid;
-            flex: none;
-            width:80%;
-            height:80%;
-            border-radius: 10px;
-            box-shadow: 3px 3px 5px 4px rgb(0 0 0 / 10%);
-        }
-        #input-area{
-            position: relative;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding-left: 5px;
-            padding-top: 10px;
-            padding-bottom: 15px;
-            border-bottom: 1px lightgray solid;
-        }
-        #food_name{
-            flex: none;
-            width:50%;
-            height:34px;
-            font-size: 16px;
-            padding-left: 5px;
-            background-color: rgb(240,240,240);
-            border-style: none;
-            border-bottom: 2px solid lightgray;
-        }
-        #food_portion{
-            flex: none;
-            width:20%;
-            height:34px;
-            font-size: 16px;
-            padding-left: 5px;
-            background-color: rgb(240,240,240);
-            border-style: none;
-            border-bottom: 2px solid lightgray;
-        }
-
-
-        #food_name::-webkit-input-placeholder,#food_portion::-webkit-input-placeholder{
-            font-size: 16px;
-        }
-
-        #food_name:focus,#food_portion:focus{
-            outline: none;
-        }
-        #send_message{
-            flex: none;
-            width:35px;
-            height: 35px;
-        }
-        #send_message:hover{
-            cursor: pointer;
-            box-shadow: 1px 1px 3px 2px rgb(0 0 0 / 20%);
-
-        }
-
-        #send_message:active{
-            transform:translateX(2px) translateY(2px);
-        }
-        #add{
-            width: 100%;
-        }
-
-        .consume-food{
-            border: 1px black solid;
-            margin-top: 15px;
-        }
-
-        .consume-food>ul{
-            list-style: none;
-            margin: 0px;
-            padding-left: 10px;
-            box-sizing: border-box;
-        }
-
-        .consume-food>ul>li{
-            border: 1px blue solid;
-
-        }
-
-
-        .datepicker-toggle{
-            position: relative;
-            flex:none;
-            width:50px;
-            height: 50px;
-            left:100px;
-        }    
-
-        .datepicker-toggle-button {
-            display: inline-block;
-            width: 100%;
-            height: 100%;         
-        }
-
-
-        .datepicker-input {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-            box-sizing: border-box;
-        }
-
-        .datepicker-input::-webkit-calendar-picker-indicator {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            cursor: pointer;
-        }
-
-        .show-date{
-            position: relative;
-            flex:none;
-            width:200px;
-            left:200px;
-            font-family:'Gill Sans', 'Gill Sans MT', 'Trebuchet MS', sans-serif;
-            font-size: 35px;
-        }
-
-        .user-profile{
-            padding-top: 20px;
-            text-align: left;
-            padding-bottom: 20px;
-            padding-left: 30px;
-        }
-        .user-profile::after{
-            content: "";
-            display: block;
-            margin-top: 20px;
-            border-bottom: 2px rgb(240,240,240,0.3) solid;
-        }
-
-
-        .user-profile:hover{
-            cursor: pointer;
-        }
-
-        .profile_picture{
-            display: inline-block;
-            vertical-align: middle;
-            background-color: aliceblue;
-            border-radius: 50%;
-            width: 40px;
-        }
-        .username{
-            vertical-align: middle;
-            font-size: 20px;
-            font-style: italic;
-            color: aliceblue;
-        }
-        .username:hover{
-            color:#F0754F
-        }
-
-        .nav-page{
-            color:aliceblue;
-            font-size: 20px;
-            padding-left: 30px;
-            text-align:left;
-            margin-top: 20px;
-            font-family:'Gill Sans', 'Gill Sans MT', 'Trebuchet MS', sans-serif
-        }
-        .nav-page:hover{
-            color:#F0754F;
-            cursor:pointer
-        }
-
-        .health-helper::after{
-            content: "";
-            display: block;
-            margin-top: 40px;
-            border-bottom: 2px rgb(240,240,240,0.3) solid;
-        }
-        
-
-        .logout{
-            color:aliceblue;
-            position: absolute;
-            bottom:20px;
-            left:30px;
-            font-size: 18px;
-            font-family:'Gill Sans', 'Gill Sans MT', 'Trebuchet MS', sans-serif
-        }
-        .logout:hover{
-            color:#F0754F;
-            cursor:pointer
-        }
-
-
-
-    </style>
+    <link rel="stylesheet" href="/css/record.css">
+    <link rel="stylesheet" href="/css/search_food.css">
+   
     <title>Document</title>
 </head>
 <body>
@@ -370,9 +70,21 @@
                     </div>
                     <div class="consume-food">
                         <ul>
-                            <li>a</li>
-                            <li>b</li>
-                            <li>c</li>
+                            <li>
+                                <span class="food-name">雞胸肉</span>
+                                <span class="food-amount">200</span>
+                                <span>g</span>
+                            </li>
+                            <li>
+                                <span class="food-name">雞胸肉</span>
+                                <span class="food-amount">200</span>
+                                <span>g</span>
+                            </li>
+                            <li>
+                                <span class="food-name">雞胸肉</span>
+                                <span class="food-amount">200</span>
+                                <span>g</span>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -382,17 +94,45 @@
 
                 </div>
                 <div class="plan-nutrition">
-
+                    <div class="current-status">
+                        <div class="current-title">CURRENT STATUS</div>
+                        <div class="current current-calories">
+                            <span class="nutri-name">Calories</span><span class="current-calo">2000</span>
+                        </div>
+                        <div class="current current-protein">
+                            <span class="nutri-name">Protein</span><span class="current-protein">150g</span>
+                        </div>
+                        <div class="current current-carbohydrate">
+                            <span class="nutri-name">Carbs</span><span class="current-carbs">50g</span>
+                        </div>
+                        <div class="current current-fat">
+                            <span class="nutri-name">Fat</span><span class="current-fat">20g</span>
+                        </div>        
+                    </div>
+                    <div class="planned">
+                            <div class="target-title">
+                                <span>Target</span><span class="edit-button">Edit</span>
+                            </div>
+                            <div class="plan plan-calories">
+                                <span class="nutri-name">Calories</span><span class="plan-calo">3000</span>
+                            </div>
+                            <div class="plan plan-protein">
+                                <span class="nutri-name">Protein</span><span class="plan-protein">200g</span>
+                            </div>
+                            <div class="plan plan-carbohydrate">
+                                <span class="nutri-name">Carbs</span><span class="plan-carbs">100g</span>
+                            </div>
+                            <div class="plan plan-fat">
+                                <span class="nutri-name">Fat</span><span class="plan-fat">50g</span>
+                            </div> 
+                        
+                    </div>
                 </div>
             </div>
         </div>
 
     </div>
-
-
-    
-
-
     <script type="text/javascript" src="{{url_for('authen.static',filename='/js/sign.js')}}"></script>
+    <script type="text/javascript" src="/js/search_food.js"></script>
 </body>
 </html>

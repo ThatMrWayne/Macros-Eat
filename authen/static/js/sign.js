@@ -18,6 +18,256 @@ let sign = {
 };
 
 
+//動態顯示填資料表格
+function render_fillin(){
+    //先移掉登入註冊匡
+    let section2 = document.querySelector(".section-2");
+    document.body.removeChild(section2);
+
+    //<div class='basic-information'>
+    let basic_information = document.createElement("div");
+    basic_information.classList.add("basic-information");
+    //<div id="welcome">
+    let welcome = document.createElement("div");
+    welcome.setAttribute("id","welcome");
+    const welcome_word1 = "Welcome！"
+    const mybr = document.createElement('br');
+    const welcome_word2 = "Please fill in personal information, we'll provide recommended diet plan for you later~"
+    welcome.appendChild(document.createTextNode(welcome_word1));
+    welcome.appendChild(mybr);
+    welcome.appendChild(document.createTextNode(welcome_word2));
+    basic_information.appendChild(welcome);
+    //<div class="form-box">
+    let form_box = document.createElement("div");
+    form_box.classList.add("form-box");
+    //<form class="form">
+    let form = document.createElement("form");
+    form.classList.add("form");
+    //<div class="choose-gender">
+    let choose_gender = document.createElement("div");
+    choose_gender.classList.add("choose-gender");
+    let gender = document.createElement("span");
+    gender.classList.add("describe");
+    gender.classList.add("gender");
+    gender.appendChild(document.createTextNode("Gender :"));
+    //<input id="male" type="radio" name="gender" value="1" checked>
+    let male = document.createElement("input");
+    male.setAttribute("id","male");
+    male.setAttribute("type","radio");
+    male.setAttribute("name","gender");
+    male.setAttribute("value","1");
+    male.checked=true;
+    //<label for="male">male</label>
+    let label_male = document.createElement("label");
+    label_male.setAttribute("for","male");
+    label_male.appendChild(document.createTextNode("male"));
+    //<input id="female" type="radio" name="gender" value="0">
+    let female = document.createElement("input");
+    female.setAttribute("id","female");
+    female.setAttribute("type","radio");
+    female.setAttribute("name","gender");
+    female.setAttribute("value","0");
+    //<label for="female">female</label>
+    let label_female = document.createElement("label");
+    label_female.setAttribute("for","female");
+    label_female.appendChild(document.createTextNode("female"));
+    choose_gender.appendChild(gender);
+    choose_gender.appendChild(male);
+    choose_gender.appendChild(label_male);
+    choose_gender.appendChild(female);
+    choose_gender.appendChild(label_female);
+    form.appendChild(choose_gender);
+    //<div class="choose-age">
+    let choose_age = document.createElement("div");
+    choose_age.classList.add("choose-age");
+    let age = document.createElement("span");
+    age.classList.add("describe");
+    age.classList.add("age");
+    age.appendChild(document.createTextNode("Age :"));
+    //<input id="age"  name="age" type="text" placeholder="Age" inputmode="decimal"></input>
+    let age_input = document.createElement("input");
+    age_input.setAttribute("id","age");
+    age_input.setAttribute("type","text");
+    age_input.setAttribute("name","age");
+    age_input.setAttribute("placeholder","Age");
+    choose_age.appendChild(age);
+    choose_age.appendChild(age_input);
+    form.appendChild(choose_age);
+    //<div class="choose-height">
+    let choose_height = document.createElement("div");
+    choose_height.classList.add("choose-height");
+    let height = document.createElement("span");
+    height.classList.add("describe");
+    height.classList.add("height");
+    height.appendChild(document.createTextNode("Height :"));
+    //<input id="height"  name="height" type="text" placeholder="Height (cm)" inputmode="decimal">
+    let height_input = document.createElement("input");
+    height_input.setAttribute("id","height");
+    height_input.setAttribute("type","text");
+    height_input.setAttribute("name","height");
+    height_input.setAttribute("placeholder","Height (cm)");
+    choose_height.appendChild(height);
+    choose_height.appendChild(height_input);
+    form.appendChild(choose_height);
+    //<div class="choose-weight">
+    let choose_weight = document.createElement("div");
+    choose_weight.classList.add("choose-weight");
+    let weight = document.createElement("span");
+    weight.classList.add("describe");
+    weight.classList.add("weight");
+    weight.appendChild(document.createTextNode("Weight :"));
+    //<input id="weight"  name="weight" type="text" placeholder="Weight (kg)" inputmode="decimal">
+    let weight_input = document.createElement("input");
+    weight_input.setAttribute("id","weight");
+    weight_input.setAttribute("type","text");
+    weight_input.setAttribute("name","weight");
+    weight_input.setAttribute("placeholder","Weight (kg)");
+    choose_weight.appendChild(weight);
+    choose_weight.appendChild(weight_input);
+    form.appendChild(choose_weight);
+    //<div class="choose-activity">
+    let choose_activity = document.createElement("div");
+    choose_activity.classList.add("choose-activity");
+    //<h3 class="describe">Activity Level :</h3>
+    let activity_level = document.createElement("h3");
+    activity_level.classList.add("describe");
+    activity_level.appendChild(document.createTextNode("Activity Level :"));
+    //<div id="zero">
+    let zero = document.createElement("div");
+    zero.setAttribute("id","zero");
+    let level1_input = document.createElement("input");
+    level1_input.setAttribute("id","level1");
+    level1_input.setAttribute("type","radio");
+    level1_input.setAttribute("name","habit");
+    level1_input.setAttribute("value","1");
+    level1_input.checked=true;
+    let label_level1 = document.createElement("label");
+    label_level1.setAttribute("for","level1");
+    label_level1.appendChild(document.createTextNode("sedentary (little/no exercise)"));
+    zero.appendChild(level1_input);
+    zero.appendChild(label_level1);
+    //<div id="light">
+    let light = document.createElement("div");
+    light.setAttribute("id","light");
+    let level2_input = document.createElement("input");
+    level2_input.setAttribute("id","level2");
+    level2_input.setAttribute("type","radio");
+    level2_input.setAttribute("name","habit");
+    level2_input.setAttribute("value","2");
+    let label_level2 = document.createElement("label");
+    label_level2.setAttribute("for","level2");
+    label_level2.appendChild(document.createTextNode("light activity (exercise 1~2 times/week)"));
+    light.appendChild(level2_input);
+    light.appendChild(label_level2);
+    //<div id="moderate">
+    let moderate = document.createElement("div");
+    moderate.setAttribute("id","moderate");
+    let level3_input = document.createElement("input");
+    level3_input.setAttribute("id","level3");
+    level3_input.setAttribute("type","radio");
+    level3_input.setAttribute("name","habit");
+    level3_input.setAttribute("value","3");
+    let label_level3 = document.createElement("label");
+    label_level3.setAttribute("for","level3");
+    label_level3.appendChild(document.createTextNode("(exercise 3~4 times/week)"));
+    moderate.appendChild(level3_input);
+    moderate.appendChild(label_level3);
+    //<div id="heavy">
+    let heavy = document.createElement("div");
+    heavy.setAttribute("id","heavy");
+    let level4_input = document.createElement("input");
+    level4_input.setAttribute("id","level4");
+    level4_input.setAttribute("type","radio");
+    level4_input.setAttribute("name","habit");
+    level4_input.setAttribute("value","4");
+    let label_level4 = document.createElement("label");
+    label_level4.setAttribute("for","level4");
+    label_level4.appendChild(document.createTextNode("very activate (exercise >5 times/week)"));
+    heavy.appendChild(level4_input);
+    heavy.appendChild(label_level4);
+
+    choose_activity.appendChild(activity_level);
+    choose_activity.appendChild(zero);
+    choose_activity.appendChild(light);
+    choose_activity.appendChild(moderate);
+    choose_activity.appendChild(heavy);
+    form.appendChild(choose_activity);
+
+    //<div class="choose-target">
+    let choose_target = document.createElement("div");
+    choose_target.classList.add("choose-target");
+    //<span class="describe target">Target :</span>
+    let target = document.createElement("span");
+    target.classList.add("describe");
+    target.classList.add("target");
+    target.appendChild(document.createTextNode("Target :"));
+    //<input id="lose" type="radio" name="target" value="1">
+    let lose_input = document.createElement("input");
+    lose_input.setAttribute("id","lose");
+    lose_input.setAttribute("type","radio");
+    lose_input.setAttribute("name","target");
+    lose_input.setAttribute("value","1");
+    let label_lose = document.createElement("label");
+    label_lose.setAttribute("for","lose");
+    label_lose.appendChild(document.createTextNode("Lose weight"));
+    //<input id="maintain" type="radio" name="target" value="2" checked>
+    let maintain_input = document.createElement("input");
+    maintain_input.setAttribute("id","maintain");
+    maintain_input.setAttribute("type","radio");
+    maintain_input.setAttribute("name","target");
+    maintain_input.setAttribute("value","2");
+    maintain_input.checked=true;
+    let label_maintain = document.createElement("label");
+    label_maintain.setAttribute("for","maintain");
+    label_maintain.appendChild(document.createTextNode("Maintain"));
+    //<input id="gain" type="radio" name="target" value="3">
+    let gain_input = document.createElement("input");
+    gain_input.setAttribute("id","gain");
+    gain_input.setAttribute("type","radio");
+    gain_input.setAttribute("name","target");
+    gain_input.setAttribute("value","3");
+    let label_gain = document.createElement("label");
+    label_gain.setAttribute("for","gain");
+    label_gain.appendChild(document.createTextNode("Gain weight"));
+
+    choose_target.appendChild(target);
+    choose_target.appendChild(lose_input);
+    choose_target.appendChild(label_lose);
+    choose_target.appendChild(maintain_input);
+    choose_target.appendChild(label_maintain);
+    choose_target.appendChild(gain_input);
+    choose_target.appendChild(label_gain);
+    form.appendChild(choose_target);
+    //<div class="submit">Calculate</div>
+    let submit = document.createElement("div");
+    submit.classList.add("submit");
+    submit.appendChild(document.createTextNode("Calculate"));
+    //註冊按下calculate鈕事件
+    submit.addEventListener("click",()=>{
+        //先檢查表單資料都對不對&有沒有填
+        let validate = validate_form();
+        if(validate){
+            let jwt = localStorage.getItem("JWT");
+            let json_data = organize_form();
+            submit_information(json_data,jwt);
+        }        
+    });
+    form.appendChild(submit);
+    //
+    form_box.appendChild(form);
+    basic_information.appendChild(form_box);
+    //最後把basci-inofrmation放在section1後面
+    let section1 = document.querySelector(".section-1");
+    section1.after(basic_information);
+}
+
+
+
+
+
+
+
+
 //show登入註冊訊息
 function showMessage(msg,flag,signup_result){
     if(flag){
@@ -125,10 +375,10 @@ async function sendAuthSignIn(data){
                 let test = [];
                 response.headers.forEach(function(o){test.push(o)});
                 localStorage.setItem('JWT',test[0]);
-                if(result["initial"] === true){ //表示是第一次登入,要轉到填寫資料畫面
-                    window.location.href="/firsttime"
-                }else{
-                    window.location.href="/records"
+                if(result["initial"] === true){ //表示是第一次登入,動態render填寫資料頁面
+                    render_fillin();
+                }else{ //表示不是第一次登入
+                    window.location.href="/record"
                 }
         }else if(response.status === 400){ //代表1.密碼錯誤2.沒有此信箱會員
                 showMessage(result.message,true,null)
@@ -361,8 +611,9 @@ async function sendJWT(jwt){
                                      method: 'get',
                                      headers: {"Authorization" : `Bearer ${jwt}`}
                                     });
-        let result = await response.json();                         
-        if(response.ok){
+        let result = await response.json();         
+        console.log(result);                
+        if(response.ok && result.data["initial"]===0){
                 // 進到首頁時,如果已登入過就轉到紀錄畫面
                 if(window.location.pathname==='/'){
                     window.location.href='/record';
@@ -370,50 +621,53 @@ async function sendJWT(jwt){
                     // 4/24 這邊要動態render出records頁面
 
                     //右上角放小頭像
-                    let login = document.querySelector('.login');
-                    let img  = new Image();
-                    img.src="/picture/member.png";
-                    img.id = "signout";
-                    img.addEventListener('click',function(){
-                        let drop = document.getElementById('myDropdown');
-                        drop.classList.toggle('show-dropdown');
-                    });
-                    login.appendChild(img);
+                //    let login = document.querySelector('.login');
+                //    let img  = new Image();
+                //    img.src="/picture/member.png";
+                //    img.id = "signout";
+                //    img.addEventListener('click',function(){
+                //        let drop = document.getElementById('myDropdown');
+                //        drop.classList.toggle('show-dropdown');
+                //    });
+                //    login.appendChild(img);
                     //下拉選單
-                    let dropdownBox = document.createElement('div');
-                    dropdownBox.classList.add("dropdown-content");
-                    dropdownBox.id="myDropdown";
-                    let mailBox = document.createElement('div');
-                    mailBox.id = "user-email";
-                    mailBox.setAttribute("user-name",result.data.name);//把使用者姓名種在屬性裡
-                    mailBox.setAttribute("identity",result.data.identity); //把使用者身份種在屬性裡
-                    mailBox.appendChild(document.createTextNode(`${result.data.email}`));
-                    let logoutBtn = document.createElement('div');
-                    logoutBtn.id="logout";
-                    logoutBtn.appendChild(document.createTextNode("登出"));
-                    logoutBtn.addEventListener('click',handleSignOut);
-                    dropdownBox.appendChild(mailBox);
-                    dropdownBox.appendChild(logoutBtn);
-                    login.appendChild(dropdownBox);
-                    console.log('準備連socket')
+                //    let dropdownBox = document.createElement('div');
+                //    dropdownBox.classList.add("dropdown-content");
+                //    dropdownBox.id="myDropdown";
+                //    let mailBox = document.createElement('div');
+                //    mailBox.id = "user-email";
+                //    mailBox.setAttribute("user-name",result.data.name);//把使用者姓名種在屬性裡
+                //    mailBox.setAttribute("identity",result.data.identity); //把使用者身份種在屬性裡
+                //    mailBox.appendChild(document.createTextNode(`${result.data.email}`));
+                //    let logoutBtn = document.createElement('div');
+                //    logoutBtn.id="logout";
+                //    logoutBtn.appendChild(document.createTextNode("登出"));
+                //    logoutBtn.addEventListener('click',handleSignOut);
+                //    dropdownBox.appendChild(mailBox);
+                //    dropdownBox.appendChild(logoutBtn);
+                //    login.appendChild(dropdownBox);
+                //    console.log('準備連socket')
                     
-                    socket_connect();
+                //    socket_connect();
                 }else if(window.location.pathname==='/chat'){
                     //這邊做動態render諮詢頁面
-                }
+                };
+        }else if(response.ok && result.data["initial"]===1){ //代表登入後就跳跳掉沒有填表單
+            if(window.location.pathname==='/'){
+                render_fillin() //顯示表單給他填;
+            }else{
+                window.location.replace('/') //導回首頁
+            };    
         }else{
             console.log('jwt已失效');
             localStorage.removeItem("JWT");
             window.location.replace('/') //導回首頁
-        };
+        };  
     }catch(message){
         console.log(`${message}`)
         throw Error('Fetching was not ok!!.')
-    }    
-} 
-
-
-
+    };    
+}; 
 
 
 
@@ -436,4 +690,3 @@ function init_sign(){
 
 
 window.addEventListener('load',init_sign);
-

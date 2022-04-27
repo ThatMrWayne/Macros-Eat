@@ -8,8 +8,18 @@ async function submit_information(payload,jwt){
                                     });
         let result = await response.json();                            
         if(response.ok){ //更新會員資料完成
-            console.log(result);
-            window.location.replace('/records') //轉到紀錄主畫面
+            console.log(result); 
+            //要查看header裡有沒有新的JWT,如果有就把舊的刪掉換成新的
+            let test = [];
+            for(let key of response.headers.keys()) {
+                if(key === "access_token"){
+                    console.log('討天鵝')
+                    response.headers.forEach(function(o){test.push(o)});
+                    localStorage.removeItem('JWT');
+                    localStorage.setItem('JWT',test[0]);
+                }
+            }
+            window.location.replace('/record') //轉到紀錄主畫面
         }else if (response.status === 403){
             console.log('JWT已失效,請重新登入');
             localStorage.removeItem("JWT");
@@ -89,7 +99,7 @@ function organize_form(){
 
 
 
-
+/** 
 window.addEventListener("load",()=>{
     let button = document.querySelector(".submit");
     //註冊按下calculate鈕事件
@@ -100,7 +110,6 @@ window.addEventListener("load",()=>{
             let jwt = localStorage.getItem("JWT");
             let json_data = organize_form();
             submit_information(json_data,jwt);
-        }
-        
-    })
-})
+        }        
+    });
+})*/

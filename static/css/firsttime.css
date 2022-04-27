@@ -172,8 +172,8 @@ h3{
 }
 
 .choose-activity>div{
-    margin-top:5px;
-    margin-bottom: 5px;
+    margin-top:15px;
+    margin-bottom:15px;
 }
 .choose-activity input{
     -webkit-appearance: none;
@@ -191,11 +191,10 @@ h3{
 
     margin:0px;
     margin-right: 5px;
+
 }  
 
-.choose-activity input{
-    line-height: 20px;
-}
+
 
 .choose-activity input:hover{
     cursor: pointer;
