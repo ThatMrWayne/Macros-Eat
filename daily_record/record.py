@@ -44,7 +44,7 @@ def verify_record_info(input):
         result = False             
     elif  input["protein"]+input["fat"]+input["carbs"]!=100:
         result = False 
-    elif (type(input["create_at"]) != int):
+    elif (type(input["record_id"]) != int):
         result = False       
     return result     
 
@@ -170,7 +170,7 @@ def handle_update_record(request):
                           "error":True,
                           "message":"更新失敗,缺少更新資料"}
             return jsonify(response_msg), 400
-        labels = ["create_at","plan_calories","protein","fat","carbs"]
+        labels = ["record_id","plan_calories","protein","fat","carbs"]
         input = {}
         for label in labels:
             input[label] = request_data.get(label)

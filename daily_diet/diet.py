@@ -136,8 +136,8 @@ def handle_add_diet(resuest):
                             "error":True,
                             "message":"不好意思,資料庫暫時有問題,維修中"}
                 return jsonify(response_msg), 500
-            elif result == True: 
-                response_msg={"ok": True}
+            elif result: 
+                response_msg={"ok": True, "intake_id": result["intake_id"]}
                 return jsonify(response_msg), 201 #api test ok
             else:
                 response_msg={

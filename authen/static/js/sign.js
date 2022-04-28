@@ -1,19 +1,19 @@
 let sign = {
     'signIn':{
         "box":"signinbox",
-        "head_txt":"登入會員帳號",
-        "mail_txt":"輸入電子信箱",
-        "btn_txt":"登入帳戶",
+        "head_txt":"Log in",
+        "mail_txt":"email",
+        "btn_txt":"Log in",
         "destination":"tosignup",
-        "msg":"還沒有帳戶?點此註冊"
+        "msg":"Not a member? Sign up."
     },
     'signUp':{
         "box":"signupbox",
-        "head_txt":"註冊會員帳號",
-        "mail_txt":"輸入電子郵件",
-        "btn_txt":"註冊帳戶",
+        "head_txt":"Create your account",
+        "mail_txt":"email",
+        "btn_txt":"Create account",
         "destination":"tosignin",
-        "msg":"已經有帳戶?點此登入"
+        "msg":"Already a member? Sign in."
     }
 };
 
@@ -409,7 +409,7 @@ function handleSignUp(){
     let identity = document.getElementsByName('identity')[0].value;
     //先在前端驗證看看有沒有確實輸入或輸入正不正確
     if ((!name||!email) || (!password) || (!identity)){
-        showMessage('請確實填寫註冊資訊欄位',false,false);
+        showMessage('Please fill in valid information',false,false);
     }else{
         let emailRegex = /^(?!\.{1,2})(?![^\.]*\.{2})(?!.*\.{2}@)(?=[a-zA-Z0-9\.!#\$%&\'\*\+\/=?\^_{\|}~-]+@{1}(?:[A-Za-z\d]+\.{1})+[a-zA-Z]+$)(?!.*@{2,}).*/g;
         let passwordRegex = /^(?=\w{8,16}$)(?=(?:[^A-Z]*[A-Z]){3})(?=[^a-z]*[a-z])(?=[^\d]*\d).*/g;
@@ -420,8 +420,8 @@ function handleSignUp(){
                 let year = signup_date.getFullYear();
                 let month = signup_date.getMonth();
                 let date = signup_date.getDate();
-                let new_date = new Date(year,month-1,date);
-                let now_utc =  Date.UTC(new_date.getUTCFullYear(), new_date.getUTCMonth(), new_date.getUTCDate(),0, 0, 0);
+                let new_date = new Date(year,month,date);
+                let now_utc =  Date.UTC(new_date.getUTCFullYear(), new_date.getUTCMonth(), new_date.getUTCDate(),new_date.getUTCHours(), new_date.getUTCMinutes(), new_date.getUTCSeconds());
                 let data = {  //註冊資訊
                     "name":name,
                     "email":email,
@@ -480,7 +480,7 @@ function handleSignIn(){
     let password = document.querySelector('.pass').value;
     let identity = document.getElementsByName('identity')[0].value;
     if (!email || !password || (identity==='0')){
-        showMessage('請確實填寫登入資訊',true,null)
+        showMessage('Please fill in valid information',true,null)
     }else{
         let data = {
             'email':email,
@@ -544,7 +544,7 @@ function showBox(obj,flag){//flag true代表有帳戶,false沒有帳戶
     if(!flag){
         let input_name = document.createElement("input");
         input_name.className = "name";
-        input_name.setAttribute("placeholder","輸入姓名");
+        input_name.setAttribute("placeholder","username");
         input_name.setAttribute("type","text");
         sign_content.appendChild(input_name);
     }
@@ -557,7 +557,7 @@ function showBox(obj,flag){//flag true代表有帳戶,false沒有帳戶
     //密碼輸入框
     let input_pass = document.createElement("input");
     input_pass.className = "pass";
-    input_pass.setAttribute("placeholder","輸入密碼");
+    input_pass.setAttribute("placeholder","password");
     input_pass.setAttribute("type","password");
     sign_content.appendChild(input_pass);
     //身份選擇匡
@@ -617,8 +617,18 @@ async function sendJWT(jwt){
                 // 進到首頁時,如果已登入過就轉到紀錄畫面
                 if(window.location.pathname==='/'){
                     window.location.href='/record';
-                }else if(window.location.pathname==='/records'){
-                    // 4/24 這邊要動態render出records頁面
+                }else if(window.location.pathname==='/record'){
+                    //  4/24 這邊要動態render出records頁面
+                    //render_record();
+                    console.log('omg')
+                    let b = document.querySelector(".edit-button");
+                    b.addEventListener("click",function(){
+                        console.log('heyhey');
+                        let bg = pop_edit_window(createBack());
+                        document.body.appendChild(bg);
+                    });
+
+
 
                     //右上角放小頭像
                 //    let login = document.querySelector('.login');

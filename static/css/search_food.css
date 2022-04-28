@@ -1,7 +1,8 @@
 .search-result{
     position: absolute;
-    top: 23px;
-    left: 30px;
+    top: 46px;
+    left: 20px;
+    background: lightsalmon;
 }
 .u{
     list-style-type: none;
@@ -12,4 +13,9 @@
     padding: 0px;
     height:200px;
     overflow:auto;
+}
+
+li.food-item:hover{
+    opacity: 0.7;
+    cursor: pointer;
 }

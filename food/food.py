@@ -26,7 +26,8 @@ def jwt_required_for_food():
                 verify_jwt_in_request()
             except:
                 print('access_token已失效 或 request根本沒有JWT')
-                return jsonify({"error":True,"message":"拒絕存取"}), 403
+                print('啦啦啦')
+                return jsonify( { "error" : True , "message" : "拒絕存取" } ), 403
             return fn(*args, **kwargs)
         return decorator
     return wrapper
@@ -42,7 +43,7 @@ def verify_food_info(input):
         result = False
     elif (type(input["carbs"]) not in [float,int]) or (input["carbs"]<0):
         result = False 
-    elif (type(input["food_name"])!= int):
+    elif (type(input["food_name"])!= str):
         result = False    
     return result     
 
@@ -174,6 +175,7 @@ def handle_get_public_food_data(request):
 
 #要驗證JWT
 @food.route('/api/my-food', methods=["GET","POST","PATCH","DELETE"])
+@jwt_required_for_food()
 def foods():
     if request.method == "POST": #如果是POST,代表要新增食物
         add_food_result = handle_add_food(request)

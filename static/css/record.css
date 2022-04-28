@@ -56,7 +56,7 @@ div{
     100%{opacity: 0.1;}
 }
 
-.loading{
+#loading{
     color:#F0754F ;
     position: relative;
     animation: blink 2s infinite;
@@ -80,7 +80,7 @@ div{
 
 .right-record{
     display: grid;
-    grid-template-rows: 6.5fr 3.5fr;
+    grid-template-rows:7fr 3fr;
     border-left: 2px lightgray solid;
 
 }
@@ -95,13 +95,14 @@ div{
 }
 
 /*目前攝取 */
+
 .current-status{
     border-right: 1px solid lightgray;
 }
 .plan-nutrition > .current-status > .current-title{
     text-align: center;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin-top: 30px;
+    margin-bottom: 20px;
 }
 div.current{
     padding-left: 30px;
@@ -111,18 +112,34 @@ div.current{
     align-items: center;
     margin-top: 5px;
     margin-bottom: 5px;
+    font-weight: bold;
  }
 
  div.current span{
      display: inline-block;
  }
 
-/*計畫攝取 */
-.plan-nutrition > .planned > .target-title{
+.current-protein{
+    color:#976fe8
+}
 
+.current-fat{
+    color:#52C0BC
+}
+
+.current-carbohydrate{
+    color:#FCB524
+}
+
+
+/*計畫攝取 */
+.planned{
     text-align: center;
-    margin-top: 10px;
-    margin-bottom: 10px;
+}
+
+.plan-nutrition > .planned > .target-title{
+    margin-top: 30px;
+    margin-bottom: 20px;
     position: relative;
 }
 
@@ -131,16 +148,19 @@ div.current{
     right:30px;
     display:inline-block;
     border-radius: 5px;
+    width:50px;
     border:1px solid lightslategray
+}
+
+.plan-nutrition > .planned > .target-title > .edit-button:hover{
+    cursor: pointer;
+    color:#F0754F
 }
 
 
 div.plan{
     padding-left: 30px;
     padding-right: 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     margin-top: 5px;
     margin-bottom: 5px;
  }
@@ -175,6 +195,12 @@ div.plan{
     grid-template-columns: 1fr;
     grid-template-rows: 1fr 9fr
 }
+
+.intake-record:hover{
+    opacity: 0.8;
+}
+
+
 #input-area{
     position: relative;
     display: flex;
@@ -251,6 +277,28 @@ div.plan{
     margin-top: 5px;
     margin-bottom: 5px;
     border-bottom: 1px lightgray solid;
+}
+
+.consume-food > ul > li span{
+    vertical-align: middle;
+}
+
+
+
+.delete{
+    display: inline-block;
+    width:20px;
+    height: 20px;
+    vertical-align: middle;
+}
+
+.delete:hover{
+    cursor: pointer;
+}
+
+.delete>img{
+    width:100%;
+    height: 100%;
 }
 
 
@@ -367,4 +415,178 @@ div.plan{
 .logout:hover{
     color:#F0754F;
     cursor:pointer
+}
+
+
+
+.stop-scrolling{
+    height: 100%;
+    overflow: hidden;
+}
+
+/*透明背景*/
+.bg{
+    background: rgba(0, 0, 0, 0.35);
+    position:fixed;
+    top:0px;
+    width: 100%;
+    height:100vh;
+    z-index: 3;
+}
+
+@keyframes popout{
+    0%{opacity: 0.1};
+    50%{opacity: 0.5};
+    100%{opacity: 1};
+}
+
+
+
+/*編輯匡*/
+.edit-box{
+    box-sizing: border-box;
+    border-radius: 10px;
+    width: 450px;
+    position: relative;
+    top:80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    animation: popout 1s ;
+}
+
+.edit-form{
+    border-radius: 10px;
+    padding-top: 30px;
+    padding-bottom: 40px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+    position: relative;
+    background-color: #E8E8E8;
+}
+
+.edit-title{
+    width: 100%;
+    flex: none;
+    margin-bottom: 35px;
+    position: relative;
+    font-weight: 900;
+    font-size: 22px;
+    color: lightslategray;
+    padding-left: 30px;
+}
+
+.fill{
+    width: 100%;
+    flex: none;
+    margin-bottom: 15px;
+    padding-left: 30px;
+    position: relative;
+}
+
+.fill > input{
+    margin-right: 10px;
+    vertical-align: middle;
+    border-radius: 5px;
+    border: 1px white solid;
+    padding: 8px; 
+}
+
+.fill > span{
+    vertical-align: middle;
+}
+
+.fill-protein{
+    margin-top: 10px
+}
+
+.fill-fat,.fill-carbs{
+    margin-top: 18px
+}
+
+.update-title{
+    display: inline-block;
+    width: 130px;
+    font-weight: 700;
+    font-size: 20px;
+    color: #757575;
+}
+
+.update-remind{
+    color: #757575;
+    margin-top: 15px;
+    padding-left: 30px;
+}
+
+.update-btn{
+    position: absolute;
+    right: 5px;
+    bottom: 8px;
+}
+
+.close-update{
+    margin-right: 15px;
+    color: #757575;
+}
+
+.submit-update:hover{
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+.close-update:hover{
+    cursor: pointer;
+    color: #F0754F;
+}
+
+.submit-update{
+    background-color: #F0754F;
+    border-radius: 8px;
+    padding-right:4px;
+    padding-left: 4px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    color: lightyellow;;
+}
+
+.break{
+    border: 0.8px solid #757575;
+    width: 100%;
+}
+
+/*提示訊息*/
+:root{
+    --color: none;
+}
+
+.tip{
+    color: white;
+    font-size: 16px;
+    position: absolute;
+    height: fit-content;
+    box-sizing: border-box;
+    bottom: -25px;
+    background-color: #F0754F;
+    padding-left:4px;
+    padding-right: 4px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    border-radius: 4px;
+    box-shadow: 2px 2px 1px 1px rgba(0, 0, 0, 0.2);
+    border-top: none;
+
+}
+
+.tip::after{
+    content:'';
+    height: 0;
+    display: block;
+    position: absolute;
+    top:-9px;
+    left:3px;
+    border-bottom: 10px solid var(--color);
+    border-right: 8px solid transparent;
+    border-left: 8px solid transparent;
 }

@@ -13,7 +13,6 @@ async function submit_information(payload,jwt){
             let test = [];
             for(let key of response.headers.keys()) {
                 if(key === "access_token"){
-                    console.log('討天鵝')
                     response.headers.forEach(function(o){test.push(o)});
                     localStorage.removeItem('JWT');
                     localStorage.setItem('JWT',test[0]);

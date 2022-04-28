@@ -372,8 +372,8 @@ class Record_connection(Connection):
     def update_record(self,input,user_id): 
         result, msg = None, None
         cursor = self.cnx.cursor(dictionary=True)
-        query = "UPDATE records SET plan_calories = %(plan_calories)s, protein = %(protein)s , fat = %(fat)s , carbs=%(carbs)s WHERE member_id = %(member_id)s AND create_at = %(create_at)s" 
-        input_data = {'member_id': user_id, 'create_at':input["create_at"],"protein": input["protein"],"fat":input["fat"],"carbs":input["carbs"], "plan_calories":input["plan_calories"]}
+        query = "UPDATE records SET plan_calories = %(plan_calories)s, protein = %(protein)s , fat = %(fat)s , carbs=%(carbs)s WHERE record_id = %(record_id)s AND member_id = %(member_id)s" 
+        input_data = {'member_id': user_id, 'record_id':input["record_id"],"protein": input["protein"],"fat":input["fat"],"carbs":input["carbs"], "plan_calories":input["plan_calories"]}
         try:
             cursor.execute(query, input_data)
             count = cursor.rowcount
@@ -422,6 +422,7 @@ class Diet_connection(Connection):
         cursor = self.cnx.cursor(dictionary=True)
         query1 = "SELECT member_id FROM records WHERE record_id = %(record_id)s"
         query2 = "INSERT INTO intakes VALUES (DEFAULT,%(record_id)s,%(food_name)s,%(protein)s,%(fat)s,%(carbs)s,%(amount)s,%(member_id)s)"
+        query3 = "SELECT intake_id FROM intakes WHERE record_id = %(record_id)s ORDER BY intake_id DESC LIMIT 0,1"
         input_data = {'record_id': request_data["record_id"], 
                       'food_name' : request_data["food_name"] , 
                       'protein': request_data["protein"], 
@@ -438,7 +439,9 @@ class Diet_connection(Connection):
             else:
                 cursor.execute(query2, input_data)
                 self.cnx.commit()
-                result = True
+                cursor.execute(query3, {"record_id": request_data["record_id"]})
+                intake_id = cursor.fetchone()
+                result = intake_id
         except mysql.connector.Error as err:
             print(err)
             msg = err.msg
@@ -449,7 +452,7 @@ class Diet_connection(Connection):
             if msg:  #新增飲食失敗
                 return "error"
             elif result:
-                return True #新增飲食成功
+                return result #新增飲食成功,回傳最新一筆的intake_id
             else:
                 return False    
 
