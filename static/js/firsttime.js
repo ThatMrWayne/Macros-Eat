@@ -18,6 +18,7 @@ async function submit_information(payload,jwt){
                     localStorage.setItem('JWT',test[0]);
                 }
             }
+            //這時候也得到新的cookie(remind=yes)
             window.location.replace('/record') //轉到紀錄主畫面
         }else if (response.status === 403){
             console.log('JWT已失效,請重新登入');

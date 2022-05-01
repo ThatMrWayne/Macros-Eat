@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/earlyaccess/cwtexyen.css">
     <link rel="stylesheet" href="/css/record.css">
     <link rel="stylesheet" href="/css/search_food.css">
-   
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
     <title>Document</title>
 </head>
 <body>
@@ -48,9 +48,10 @@
         </div>
     </div>
     <div class="main-container">
-      <!--  <div id="loading">loading...</div> --> 
+        <div id="loading">loading...</div>
+        <div id="remind">{{remind}}</div>
       
-        <div class="calender-container">
+    <!--   <div class="calender-container">
             <div class="datepicker-toggle">
                 <img class="datepicker-toggle-button" src="/picture/calendar48.png">
                 <input type="date" class="datepicker-input">
@@ -86,8 +87,10 @@
                 </div>
             </div>
             <div class="right-record">
-                <div class="chart">
-
+                <div class="chart" style="position:relative">
+                        <div id="card-1" style="position:relative; height:50%; width:50%; left:150px">
+                            <canvas id="pfc"></canvas>
+                        </div>
                 </div>
                 <div class="plan-nutrition">
                     <div class="current-status">
@@ -128,12 +131,35 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
 
     </div>
     <script type="text/javascript" src="{{url_for('authen.static',filename='/js/sign.js')}}"></script>
     <script type="text/javascript" src="/js/search_food.js"></script>
     <script type="text/javascript" src="/js/firsttime.js"></script>
     <script type="text/javascript" src="/js/record.js"></script>
+   <!-- <script>
+        let optionsEC={
+            title: {display: true, text: "PFC percentages", fontSize: 24}, 
+            legend: {display: true, position: "bottom"}    
+        }
+
+        let group = {"amount":[20,70,10],
+                    "category":["protein","carbs","fat"]}
+        let DataEC = {
+            datasets: [{
+                backgroundColor:["#976fe8","#FCB524","#52C0BC"] ,
+                data: group.amount,
+                borderColor: "rgba(0,0,0,0.1)",
+                borderWidth: "1"
+            }],
+            labels: group.category,
+        };
+
+        window.addEventListener("load",function(){
+            let pie = document.getElementById("pfc").getContext("2d");
+            let PieChart = new Chart(pie,{type:'pie',data:DataEC, options: {plugins:optionsEC}});
+        });
+    </script>-->
 </body>
 </html>

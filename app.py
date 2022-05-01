@@ -79,7 +79,13 @@ def index():
 
 @app.route("/record")
 def record():
-	return render_template("record.html")
+	remind = session.get("remind")
+	if remind:
+		del session["remind"]
+		return render_template("record.html",remind = remind)
+	else:
+		return render_template("record.html",remind = "no")
+
 
 
 

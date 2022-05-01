@@ -49,6 +49,24 @@ def verify_record_info(input):
     return result     
 
 
+def verify_add_record_info(input):
+    result=True
+    if (type(input["protein"]) != int ) or (input["protein"]<0): #%
+        result = False
+    elif (type(input["fat"]) != int ) or (input["fat"]<0): #%
+        result = False
+    elif (type(input["carbs"]) != int ) or (input["carbs"]<0): #%
+        result = False   
+    elif (type(input["plan_calories"]) != int ) or (input["plan_calories"]<0):
+        result = False             
+    elif  input["protein"]+input["fat"]+input["carbs"]!=100:
+        result = False     
+    return result 
+
+
+
+
+
 def organize_record_data(data):
     first_row = data[0]
     result={
@@ -90,7 +108,7 @@ def handle_add_record(request):
         except:
             response_msg={
                           "error":True,
-                          "message":"新增紀錄失敗"}
+                          "message":"新增紀錄失敗,沒有json檔"}
             return jsonify(response_msg), 400 
         labels = ["create_at","plan_calories","protein","fat","carbs"]
         input = {}
@@ -100,10 +118,10 @@ def handle_add_record(request):
         if None in input.values():    
             response_msg={
                           "error":True,
-                          "message":"新增紀錄失敗"}
+                          "message":"新增紀錄失敗,新增資料不齊全"}
             return jsonify(response_msg), 400 
         #後端也要驗證正不正確 防止有人不是從瀏覽器
-        verify_result = verify_record_info(input)
+        verify_result = verify_add_record_info(input)
         if verify_result == False:
             response_msg={
                             "error":True,

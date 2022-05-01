@@ -1,10 +1,14 @@
 let record_id;   //當日紀錄的id全域變數
-let date;        //目前所在日期
+let on_which_date;        //目前所在日期
+let on_date_utc;    //紀錄目前所在日期的timestamp
+let on_date_format; //紀錄目前所在日期的秀出格式
 //紀錄edit更新後的營養素
 let new_target_calories;
 let new_target_protein;
 let new_target_fat;
 let new_target_carbs;
+//紀錄所選要載入的diet plan id
+let select_diet_plan_id;
 
 
 
@@ -118,20 +122,34 @@ function create_li(food){
 
 //render出吃過的食物那塊
 function show_consume(main_container,food_record){
-    if(document.querySelector(".record-container")){ //如果已經有record-container就不用製造
+    console.log('吃過食物喔喔喔');
+    let ul = document.querySelector(".food-ul");
+    if(document.querySelector(".record-container") && ul){ //如果已經有record-container就不用製造
         //只要改變food-ul裡面li內容,首先先移除舊的li
-        let ul = document.querySelector(".food-ul");
         while(ul.firstChild){
             ul.removeChild(ul.firstChild);
         };
-        //接著放入新的li
-        for(let i = 0 ; i < food_record.length ; i++){
-            let li = create_li(food_record[i]);
-            ul.appendChild(li);
+        //接著放入新的li,如果有food_record的話
+        if(food_record){
+            for(let i = 0 ; i < food_record.length ; i++){
+                let li = create_li(food_record[i]);
+                ul.appendChild(li);
+            }; 
         };
+
     }else{
-        let record_container = document.createElement("div");
-        record_container.classList.add("record-container");
+        let start_record = document.querySelector(".start-record");
+        let record_container;
+        let use_main_container;
+        if(start_record){
+            start_record.remove();
+            record_container = document.querySelector(".record-container");
+            use_main_container = false;
+        }else{
+            record_container = document.createElement("div");
+            record_container.classList.add("record-container");
+            use_main_container = true;
+        };
         let left_record = document.createElement("div");
         left_record.classList.add("left-record");
         let intake_record = document.createElement("div");
@@ -140,11 +158,13 @@ function show_consume(main_container,food_record){
         let consume_food = document.createElement("div");
         consume_food.classList.add("consume-food");
         let ul = document.createElement("ul");
-        ul.classList.add("food-ul")
-        for(let i = 0;i < food_record.length ; i++){
-            let li = create_li(food_record[i]);
-            ul.appendChild(li);
-        };
+        ul.classList.add("food-ul");
+        if(food_record){
+            for(let i = 0;i < food_record.length ; i++){
+                let li = create_li(food_record[i]);
+                ul.appendChild(li);
+            };
+        }
         consume_food.appendChild(ul);
         //搜尋食物那塊
         let input_area = document.createElement("div");
@@ -214,10 +234,7 @@ function show_consume(main_container,food_record){
             }else{ //顯示訊息說要選好
                 let message = "Please confirm input is completed.";
                 show_reminder(message); //4/28焓不知道要把顯示訊息插哪
-            };
-
-
-            
+            };  
             add_intake();
         })
         input_area.appendChild(input_food);
@@ -228,7 +245,9 @@ function show_consume(main_container,food_record){
         intake_record.appendChild(consume_food);
         left_record.appendChild(intake_record);
         record_container.appendChild(left_record);
-        main_container.appendChild(record_container);
+        if(use_main_container){
+            main_container.appendChild(record_container);
+        }
     };
 };    
 
@@ -240,30 +259,41 @@ function show_date(main_container,date_format){
         let show_date_div = document.querySelector(".show-date");
         show_date_div.innerHTML = date_format; 
     }else{
+        console.log('顯示日期我滴媽');
         let calender_container_div = document.createElement("div");
         calender_container_div.classList.add("calender-container");
+        console.log('顯示日期我滴2');
         let datepicker_toggle_div = document.createElement("div");
-        datepicker_toggle_div = document.classList.add("datepicker-toggle");
+        datepicker_toggle_div.classList.add("datepicker-toggle");
         let date_img = new Image();
         date_img.src = "/picture/calendar48.png";
         date_img.classList.add("datepicker-toggle-button");
-        date_input = document.createElement("input");
+        let date_input = document.createElement("input");
         date_input.classList.add("datepicker-input");
         date_input.setAttribute("type","date");
+        console.log('顯示日期我滴3');
         date_input.addEventListener("change",function(){ //註冊點選日期事件
-            if(this.value !== date){ //如果點選的日期不等於目前所在日期才要打API要紀錄資料
+            console.log(this.value)
+            if(this.value !== on_which_date){ //如果點選的日期不等於目前所在日期才要打API要紀錄資料
                 let choose_date = this.valueAsDate; //所選日期
                 let year = choose_date.getFullYear(); //2022
-                let month = choose_date.getMonth()+1  //4
+                let month = choose_date.getMonth()  //4
                 let date = choose_date.getDate();   //28
-                let show_date_format = Month[month] + " "+String(date) + ", " + String(year); //要顯示的日期
+                let show_date_format = Month[month+1] + " "+String(date) + ", " + String(year); //要顯示的日期
                 let new_date = new Date(year,month,date);
                 let utc =  Date.UTC(new_date.getUTCFullYear(), new_date.getUTCMonth(), new_date.getUTCDate(),new_date.getUTCHours(), new_date.getUTCMinutes(), new_date.getUTCSeconds());
                 if(month<10){
-                    date = String(year) + "-" + "0" + String(month)+"-"+String(date);
+                    on_which_date = String(year) + "-" + "0" + String(month+1)+"-";
                 }else{
-                    date = String(year) + "-" +String(month)+"-"+String(date);
+                    on_which_date = String(year) + "-" +String(month+1)+"-";
                 };
+                if(date < 10){
+                    on_which_date = on_which_date + "0" + String(date);
+                }else{
+                    on_which_date = on_which_date + String(date);
+                }
+                on_date_utc = utc; //紀錄全域變數所在日期timestamp
+                on_date_format = show_date_format; //紀錄全域變數所在日期的秀出格式
                 get_record(utc,show_date_format);
             }
         });
@@ -275,6 +305,7 @@ function show_date(main_container,date_format){
         calender_container_div.appendChild(datepicker_toggle_div);
         calender_container_div.appendChild(show_date_div);
         main_container.appendChild(calender_container_div);
+        console.log('顯示日期我滴4');
     }    
 }
 
@@ -289,10 +320,11 @@ async function update_target(payload,jwt){
                                     });
         let result = await response.json();                            
         if(response.ok){ //更新紀錄target完成
-            new_target_calories = payload["plan_calories"];
-            new_target_protein =  payload["protein"];
-            new_target_fat =  payload["fat"];
-            new_target_carbs =  payload["carbs"];
+            let payload_obj = JSON.parse(payload);
+            new_target_calories = payload_obj["plan_calories"];
+            new_target_protein =  payload_obj["protein"];
+            new_target_fat =  payload_obj["fat"];
+            new_target_carbs =  payload_obj["carbs"];
             //關掉框框
             document.body.classList.toggle("stop-scrolling");
             let bg = document.getElementsByClassName('bg');
@@ -520,7 +552,7 @@ function pop_edit_window(background){
         document.body.classList.toggle("stop-scrolling");
         let bg = document.getElementsByClassName('bg');
         document.body.removeChild(bg[0]);
-    })
+    });
     btn_div.appendChild(close_btn);
     btn_div.appendChild(submit_btn);
     //最後
@@ -634,6 +666,7 @@ function show_pfcc_section(right_record,day_record,food_record){
     target_span.innerHTML="Target";
     let edit_span = document.createElement("span");
     edit_span.classList.add("edit-button");
+    edit_span.innerHTML = "Edit";
     edit_span.addEventListener("click",function(){ //按下編輯目標事件,跳出更改視窗
         let bg = pop_edit_window(createBack());
         document.body.appendChild(bg);
@@ -765,8 +798,6 @@ function show_right_section(record_container,day_record,food_record){
         percent_fat.innerHTML = "("+String(day_record["fat"])+"%"+")";
 //尚未完成        //只要更新長條圖
 
-
-
     }else{
         let right_record = document.createElement("div");
         right_record.classList.add("right-record");
@@ -778,6 +809,253 @@ function show_right_section(record_container,day_record,food_record){
 }
 
 
+//跳出deit plan框框給使用者選擇載入
+function pop_load_diet_plan(background){
+    let load_plan_box = document.createElement("div");
+    load_plan_box.classList.add("load-plan-box");
+    let load_plan = document.createElement("div");
+    load_plan.classList.add("load-plan");
+    //小title
+    let title_div = document.createElement("div");
+    title_div.classList.add("edit-title");
+    let span1 = document.createElement("span");
+    span1.classList.add("load-plan-title");
+    span1.innerHTML="Choose a diet plan to load in this day.";
+    let span2 = document.createElement("span");
+    span2.classList.add("load-plan-title");
+    span2.innerHTML="If there is no diet plan available.";
+    let span3 = document.createElement("span");
+    span3.classList.add("load-plan-title");
+    span3.innerHTML="Please create a diet plan first or create a default plan.";
+    title_div.appendChild(span1);
+    title_div.appendChild(span2);
+    title_div.appendChild(span3);
+    //分隔線
+    let break_line = document.createElement("div");
+    break_line.classList.add("break");
+    //飲食計畫
+    let diet_plan = document.createElement("div");
+    diet_plan.classList.add("diet-plan");//
+    let plan_item = document.createElement("div");
+    plan_item.classList.add("plan-item");
+    items=["Plan name","Calories","Protein(%)","Carbs(%)","Fat(%)"]
+    for(let i=0;i<items.length;i++){
+        let div = document.createElement("div");
+        div.innerHTML=items[i];
+        plan_item.appendChild(div);
+    };
+    let plan_container = document.createElement("div");
+    plan_container.classList.add("plan-container");
+    //
+    diet_plan.appendChild(plan_item);
+    diet_plan.appendChild(plan_container);
+    //
+    load_plan.appendChild(title_div);
+    load_plan.appendChild(break_line);
+    load_plan.appendChild(diet_plan);
+    //
+    let select_btn = document.createElement("div");
+    select_btn.classList.add("select-btn");
+    let span_cancel = document.createElement("span");
+    span_cancel.classList.add("cancel-select");
+    span_cancel.innerHTML="Cancel";
+    span_cancel.addEventListener("click",function(){ //關掉更新window
+        //關掉框框
+        document.body.classList.toggle("stop-scrolling");
+        let bg = document.getElementsByClassName('bg');
+        document.body.removeChild(bg[0]);
+        //也要把全域變數變回null
+        select_diet_plan_id = null;
+    });
+    let span_select = document.createElement("span");
+    span_select.classList.add("submit-select");
+    span_select.innerHTML="Load";
+    span_select.addEventListener("click",function(){ //送出選擇的plan 打/records POST
+        //先檢查有沒有選diet plan,如果沒選跳出提示訊息
+        if(!select_diet_plan_id){
+            let span_cancel = document.querySelector(".cancel-select");
+            let reminder_span = document.createElement("span");
+            reminder_span.innerHTML = "Please select a meal plan";
+            reminder_span.classList.add("reminder-select");
+            span_cancel.before(reminder_span);
+        }else{ //有選才送出
+            let jwt = localStorage.getItem("JWT");
+            let payload={};
+            let selected = document.getElementById(select_diet_plan_id);
+            let selected_children = selected.children;
+            let info=["plan_calories","protein","carbs","fat"];
+            for(let i=0;i<info.length;i++){
+                payload[info[i]] = Number(selected_children[i+1].textContent);
+            };
+            //這邊不行重新又再產生日期,要直接去抓全域變數的日期
+            payload["create_at"]=on_date_utc;
+            payload = JSON.stringify(payload);
+            console.log(payload);
+            post_select_plan(payload,jwt,on_date_format);
+        }
+    });
+    select_btn.appendChild(span_cancel);
+    select_btn.appendChild(span_select);
+    //
+    load_plan.appendChild(select_btn);
+    //
+    load_plan_box.appendChild(load_plan);
+    get_diet_plan();//
+    background.appendChild(load_plan_box);
+    return background;
+}
+
+//點擊load from diet plan
+async function get_diet_plan(){  //打 /plans GET
+    let jwt = localStorage.getItem("JWT");
+    try{
+        let response = await fetch('/api/plans',{
+                                                method: 'get',
+                                                headers: {"Authorization" : `Bearer ${jwt}`}
+                                                });
+        let result = await response.json();                                
+        if(response.ok){  //200情況下  得到會員的diet plan,要顯示在選擇框框上(插在plan-container)
+            let plan_container = document.querySelector(".plan-container");
+            let plans = result.plans;
+            for(let i = 0;i<plans.length; i++){
+                let item_div = document.createElement("div");
+                item_div.classList.add("item");
+                item_div.setAttribute("id",plans[i]["plan_id"]);
+                let plan_data = ["plan_name","plan_calories","protein","carbs","fat"];
+                for(let j=0;j<plan_data.length;j++){
+                    let div = document.createElement("div");
+                    div.innerHTML=plans[i][plan_data[j]];
+                    item_div.appendChild(div);
+                };
+                item_div.addEventListener("click",function(){  //按下計畫後會assign plan id給全域變數,然後變色
+                    let previous_selected = document.querySelector(".selected");
+                    if(previous_selected){
+                        previous_selected.classList.toggle("selected");
+                    };
+                    select_diet_plan_id = this.id;
+                    this.classList.toggle("selected");    
+                });
+                plan_container.appendChild(item_div);
+            }; 
+        }else if(response.status === 403){ //拒絕存取
+            console.log('JWT已失效,請重新登入');
+            localStorage.removeItem("JWT");
+            window.location.href = '/';
+        }else if(response.status === 500){ //如果是500,代表伺服器(資料庫)內部錯誤
+            console.log(result);
+        };
+    }catch(message){
+        console.log(`${message}`)
+        throw Error('Fetching was not ok!!.')
+    }; 
+
+};
+
+
+async function post_select_plan(payload,jwt,date_format){ //打 /records post
+    try{
+        let response = await fetch('/api/records',{
+                                     method: 'post',
+                                     body : payload,
+                                     headers: {"Authorization" : `Bearer ${jwt}`,'Content-Type': 'application/json'}
+                                    });
+        let result = await response.json();                            
+        if(response.status === 201){ //新增日紀錄完成
+            //關掉框框
+            let bg = document.getElementsByClassName('bg');
+            if(bg[0]){
+                document.body.classList.toggle("stop-scrolling");
+                document.body.removeChild(bg[0]); 
+            }; 
+            //重新render一次紀錄區塊
+            let timestamp = JSON.parse(payload)["create_at"];
+            get_record(timestamp,date_format);
+            console.log("走到遠");
+        }else if (response.status === 403){
+            console.log('JWT已失效,請重新登入');
+            localStorage.removeItem("JWT");
+            window.location.href = '/';
+        }else if (response.status === 400){
+            console.log(result);
+        }else if(response.status === 500){ //如果是500,代表伺服器(資料庫)內部錯誤
+            console.log(result);
+        };
+    }catch(message){
+        console.log(`${message}`)
+        throw Error('Fetching was not ok!!.')
+    }    
+}
+
+
+
+function create_blank_content(){ //used in show_empty
+    console.log('創造新老白');
+    let start_record = document.createElement("div"); //
+    start_record.classList.add("start-record");
+    let start_box = document.createElement("div"); //
+    start_box.classList.add("start-box"); 
+    let contain = document.createElement("div"); //
+    contain.classList.add("contain"); 
+    let start_title = document.createElement("div"); //
+    start_title.setAttribute("id","start-title");
+    start_title.appendChild(document.createTextNode("There is no plan for this day yet."));
+    let from_plan = document.createElement("div"); //
+    from_plan.setAttribute("id","from-plan");
+    from_plan.appendChild(document.createTextNode("Load from your diet plan"));
+    from_plan.addEventListener("click",function(){  //註冊load from plan事件
+        let bg = pop_load_diet_plan(createBack());
+        document.body.appendChild(bg);
+    });
+    let from_scratch = document.createElement("div"); //
+    from_scratch.setAttribute("id","from-scratch");
+    from_scratch.appendChild(document.createTextNode("Create a default plan"));
+    from_scratch.addEventListener("click",function(){ //新增空白計畫
+        let jwt = localStorage.getItem("JWT");
+        let payload={};
+        payload["plan_calories"] = 2000; //預設40 30 30  2000kcals
+        payload["protein"]=30;
+        payload["carbs"]=40;
+        payload["fat"]=30;
+        //這邊不行重新抓日期,要抓全域變數的所在日期
+        payload["create_at"]=on_date_utc;
+        payload = JSON.stringify(payload);
+        console.log(payload);
+        post_select_plan(payload,jwt,on_date_format);
+    });
+    //全部append
+    contain.appendChild(start_title);
+    contain.appendChild(from_plan);
+    contain.appendChild(from_scratch);
+    start_box.appendChild(contain);
+    start_record.appendChild(start_box);
+    return start_record;    
+}
+
+
+function show_empty(){
+    console.log("show安菩提");
+    if(document.querySelector(".record-container")){ //如果已經有record-container就不用製造
+        let record_container = document.querySelector(".record-container");
+        //只要看裡面有沒有left-record和right-record,如果有就要拿掉顯示(趕緊新增計畫喔)
+        let left = document.querySelector(".left-record");
+        let right = document.querySelector(".right-record");
+        if(left && right){
+            left.remove();
+            right.remove();
+            let start_record = create_blank_content();
+            record_container.appendChild(start_record);
+        }//如果一樣是blank,就不用做甚麼
+    }else{ //表示一進來的當天沒有計畫,顯示(趕緊新增計畫喔)
+        console.log("趕緊新增計畫喔");
+        let main_container = document.querySelector(".main-container");
+        let record_container = document.createElement("div");
+        record_container.classList.add("record-container");
+        let start_record = create_blank_content();
+        record_container.appendChild(start_record);
+        main_container.appendChild(record_container);
+    }
+};
+
 
 
 
@@ -786,22 +1064,25 @@ function show_right_section(record_container,day_record,food_record){
 async function get_record(timestamp,show_date_format){
     let jwt = localStorage.getItem("JWT");
     try{
-        let response = await fetch('/api/records?datetime'+String(timestamp),{
+        let response = await fetch('/api/records?datetime='+String(timestamp),{
                                                     method: 'get',
                                                     headers: {"Authorization" : `Bearer ${jwt}`}
                                                 });
         let result = await response.json();                                
         if(response.ok){  //200情況下 
-            //console.log(result);
+            console.log(result);
             //1.移除loading動畫
             let main_container = document.querySelector(".main-container");
             let loading = document.getElementById("loading");
+            console.log("loading喔喔喔")
             if(loading){
                 main_container.removeChild(loading); 
             };
             //2.顯示日期
+            console.log('顯示日期喔喔喔')
             show_date(main_container,show_date_format);
-            if(result["day_record"]){  //表示該日有紀錄
+            if(result["day_record"]){  //3.表示該日有紀錄
+                console.log('有紀錄喔');
                 record_id = result["day_record"]["record_id"]
                 day_record = result["day_record"];
                 food_record = result["food_record"];
@@ -809,11 +1090,11 @@ async function get_record(timestamp,show_date_format){
                 show_consume(main_container,food_record);
                 //秀出右邊區塊,這時候一定已經有record-container
                 let record_container = document.querySelector(".record-container");
-                show_right_rection(record_container,day_record,food_record);
-            }else{ //表示該日無紀錄
-
+                show_right_section(record_container,day_record,food_record);
+            }else{ //3.表示該日無紀錄
+                show_empty()
             };    
-        }else if(response.status === 400){ //代表1.密碼錯誤2.沒有此信箱會員
+        }else if(response.status === 400){ //
                 showMessage(result.message,true,null)
                 //清空輸入框
                 let mail_input = document.querySelector('.email');
@@ -832,22 +1113,41 @@ async function get_record(timestamp,show_date_format){
 
 
 
+function render_sidebar(){
+    console.log('sidebar')
+}
+
+
+
+
 //動態render整個紀錄主畫面
 function render_record(){
     //要傳給server query的timestamp
     let current_date = new Date();
     let year = current_date.getFullYear(); //2022
-    let month = current_date.getMonth()+1  //4
+    let month = current_date.getMonth()  //4
     let date = current_date.getDate();   //28
-    let show_date_format = Month[month] + " "+String(date) + ", " + String(year); //要顯示的日期
+    let show_date_format = Month[month+1] + " "+String(date) + ", " + String(year); //要顯示的日期
     let new_date = new Date(year,month,date);
     let now_utc =  Date.UTC(new_date.getUTCFullYear(), new_date.getUTCMonth(), new_date.getUTCDate(),new_date.getUTCHours(), new_date.getUTCMinutes(), new_date.getUTCSeconds());
+    //紀錄全域變數所在日期,配合日曆的value格式
     if(month<10){
-        date = String(year) + "-" + "0" + String(month)+"-"+String(date);
+        on_which_date = String(year) + "-" + "0" + String(month+1)+"-";
     }else{
-        date = String(year) + "-" +String(month)+"-"+String(date);
+        on_which_date = String(year) + "-" +String(month+1)+"-";
     };
+    if(date < 10){
+        on_which_date = on_which_date + "0" + String(date);
+    }else{
+        on_which_date = on_which_date + String(date);
+    }
+
+
+    on_date_utc = now_utc; //紀錄全域變數所在日期timestamp
+    on_date_format = show_date_format; //紀錄全域變數所在日期的秀出格式
     get_record(now_utc,show_date_format);
+    render_sidebar(); //在render side bar裡去檢查id="remind"的元素內容是yes or no, 如果是no, 就要顯示提示訊息
+
 };
 
 

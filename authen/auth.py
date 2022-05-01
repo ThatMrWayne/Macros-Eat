@@ -206,7 +206,7 @@ def handle_signin(request):
                         response_msg = {"ok":True,"initial":True}
                     elif identity ==1 and result["initial"]==0: #表示不是第一次登入
                         access_token = create_access_token(identity=json.dumps({'email':email,'id':result["member_id"],'name':result["name"],'identity':identity,'initial':False}),expires_delta=datetime.timedelta(days=5))
-                        session["id"] = result["member_id"]
+                        session["id"] = result["member_id"] #在登入的時候就給cookie
                         response_msg = {"ok":True,"initial":False}                      
                     elif identity ==2:
                         session["id"] = result["nutri_id"]
@@ -307,12 +307,12 @@ def handle_update_user_data(request): #update會員資料的時候就要一併�
                     connection = db.get_auth_cnx() 
                     change_initial = connection.change_initial_state(email)   
                     if change_initial == True:
-                        session["id"] = user_id #存一個email cookie 給之後disconnect用 
+                        session["id"] = user_id #第一次更新資料成功才給cookie(存一個email cookie 給之後disconnect用) 
+                        session["remind"] = "yes"
                         #送一個新的JWT
                         new_access_token = create_access_token(identity=json.dumps({'email':email,'id':user_id,'name':name,'identity':1,'initial':False}),expires_delta=datetime.timedelta(days=5))  
                         res = make_response(json.dumps(response_msg,ensure_ascii=False),200)
-                        res.headers["access_token"] = new_access_token #把jwt塞在response header
-                        print('幹幹叫')      
+                        res.headers["access_token"] = new_access_token #把jwt塞在response header     
                         return res         
                     else:
                         response_msg={
