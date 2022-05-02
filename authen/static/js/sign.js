@@ -619,14 +619,9 @@ async function sendJWT(jwt){
                     window.location.href='/record';
                 }else if(window.location.pathname==='/record'){
                     //  4/24 這邊要動態render出records頁面
-                    render_record();
-                    //console.log('omg')
-                    //let b = document.querySelector(".edit-button");
-                    //b.addEventListener("click",function(){
-                    //    console.log('heyhey');
-                    //    let bg = pop_edit_window(createBack());
-                    //    document.body.appendChild(bg);
-                   // });
+                    //window.setTimeout(function(){render_record()},5000);
+                    render_record(result.data);
+                    
 
 
 

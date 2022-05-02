@@ -105,8 +105,8 @@ div{
     margin-bottom: 20px;
 }
 div.current{
-    padding-left: 30px;
-    padding-right: 30px;
+    padding-left: 80px;
+    padding-right: 80px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -258,49 +258,51 @@ div.plan{
     width: 100%;
 }
 
+/* 食物table*/
 
 .consume-food{
-    margin-top: 15px;
     overflow: auto;
 }
 
-.consume-food > ul{
-    list-style: none;
-    margin: 0px;
-    padding-left: 10px;
-    box-sizing: border-box;
+.consume-food > table{
+    border-collapse: collapse;
+    letter-spacing: 1px;
+    font-size: 0.8rem;
+    width: 100%;
 }
 
-.consume-food > ul > li{
-    display: flex;
-    justify-content: space-around;
-    margin-top: 5px;
-    margin-bottom: 5px;
-    border-bottom: 1px lightgray solid;
+.head{
+    position: sticky;
+    top: 0;
+    background-color: rgba(230,230,230,1);
 }
 
-.consume-food > ul > li span{
-    vertical-align: middle;
+td, th {
+    border-bottom: 1px solid rgb(190,190,190);
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+td {
+    text-align: center;
+}
+
+.food-item:hover{
+    opacity: 0.6;
 }
 
 
-
-.delete{
-    display: inline-block;
-    width:20px;
-    height: 20px;
-    vertical-align: middle;
-}
 
 .delete:hover{
     cursor: pointer;
 }
 
 .delete>img{
-    width:100%;
-    height: 100%;
+    width:40%;
+    height: 40%;
 }
 
+/*日曆*/
 
 .datepicker-toggle{
     position: relative;

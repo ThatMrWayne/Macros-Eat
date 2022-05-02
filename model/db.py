@@ -49,9 +49,9 @@ TABLES['food'] = (
     "  `food_id` bigint NOT NULL AUTO_INCREMENT,"
     "  `member_id` bigint,"
     "  `food_name` varchar(255) NOT NULL,"
-    "  `protein` float(4,1) NOT NULL," #g
-    "  `fat` float(4,1) NOT NULL," #g
-    "  `carbs` float(4,1) NOT NULL," #g
+    "  `protein` float(5,1) NOT NULL," #g
+    "  `fat` float(5,1) NOT NULL," #g
+    "  `carbs` float(5,1) NOT NULL," #g
     "  PRIMARY KEY (`food_id`),"
     "  FULLTEXT (`food_name`) WITH PARSER ngram,"
     "  FOREIGN KEY(member_id) REFERENCES members(member_id) ON DELETE CASCADE ON UPDATE CASCADE"
@@ -77,10 +77,10 @@ TABLES['intakes'] = (
     "  `intake_id` bigint NOT NULL AUTO_INCREMENT,"
     "  `record_id` bigint NOT NULL,"
     "  `food_name` varchar(255) NOT NULL,"
-    "  `protein` float(4,1) NOT NULL," #g
-    "  `fat` float(4,1) NOT NULL," #g
-    "  `carbs` float(4,1) NOT NULL," #g
-    "  `amount` float(4,1) NOT NULL," #g
+    "  `protein` float(5,1) NOT NULL," #g
+    "  `fat` float(5,1) NOT NULL," #g
+    "  `carbs` float(5,1) NOT NULL," #g
+    "  `amount` float(5,1) NOT NULL," #g
     "  `member_id` bigint NOT NULL," 
     "  PRIMARY KEY (`intake_id`),"
     "  FOREIGN KEY(`record_id`) REFERENCES records(`record_id`) ON DELETE CASCADE ON UPDATE CASCADE"
@@ -136,8 +136,8 @@ class DataBase():
             exit(1)
 
         '''   
-        tables=['members','food','records','intakes','plans','weight']
-        #tables=['members']
+        #tables=['members','food','records','intakes','plans','weight']
+        tables=['food','intakes']
         for table in tables:
         #建立資料表
             cnx = self.cnxpool.get_connection()
@@ -153,7 +153,7 @@ class DataBase():
             finally:
                 cursor.close()
                 cnx.close() 
-            '''
+        '''    
 
 
 

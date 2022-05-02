@@ -13,22 +13,51 @@ let select_diet_plan_id;
 
 
 
-
 //刪除飲食紀錄
 async function delete_intake(intake_id){
     let jwt = localStorage.getItem("JWT");
     try{
-        let response = await fetch('/api/intakess?intake_id'+intake_id,{
+        let response = await fetch('/api/intakes?intake_id='+intake_id,{
                                                     method: 'delete',
                                                     headers: {"Authorization" : `Bearer ${jwt}`}
-                                                });
-        let result = await response.json();                                
+                                                });                               
         if(response.status===204){  //204 
-            console.log(result);
+            //一併更新currrent status
+            let tr = document.getElementById(intake_id).parentElement;
+            let current_calories = document.querySelector(".current-calo");
+            let current_protein = document.querySelector(".current-protein_g");
+            let current_carbs = document.querySelector(".current-carbs_g");
+            let current_fat = document.querySelector(".current-fat_g");
+            //
+            let delete_protein = Number(tr.getElementsByClassName("p")[0].textContent);
+            let delete_fat = Number(tr.getElementsByClassName("f")[0].textContent);
+            let delete_carbs = Number(tr.getElementsByClassName("c")[0].textContent);
+            let delete_calories = delete_protein*4 + delete_fat*9 + delete_carbs*4;
+            //
+            let new_calories = Math.round(Number(current_calories.textContent) - delete_calories);
+            let new_protein = Number((Number((current_protein.textContent.split("g"))[0]) - delete_protein).toFixed(1));
+            let new_carbs = Number((Number((current_carbs.textContent.split("g"))[0]) - delete_carbs).toFixed(1));
+            let new_fat = Number((Number((current_fat.textContent.split("g"))[0]) - delete_fat).toFixed(1));
+            current_calories.innerHTML = String(new_calories);
+            current_protein.innerHTML = String(new_protein)+"g";
+            current_carbs.innerHTML = String(new_carbs)+"g";
+            current_fat.innerHTML = String(new_fat)+"g"; 
             //把食物從畫面上移除
-            let ul = document.querySelector(".food-ul");
-            let li = document.getElementById(intake_id).parentElement;
-            ul.removeChild(li);
+            console.log('移除');
+            tr.remove();
+            //還要更新長條圖
+            let canvas = Chart.getChart("pfc");
+            if(canvas){
+                canvas.destroy();
+            };
+            let pie = document.getElementById("pfc").getContext("2d");
+            let percentage_p = Math.round(new_protein*4/new_calories*100);
+            let percentage_f = Math.round(new_fat*9/new_calories*100);
+            let percentage_c = 100 - percentage_p - percentage_f;
+            group.amount[0] = percentage_p;
+            group.amount[1] = percentage_c;
+            group.amount[2] = percentage_f;
+            let PieChart = new Chart(pie,{type:'pie',data:DataEC, options: {plugins:optionsEC}});
         }else if(response.status === 400){ //刪除失敗,該飲食紀錄不存在或該飲食紀錄不屬於此會員
             console.log("刪除失敗");
         }else if(response.status === 403){ //
@@ -45,38 +74,65 @@ async function delete_intake(intake_id){
 };
 
 //新增飲食紀錄 (//尚未完成)
-async function add_intake(){
+async function add_intake(payload){
     let jwt = localStorage.getItem("JWT");
     try{
         let response = await fetch("/api/intakes",{
                                                     method: 'post',
                                                     body : payload,
-                                                    headers: {"Authorization" : `Bearer ${jwt}`}
+                                                    headers: {"Authorization" : `Bearer ${jwt}`,'Content-Type': 'application/json'}
                                                 });
         let result = await response.json();                                
         if(response.status===201){  //201 
             console.log(result);
+            let payload_obj = JSON.parse(payload);
+            console.log(payload_obj);
             //新增成功,顯示在吃過的東西,要再打一次api要intake_id(怎麼要到intake id)
             //直接加在insert_new_diet裡面,會回傳intake_id
             added_intake_id = result["intake_id"];
-            payload["intake_id"] = added_intake_id;
-            let li = create_li(payload);
-            let ul = document.querySelector("food-ul");
-            let first_li = ul.firstChild;
-            first_li.before(li); //把新增的食物放到第一個
+            payload_obj["intake_id"] = added_intake_id;
+            let tr = create_tr(payload_obj);
+            let tbody = document.querySelector(".food-body");
+            let first_tr = tbody.firstChild;
+            if(first_tr){
+                first_tr.before(tr); //把新增的食物放到第一個
+            }else{
+                tbody.appendChild(tr);
+            }
             //要更新current status數值
+            let current_calories = document.querySelector(".current-calo");
             let current_protein = document.querySelector(".current-protein_g");
             let current_carbs = document.querySelector(".current-carbs_g");
             let current_fat = document.querySelector(".current-fat_g");
-            let new_protein = Number((current_protein.textContent.split("g)"))[0])+payload["protein"]
-            let new_carbs = Number((current_carbs.textContent.split("g)"))[0])+payload["carbs"]
-            let new_fat = Number((current_fat.textContent.split("g)"))[0])+payload["fat"]
+            let new_calories = Number(current_calories.textContent)+select_food["calories"];
+            console.log(new_calories);
+            let new_protein = Number((Number((current_protein.textContent.split("g"))[0])+payload_obj["protein"]).toFixed(1));
+            let new_carbs = Number((Number((current_carbs.textContent.split("g"))[0])+payload_obj["carbs"]).toFixed(1));
+            let new_fat = Number((Number((current_fat.textContent.split("g"))[0])+payload_obj["fat"]).toFixed(1));
+            current_calories.innerHTML = String(new_calories);
             current_protein.innerHTML = String(new_protein)+"g";
             current_carbs.innerHTML = String(new_carbs)+"g";
             current_fat.innerHTML = String(new_fat)+"g";
-//尚未完成            //還要更新長條圖
-
-
+            //把痊癒變數select_food變回null
+            select_food={"food_name":null,
+                 "food_id":null, 
+                 "protein":null,
+                 "carbs":null,
+                 "fat":null, 
+                 "calories":null}
+            //還要更新長條圖
+            let canvas = Chart.getChart("pfc");
+            if(canvas){
+                canvas.destroy();
+            };
+            let pie = document.getElementById("pfc").getContext("2d");
+            let percentage_p = Math.round(new_protein*4/new_calories*100);
+            let percentage_f = Math.round(new_fat*9/new_calories*100);
+            let percentage_c = 100 - percentage_p - percentage_f;
+            group.amount[0] = percentage_p;
+            group.amount[1] = percentage_c;
+            group.amount[2] = percentage_f;
+            let PieChart = new Chart(pie,{type:'pie',data:DataEC, options: {plugins:optionsEC}});
         }else if(response.status === 400){ //刪除失敗,新增資料有誤
             console.log("新增失敗");
         }else if(response.status === 403){ //
@@ -93,29 +149,41 @@ async function add_intake(){
 };
 
 
-//創造顯示吃過食物li tag
-function create_li(food){
-    let li = document.createElement("li");
-    let span_name = document.createElement("span");
-    let span_amount = document.createElement("span");
-    let span_g = document.createElement("span");
-    let delete_div = document.createElement("div");
-    delete_div.classList.add("delete");
-    delete_div.setAttribute("id",food["intake_id"]); //把intake_id直接放在垃圾桶
+//創造顯示吃過食物tr tag
+function create_tr(food){
+    let tr = document.createElement("tr");
+    tr.classList.add("food-item");
+    let th = document.createElement("th");
+    th.classList.add("food-name");
+    th.appendChild(document.createTextNode(String(food["food_name"])));
+    let td_p = document.createElement("td");
+    td_p.classList.add("p");
+    td_p.appendChild(document.createTextNode(String(food["protein"])));
+    let td_f = document.createElement("td");
+    td_f.classList.add("f");
+    td_f.appendChild(document.createTextNode(String(food["fat"])));
+    let td_c = document.createElement("td");
+    td_c.classList.add("c");
+    td_c.appendChild(document.createTextNode(String(food["carbs"])));
+    let td_amount = document.createElement("td");
+    td_amount.classList.add("a");
+    td_amount.appendChild(document.createTextNode(String(food["amount"])));
+    let td_delete = document.createElement("td");
+    td_delete.classList.add("delete");
+    td_delete.setAttribute("id",food["intake_id"]); //把intake_id直接放在垃圾桶
     let delete_icon = new Image();
     delete_icon.src = "/picture/icon_delete.png";
-    delete_div.addEventListener("click",function(){ //註冊刪除飲食紀錄
+    td_delete.addEventListener("click",function(){ //註冊刪除飲食紀錄
         delete_intake(this.id);
     });
-    span_name.appendChild(document.createTextNode(food["food_name"]));
-    span_amount.appendChild(document.createTextNode(food["amount"]));
-    span_g.appendChild(document.createTextNode("g"));
-    delete_div.appendChild(delete_icon);
-    li.appendChild(span_name);
-    li.appendChild(span_amount);
-    li.append(span_g);
-    li.appendChild(delete_div);
-    return li
+    td_delete.appendChild(delete_icon);
+    tr.appendChild(th);
+    tr.appendChild(td_p);
+    tr.appendChild(td_f);
+    tr.appendChild(td_c);
+    tr.appendChild(td_amount);
+    tr.appendChild(td_delete);
+    return tr
 };
 
 
@@ -123,20 +191,19 @@ function create_li(food){
 //render出吃過的食物那塊
 function show_consume(main_container,food_record){
     console.log('吃過食物喔喔喔');
-    let ul = document.querySelector(".food-ul");
-    if(document.querySelector(".record-container") && ul){ //如果已經有record-container就不用製造
-        //只要改變food-ul裡面li內容,首先先移除舊的li
-        while(ul.firstChild){
-            ul.removeChild(ul.firstChild);
+    let tbody = document.querySelector(".food-body");
+    if(document.querySelector(".record-container") && tbody){ //如果已經有record-container就不用製造
+        //只要改變food-body裡面tr內容,首先先移除舊的tr
+        while(tbody.firstChild){
+            tbody.removeChild(tbody.firstChild);
         };
-        //接著放入新的li,如果有food_record的話
+        //接著放入新的tr,如果有food_record的話
         if(food_record){
             for(let i = 0 ; i < food_record.length ; i++){
-                let li = create_li(food_record[i]);
-                ul.appendChild(li);
+                let tr = create_tr(food_record[i]);
+                tbody.appendChild(tr);
             }; 
         };
-
     }else{
         let start_record = document.querySelector(".start-record");
         let record_container;
@@ -157,15 +224,29 @@ function show_consume(main_container,food_record){
         //吃過食物那塊
         let consume_food = document.createElement("div");
         consume_food.classList.add("consume-food");
-        let ul = document.createElement("ul");
-        ul.classList.add("food-ul");
+        let table = document.createElement("table");
+        table.classList.add("food-table");
+        let thead = document.createElement("thead");
+        let tr = document.createElement("tr");
+        let th_text = ["\u00A0","Protein(g)","Fat(g)","Carbs(g)","amount(g)","\u00A0"]
+        for(let i=0;i<th_text.length;i++){
+            let th = document.createElement("th");
+            th.classList.add("head");
+            th.appendChild(document.createTextNode(th_text[i]));
+            tr.appendChild(th);
+        };
+        thead.appendChild(tr);
+        table.appendChild(thead);
+        let tbody = document.createElement("tbody");
+        tbody.classList.add("food-body");
         if(food_record){
             for(let i = 0;i < food_record.length ; i++){
-                let li = create_li(food_record[i]);
-                ul.appendChild(li);
+                let tr = create_tr(food_record[i]);
+                tbody.appendChild(tr);
             };
-        }
-        consume_food.appendChild(ul);
+        };
+        table.appendChild(tbody);
+        consume_food.appendChild(table);
         //搜尋食物那塊
         let input_area = document.createElement("div");
         input_area.setAttribute("id","input-area");
@@ -213,13 +294,16 @@ function show_consume(main_container,food_record){
             let input_food = document.getElementById("food_name");
             let input_amount = document.getElementById("food_portion");
             let search_result = document.querySelector(".search-result");
-            if(select_food["food_name"]!== null && !search_result && input_amount.value.length!==0 && input_food.value.length!==0){
+            if(select_food["food_name"]!== null && !search_result && input_amount.value.length!==0 && input_food.value.length!==0 && Number(input_amount.value)){
                 //計算pfc攝取克數
                 let amount = Number(Number(input_amount.value).toFixed(1));
-                let portion = Number((amount/100).toFixed(1));
-                let consume_protein = Number((portion * select_food["protein"]).toFixed(1));
-                let consume_fat = Number((portion * select_food["fat"]).toFixed(1));
-                let consume_carbs = Number((portion * select_food["fat"]).toFixed(1));
+                let precise_portion = Number(input_amount.value)/100;
+                let consume_protein = Number((precise_portion * select_food["protein"]).toFixed(1));
+                let consume_fat = Number((precise_portion * select_food["fat"]).toFixed(1));
+                let consume_carbs = Number((precise_portion * select_food["carbs"]).toFixed(1));
+                let consume_calories = (precise_portion*select_food["protein"]*4)+(precise_portion*select_food["fat"]*9)+(precise_portion*select_food["carbs"]*4);
+                console.log(consume_calories);
+                select_food["calories"] = Math.round(consume_calories);
                 let payload = {
                     "record_id" : record_id,
                     "food_name" : select_food["food_name"],
@@ -228,14 +312,15 @@ function show_consume(main_container,food_record){
                     "carbs" : consume_carbs,
                     "amount" : amount
                 }            
-                add_intake(payload);
+                add_intake(JSON.stringify(payload));
                 //把input 清空
                 input_food.value="";
+                input_amount.value="";
             }else{ //顯示訊息說要選好
                 let message = "Please confirm input is completed.";
-                show_reminder(message); //4/28焓不知道要把顯示訊息插哪
+                console.log(message);
+                //show_reminder(message); //4/28焓不知道要把顯示訊息插哪
             };  
-            add_intake();
         })
         input_area.appendChild(input_food);
         input_area.appendChild(input_amount);
@@ -627,14 +712,16 @@ function show_pfcc_section(right_record,day_record,food_record){
     let current_f = document.createElement("span");
     current_f.classList.add("current-fat_g");//
     if(food_record){ //如果有飲食紀錄
+        console.log("嘿嘿嘿");
+        console.log(food_record);
         let protein=0;
         let fat=0;
         let carbs=0;
         let calories=0;
         for(let i=0;i<food_record.length;i++){
-            protein+=i["protein"];
-            fat+=i["fat"];
-            carbs+=i["carbs"];
+            protein+=food_record[i]["protein"];
+            fat+=food_record[i]["fat"];
+            carbs+=food_record[i]["carbs"];
         };
         calories = Math.round((protein*4)+(fat*9)+(carbs*4)) //取整數
         protein = protein.toFixed(1)+"g"
@@ -648,7 +735,7 @@ function show_pfcc_section(right_record,day_record,food_record){
         let protein="0"+"g";
         let fat="0"+"g";
         let carbs="0"+"g";
-        let calories="0"+"g";
+        let calories="0";
         current_calo.innerHTML = calories;
         current_p.innerHTML = protein;
         current_c.innerHTML = carbs;
@@ -733,9 +820,42 @@ function show_pfcc_section(right_record,day_record,food_record){
 }
 
 //顯示長條圖
-function show_chart_section(){
-
-}
+function show_chart_section(right_record,day_record,food_record){
+    let chart_div = document.createElement("div");
+    chart_div.classList.add("chart");
+    let pie_div = document.createElement("div");
+    pie_div.setAttribute("id","pie");
+    let canvas = document.createElement("canvas");
+    canvas.setAttribute("id","pfc");
+    let pie = canvas.getContext("2d");
+    let protein_amount=0;
+    let fat_amount=0;
+    let carbs_amount=0;
+    if(food_record){
+        for(let i=0;i<food_record.length;i++){
+            protein_amount+=food_record[i]["protein"];
+            fat_amount+=food_record[i]["fat"];
+            carbs_amount+=food_record[i]["carbs"];
+        };
+        
+        let total_amount = protein_amount*4+fat_amount*9+carbs_amount*4;
+        let percentage_p = Math.round(protein_amount*4/total_amount*100);
+        let percentage_f = Math.round(fat_amount*9/total_amount*100);
+        let percentage_c = 100 - percentage_p - percentage_f;
+        group.amount[0] = percentage_p;
+        group.amount[1] = percentage_c;
+        group.amount[2] = percentage_f;
+        let PieChart = new Chart(pie,{type:'pie',data:DataEC, options: {plugins:optionsEC}});
+    }else{//沒有飲食紀錄所以沒有圓餅圖,不知道要顯示啥
+        group.amount[0] = 0;
+        group.amount[1] = 0;
+        group.amount[2] = 0;
+        let PieChart = new Chart(pie,{type:'pie',data:DataEC, options: {plugins:optionsEC}});
+    };
+    pie_div.appendChild(canvas);
+    chart_div.appendChild(pie_div);   
+    right_record.appendChild(chart_div);
+};
 
 
 
@@ -753,9 +873,9 @@ function show_right_section(record_container,day_record,food_record){
             let carbs=0;
             let calories=0;
             for(let i=0;i<food_record.length;i++){
-                protein+=i["protein"];
-                fat+=i["fat"];
-                carbs+=i["carbs"];
+                protein+=food_record[i]["protein"];
+                fat+=food_record[i]["fat"];
+                carbs+=food_record[i]["carbs"];
             };
             calories = Math.round((protein*4)+(fat*9)+(carbs*4)) //取整數
             protein = protein.toFixed(1)+"g"
@@ -769,7 +889,7 @@ function show_right_section(record_container,day_record,food_record){
             let protein="0"+"g";
             let fat="0"+"g";
             let carbs="0"+"g";
-            let calories="0"+"g";
+            let calories="0";
             current_calo.innerHTML = calories;
             current_p.innerHTML = protein;
             current_c.innerHTML = carbs;
@@ -793,11 +913,37 @@ function show_right_section(record_container,day_record,food_record){
         //
         let plan_f = document.querySelector(".plan-fat");
         let plan_f_g = "~"+String(Math.round((day_record["plan_calories"]*day_record["fat"]/100)/9))+"g"
-        plan_f.innerHTML = plan_p_g;
+        plan_f.innerHTML = plan_f_g;
         let percent_fat = document.querySelector(".percent-fat")
         percent_fat.innerHTML = "("+String(day_record["fat"])+"%"+")";
-//尚未完成        //只要更新長條圖
-
+        //只要更新長條圖
+        let canvas = Chart.getChart("pfc");
+        canvas.destroy();
+        let pie = document.getElementById("pfc").getContext("2d");
+        let protein_amount=0;
+        let fat_amount=0;
+        let carbs_amount=0;
+        if(food_record){
+            for(let i=0;i<food_record.length;i++){
+                protein_amount+=food_record[i]["protein"];
+                fat_amount+=food_record[i]["fat"];
+                carbs_amount+=food_record[i]["carbs"];
+            };
+            let total_amount = protein_amount*4+fat_amount*9+carbs_amount*4;
+            let percentage_p = Math.round(protein_amount*4/total_amount*100);
+            let percentage_f = Math.round(fat_amount*9/total_amount*100);
+            let percentage_c = 100 - percentage_p - percentage_f;
+            group.amount[0] = percentage_p;
+            group.amount[1] = percentage_c;
+            group.amount[2] = percentage_f;
+            let PieChart = new Chart(pie,{type:'pie',data:DataEC, options: {plugins:optionsEC}});
+            console.log('誒誒誒誒');
+        }else{//沒有飲食紀錄所以沒有圓餅圖,不知道要顯示啥
+            group.amount[0] = 0;
+            group.amount[1] = 0;
+            group.amount[2] = 0;
+            let PieChart = new Chart(pie,{type:'pie',data:DataEC, options: {plugins:optionsEC}});
+        };
     }else{
         let right_record = document.createElement("div");
         right_record.classList.add("right-record");
@@ -1113,15 +1259,8 @@ async function get_record(timestamp,show_date_format){
 
 
 
-function render_sidebar(){
-    console.log('sidebar')
-}
-
-
-
-
 //動態render整個紀錄主畫面
-function render_record(){
+function render_record(user_data){
     //要傳給server query的timestamp
     let current_date = new Date();
     let year = current_date.getFullYear(); //2022
@@ -1140,13 +1279,11 @@ function render_record(){
         on_which_date = on_which_date + "0" + String(date);
     }else{
         on_which_date = on_which_date + String(date);
-    }
-
-
+    };
     on_date_utc = now_utc; //紀錄全域變數所在日期timestamp
     on_date_format = show_date_format; //紀錄全域變數所在日期的秀出格式
     get_record(now_utc,show_date_format);
-    render_sidebar(); //在render side bar裡去檢查id="remind"的元素內容是yes or no, 如果是no, 就要顯示提示訊息
+    //render_sidebar(user_data); //在render side bar裡去檢查id="remind"的元素內容是yes or no, 如果是no, 就要顯示提示訊息
 
 };
 

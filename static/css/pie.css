@@ -1,0 +1,14 @@
+.chart{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+#pie{
+    flex: none;
+    position:relative;
+    height:400px;
+    width:400px;
+}
+

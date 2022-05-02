@@ -168,7 +168,7 @@ def handle_delete_diet(request):
                 return jsonify(response_msg), 500 
             elif result: #表示刪除飲食資料成功
                     response_msg={ "ok": True }
-                    return jsonify(response_msg), 200 #api test ok
+                    return jsonify(response_msg), 204 #api test ok
             else:
                 response_msg={
                             "error":True,

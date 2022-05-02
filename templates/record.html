@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/earlyaccess/cwtexyen.css">
     <link rel="stylesheet" href="/css/record.css">
     <link rel="stylesheet" href="/css/search_food.css">
+    <link rel="stylesheet" href="/css/pie.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
     <title>Document</title>
 </head>
@@ -21,21 +22,22 @@
                 U </br>
                 Eat 
                 <img class="logo" src="data:image/png;base64,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"/>
-
             </div>
         </div>
+
         <div class="user-profile">
             <img class="profile_picture" src="/picture/face.png">
-            <span class="username">whph60308</span>
+            <span class="username" id="123">whph60308</span>
         </div>
+
         <div class="nav-page personal-food">
-            <span>My Food</span>
+            <span id="myfood">My Food</span>
         </div>
         <div class="nav-page personal-plan">
-            <span>Diet Plan</span>
+            <span id="dietplan">Diet Plan</span>
         </div>
         <div class="nav-page daily-record">
-            <span>Daily Record</span>
+            <span id="dailyrecord">Daily Record</span>
         </div>
         <div class="nav-page weight-record">
             <span>Weight Reocrd</span>
@@ -138,28 +140,6 @@
     <script type="text/javascript" src="/js/search_food.js"></script>
     <script type="text/javascript" src="/js/firsttime.js"></script>
     <script type="text/javascript" src="/js/record.js"></script>
-   <!-- <script>
-        let optionsEC={
-            title: {display: true, text: "PFC percentages", fontSize: 24}, 
-            legend: {display: true, position: "bottom"}    
-        }
-
-        let group = {"amount":[20,70,10],
-                    "category":["protein","carbs","fat"]}
-        let DataEC = {
-            datasets: [{
-                backgroundColor:["#976fe8","#FCB524","#52C0BC"] ,
-                data: group.amount,
-                borderColor: "rgba(0,0,0,0.1)",
-                borderWidth: "1"
-            }],
-            labels: group.category,
-        };
-
-        window.addEventListener("load",function(){
-            let pie = document.getElementById("pfc").getContext("2d");
-            let PieChart = new Chart(pie,{type:'pie',data:DataEC, options: {plugins:optionsEC}});
-        });
-    </script>-->
+    <script type="text/javascript" src="/js/pie.js"></script>
 </body>
 </html>

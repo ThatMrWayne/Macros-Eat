@@ -3,6 +3,7 @@
     top: 46px;
     left: 20px;
     background: lightsalmon;
+    z-index:2;
 }
 .u{
     list-style-type: none;

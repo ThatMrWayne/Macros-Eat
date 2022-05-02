@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Dogs table</title>
+    <link href="minimal-table.css" rel="stylesheet" type="text/css">
+    <style>
+        html {
+        font-family: sans-serif;
+        }
+        .consume-food{
+            border: 1px solid black;
+            height: 300px;
+            overflow-y: auto;
+            box-sizing: border-box;
+            margin-top:15px;
+        }
+
+        table {
+        border-collapse: collapse;
+        letter-spacing: 1px;
+        font-size: 0.8rem;
+        width: 100%;
+        }
+
+        td, th {
+        border-bottom: 1px solid rgb(190,190,190);
+        padding-top: 10px;
+        padding-bottom: 10px;
+        }
+
+        .head{
+            position: sticky;
+            top: 0;
+            background-color: rgba(255,255,255,1);
+        }
+
+
+
+
+        td {
+        text-align: center;
+        }
+
+
+        caption {
+        padding: 10px;
+        }
+
+    </style>
+  </head>
+  <body>
+    <h1>Dogs Table</h1>
+    <div class="table-container">
+      <table>
+        <thead>
+            <tr>
+                <th class="head"></th>
+                <th class="head">Protein(g)</th>
+                <th class="head">Fat(g)</th>
+                <th class="head">Carbs(g)</th>
+                <th class="head">amount(g)</th>
+                <th class="head">&nbsp;</th>
+            </tr>
+        </thead>  
+        <tbody>
+            <tr id="1">
+                <th class="food-name">雞胸肉</th>
+                <td class="p">30</td>
+                <td class="f">20</td>
+                <td class="c">10</td>
+                <td>200</td>
+                <td>delete</td>
+            </tr>
+            <tr id="2">
+                <th class="food-name">雞胸肉</th>
+                <td>30</td>
+                <td>20</td>
+                <td>10</td>
+                <td>200</td>
+                <td>delete</td>
+            </tr>
+            <tr id="3">
+                <th class="food-name">雞胸肉</th>
+                <td>30</td>
+                <td>20</td>
+                <td>10</td>
+                <td>200</td>
+                <td>delete</td>
+            </tr>
+            <tr id="4">
+                <th class="food-name">雞胸肉</th>
+                <td>30</td>
+                <td>20</td>
+                <td>10</td>
+                <td>200</td>
+                <td>delete</td>
+            </tr>
+        </tbody>  
+      </table>
+    </div>    
+
+  </body>
+</html>

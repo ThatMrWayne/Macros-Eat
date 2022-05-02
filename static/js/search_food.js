@@ -4,7 +4,7 @@ let select_food={"food_name":null,
                  "protein":null,
                  "carbs":null,
                  "fat":null, 
-                 "calories":null}
+                 "calories":null} //這個calories是指吃了這個食物多少熱量
 
 
 function lock_food(food){
