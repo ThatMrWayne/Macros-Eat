@@ -9,6 +9,9 @@ let new_target_fat;
 let new_target_carbs;
 //紀錄所選要載入的diet plan id
 let select_diet_plan_id;
+//紀錄取得飲食計畫的頁數
+let my_plan_page = 0;
+let can_get_my_plan = true;
 
 
 
@@ -185,6 +188,46 @@ function create_tr(food){
     tr.appendChild(td_delete);
     return tr
 };
+
+function create_plan_tr_load(plan){
+    let tr = document.createElement("tr");
+    tr.setAttribute("id",plan["plan_id"]);
+    tr.classList.add("plan-item");
+    tr.addEventListener("click",function(){  //按下計畫後會assign plan id給全域變數,然後變色
+        let previous_selected = document.querySelector(".selected");
+        if(previous_selected){
+            previous_selected.classList.toggle("selected");
+        };
+        select_diet_plan_id = this.id;
+        this.classList.toggle("selected");    
+    });
+    let th = document.createElement("th");
+    th.classList.add("plan-name");
+    th.appendChild(document.createTextNode(String(plan["plan_name"])));
+    let td_p = document.createElement("td");
+    td_p.classList.add("plan-protein");
+    td_p.appendChild(document.createTextNode(String(plan["protein"])));
+    let td_f = document.createElement("td");
+    td_f.classList.add("plan-fat");
+    td_f.appendChild(document.createTextNode(String(plan["fat"])));
+    let td_c = document.createElement("td");
+    td_c.classList.add("plan-calories");
+    td_c.appendChild(document.createTextNode(String(plan["carbs"])));
+    let td_calories = document.createElement("td");
+    td_calories.classList.add("plan-calories");
+    td_calories.appendChild(document.createTextNode(String(plan["plan_calories"])));
+    //
+    tr.appendChild(th);
+    tr.appendChild(td_p);
+    tr.appendChild(td_f);
+    tr.appendChild(td_c);
+    tr.appendChild(td_calories);
+    return tr
+}
+
+
+
+
 
 
 
@@ -982,19 +1025,33 @@ function pop_load_diet_plan(background){
     //飲食計畫
     let diet_plan = document.createElement("div");
     diet_plan.classList.add("diet-plan");//
-    let plan_item = document.createElement("div");
-    plan_item.classList.add("plan-item");
-    items=["Plan name","Calories","Protein(%)","Carbs(%)","Fat(%)"]
-    for(let i=0;i<items.length;i++){
-        let div = document.createElement("div");
-        div.innerHTML=items[i];
-        plan_item.appendChild(div);
+    diet_plan.addEventListener("scroll",function(){ //plan table註冊滑動載入my-food事件
+        if(this.scrollHeight-this.scrollTop === this.clientHeight){
+            if(can_get_my_plan && my_plan_page){
+                can_get_my_plan = false;
+                get_diet_plan(my_plan_page,"forload");
+            };
+        };
+    });
+    let table = document.createElement("table");
+    table.classList.add("plan-table");
+    let thead = document.createElement("thead");
+    let tr = document.createElement("tr");
+    let th_text = ["\u00A0","Protein(%)","Fat(%)","Carbs(%)","Calories(kcal)"]
+    for(let i=0;i<th_text.length;i++){
+        let th = document.createElement("th");
+        th.classList.add("head");
+        th.appendChild(document.createTextNode(th_text[i]));
+        tr.appendChild(th);
     };
-    let plan_container = document.createElement("div");
-    plan_container.classList.add("plan-container");
+    thead.appendChild(tr);
+    table.appendChild(thead);
+    let tbody = document.createElement("tbody");
+    tbody.classList.add("plan-body");
+    get_diet_plan(my_plan_page,"forload"); //取得飲食計畫 ,先傳入預設0的my_plan_page
+    table.appendChild(tbody);
     //
-    diet_plan.appendChild(plan_item);
-    diet_plan.appendChild(plan_container);
+    diet_plan.appendChild(table);
     //
     load_plan.appendChild(title_div);
     load_plan.appendChild(break_line);
@@ -1012,6 +1069,8 @@ function pop_load_diet_plan(background){
         document.body.removeChild(bg[0]);
         //也要把全域變數變回null
         select_diet_plan_id = null;
+        my_plan_page = 0;
+        can_get_my_plan = true;
     });
     let span_select = document.createElement("span");
     span_select.classList.add("submit-select");
@@ -1046,43 +1105,36 @@ function pop_load_diet_plan(background){
     load_plan.appendChild(select_btn);
     //
     load_plan_box.appendChild(load_plan);
-    get_diet_plan();//
     background.appendChild(load_plan_box);
     return background;
 }
 
 //點擊load from diet plan
-async function get_diet_plan(){  //打 /plans GET
+async function get_diet_plan(plan_page,purpose){  //打 /plans GET
     let jwt = localStorage.getItem("JWT");
     try{
-        let response = await fetch('/api/plans',{
+        let response = await fetch('/api/plans?page='+plan_page,{
                                                 method: 'get',
                                                 headers: {"Authorization" : `Bearer ${jwt}`}
                                                 });
         let result = await response.json();                                
-        if(response.ok){  //200情況下  得到會員的diet plan,要顯示在選擇框框上(插在plan-container)
-            let plan_container = document.querySelector(".plan-container");
+        if(response.ok){  //200情況下  得到會員的diet plan,要顯示在選擇框框上
+            let tbody = document.querySelector(".plan-body");
             let plans = result.plans;
-            for(let i = 0;i<plans.length; i++){
-                let item_div = document.createElement("div");
-                item_div.classList.add("item");
-                item_div.setAttribute("id",plans[i]["plan_id"]);
-                let plan_data = ["plan_name","plan_calories","protein","carbs","fat"];
-                for(let j=0;j<plan_data.length;j++){
-                    let div = document.createElement("div");
-                    div.innerHTML=plans[i][plan_data[j]];
-                    item_div.appendChild(div);
-                };
-                item_div.addEventListener("click",function(){  //按下計畫後會assign plan id給全域變數,然後變色
-                    let previous_selected = document.querySelector(".selected");
-                    if(previous_selected){
-                        previous_selected.classList.toggle("selected");
-                    };
-                    select_diet_plan_id = this.id;
-                    this.classList.toggle("selected");    
-                });
-                plan_container.appendChild(item_div);
-            }; 
+            if(plans.length!==0){
+                for(let i = 0;i<plans.length; i++){
+                    let tr;
+                    if(purpose === "forload"){
+                        tr = create_plan_tr_load(plans[i]);
+                    }else if(purpose === "foredit"){
+                        tr = create_plan_tr_edit(plans[i]);
+                    }
+                    tbody.appendChild(tr);
+                };        
+            };
+            let next_page = result["nextPage"];
+            my_plan_page = next_page;    
+            can_get_my_plan = true;
         }else if(response.status === 403){ //拒絕存取
             console.log('JWT已失效,請重新登入');
             localStorage.removeItem("JWT");
@@ -1283,7 +1335,7 @@ function render_record(user_data){
     on_date_utc = now_utc; //紀錄全域變數所在日期timestamp
     on_date_format = show_date_format; //紀錄全域變數所在日期的秀出格式
     get_record(now_utc,show_date_format);
-    //render_sidebar(user_data); //在render side bar裡去檢查id="remind"的元素內容是yes or no, 如果是no, 就要顯示提示訊息
+    render_sidebar(user_data); //在render side bar裡去檢查id="remind"的元素內容是yes or no, 如果是no, 就要顯示提示訊息
 
 };
 

@@ -127,7 +127,7 @@ def handle_delete_diet_plan(request):
                 return jsonify(response_msg), 500 
             elif result: #表示刪除飲食計畫成功
                     response_msg={ "ok": True }
-                    return jsonify(response_msg), 200 
+                    return jsonify(response_msg), 204 
             else:
                 response_msg={
                             "error":True,
@@ -191,12 +191,20 @@ def handle_update_diet_plan(request):
 def handle_get_diet_plans(request):
     connection = db.get_diet_plan_cnx() #取得飲食計畫相關操作的自定義connection物件
     if isinstance(connection,Connection): #如果有順利取得連線
+        page = request.args.get('page')
+        #如果沒有給page或是page給的不是是數字形式，gg
+        if not page or not page.isdigit():
+            response_msg={
+                        "nextPage":None,
+                        "data":[]}
+            res=make_response(response_msg,200)  
+        elif page.isdigit(): 
             user_id = Utils_obj.get_member_id_from_jwt(request)             
-            data = connection.get_diet_info(user_id)
+            data = connection.get_diet_info(page,user_id)
             if data == "error":
                 response_msg={
-                        "error":True,
-                        "message":"不好意思,資料庫暫時有問題,維修中"}
+                    "error":True,
+                    "message":"不好意思,資料庫暫時有問題,維修中"}
                 return jsonify(response_msg), 500          
             else:   
                 return jsonify(data), 200                       

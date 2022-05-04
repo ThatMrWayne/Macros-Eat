@@ -275,6 +275,7 @@ div.plan{
     position: sticky;
     top: 0;
     background-color: rgba(230,230,230,1);
+    z-index: 1;
 }
 
 td, th {
@@ -298,8 +299,8 @@ td {
 }
 
 .delete>img{
-    width:40%;
-    height: 40%;
+    width:35%;
+    height: 35%;
 }
 
 /*日曆*/
@@ -374,6 +375,7 @@ td {
     background-color: aliceblue;
     border-radius: 50%;
     width: 40px;
+    margin-right: 5px;
 }
 .username{
     vertical-align: middle;
@@ -472,7 +474,7 @@ td {
 .edit-title{
     width: 100%;
     flex: none;
-    margin-bottom: 35px;
+    margin-bottom: 10px;
     position: relative;
     font-weight: 900;
     font-size: 22px;
@@ -656,25 +658,25 @@ td {
 .load-plan-box{
     box-sizing: border-box;
     border-radius: 10px;
-    width: 600px;
+    width: 650px;
     position: relative;
     top: 80px;
     left: 50%;
     transform: translateX(-50%);
     background: white;
     animation: popout 1s;
+    background: #e8e8e8;
 }
 
 .load-plan{
     border-radius: 10px;
-    padding-top: 30px;
+    padding-top: 10px;
     padding-bottom: 40px;
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start;
     align-items: center;
     position: relative;
-    background-color: #E8E8E8;
 }
 
 .load-plan-title{
@@ -684,24 +686,34 @@ td {
 .diet-plan{
     width: 100%;
     position: relative;
-    height: 400px
+    height: 500px;
+    overflow: auto;
 }
 
-.plan-item{
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    text-align: center;
-    top: 0px;
+
+
+
+table.plan-table {
+    border-collapse: collapse;
+    letter-spacing: 1px;
+    font-size: 0.8rem;
     width: 100%;
-    height: 30px;
-    padding-right: 15px;
-    padding-top: 10px;
-    margin-bottom: 10px;
 }
 
-.plan-container{
-    height: 350px;
-    overflow: auto
+
+.plan-name{
+    width:120px;
+}
+
+
+.plan-item:hover{
+    cursor: pointer;
+    opacity: 0.6;
+    
+} 
+
+.edit-plan-item:hover{
+    opacity: 0.6;
 }
 
 .select-btn{
@@ -740,6 +752,7 @@ td {
 }
 
  /*選擇框框內的飲食計畫*/
+ /*
 .item{
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -753,7 +766,7 @@ td {
 .item:hover{
     cursor: pointer;
     opacity: 0.6;
-}
+}*/
 
 
 .selected{
@@ -782,5 +795,99 @@ td {
 }
 
 
+/*跳出我的食物窗*/
 
+.my-food-box{
+    box-sizing: border-box;
+    width: 1000px;
+    height:400px;
+    position: relative;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    animation: popout 1s;
+    display: grid;
+    grid-template-columns: 6fr 4fr;
+}
+
+
+.show-my-food{
+    overflow: auto;
+}
+
+.my-food-table{
+    border-collapse: collapse;
+    letter-spacing: 1px;
+    font-size: 0.8rem;
+    width: 100%;
+}
+
+.add-food-form{
+    padding-top: 20px;
+    padding-bottom: 55px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+    position: relative;
+    background-color: #E8E8E8;
+}
+
+.add-food-title {
+    flex: none;
+    position: relative;
+    margin-bottom: 20px;
+    font-weight: 900;
+    font-size: 20px;
+    color: lightslategray;
+    padding-left: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+}  
+
+.add-title{
+    display: inline-block;
+    width: 130px;
+    font-weight: 700;
+    font-size: 20px;
+    color: #757575
+}
+
+.add-remind {
+    color: #757575;
+    margin-top: 15px;
+    padding-left: 30px;
+}
+
+.add-food-btn {
+    position: absolute;
+    right: 5px;
+    bottom: 8px;
+}
+
+.close-add{
+    margin-right: 15px;
+    color: #757575;
+}
+
+.submit-add-food {
+    background-color: #F0754F;
+    border-radius: 8px;
+    padding-right: 4px;
+    padding-left: 4px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    color: lightyellow;
+}
+
+.submit-add-food:hover{
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+.close-add:hover{
+    cursor: pointer;
+    color: #F0754F;
+}
 

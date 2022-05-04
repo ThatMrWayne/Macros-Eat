@@ -150,12 +150,15 @@ class Food_connection(Connection):
     def insert_new_food(self,request_data,user_id):
         result, msg = None, None
         cursor = self.cnx.cursor(dictionary=True)
-        query = "INSERT INTO food VALUES (DEFAULT,%(member_id)s,%(food_name)s,%(protein)s,%(fat)s,%(carbs)s)"
+        query1 = "INSERT INTO food VALUES (DEFAULT,%(member_id)s,%(food_name)s,%(protein)s,%(fat)s,%(carbs)s)"
+        query2 = "SELECT food_id FROM food WHERE member_id = %(member_id)s ORDER BY food_id DESC LIMIT 0,1"
         input_data = {'member_id': user_id, 'food_name': request_data["food_name"], 'protein': request_data["protein"], 'fat':request_data["fat"], 'carbs':request_data["carbs"]}
         try:
-            cursor.execute(query, input_data)
+            cursor.execute(query1, input_data)
             self.cnx.commit()
-            result = True
+            cursor.execute(query2, {"member_id":user_id})
+            food_id = cursor.fetchone()
+            result = food_id
         except mysql.connector.Error as err:
             print(err)
             msg = err.msg
@@ -166,7 +169,7 @@ class Food_connection(Connection):
             if msg:  #新增食物失敗
                 return "error"
             elif result:
-                return True #新增食物成功
+                return result #新增食物成功
 
     def delete_food(self,food_id,user_id):
         result, msg = None, None
@@ -197,7 +200,7 @@ class Food_connection(Connection):
                 return False  #刪除食物資料失敗
 
     def get_my_food_info(self,page,user_id):
-        msg,food_data,nextPage = None,None,None
+        msg,food_data,nextPage,result = None,None,None,None
         cursor= self.cnx.cursor(dictionary=True)
         try:
             query = ("SELECT food_id, food_name, protein, fat, carbs from "
@@ -325,15 +328,23 @@ class Plan_connection(Connection):
             elif result == False:
                 return False  #刪除飲食計畫失敗
 
-    def get_diet_info(self,user_id):
-        msg,diet_data = None,None
+    def get_diet_info(self,page,user_id):
+        msg,diet_data,nextPage,result = None,None,None,None
         cursor= self.cnx.cursor(dictionary=True)
         try:
             query = ("SELECT plan_id, plan_name, plan_calories,protein, fat, carbs from "
-            "plans WHERE member_id = %(member_id)s") #member_id foreign key is non-clustered index
-            cursor.execute(query,{"member_id":user_id})
+            "plans WHERE member_id = %(member_id)s ORDER BY plan_id LIMIT %(st)s, 11") #member_id foreign key is non-clustered index
+            cursor.execute(query,{ "member_id" : user_id, 'st':int(page)*10 })
             diet_data = cursor.fetchall() #可能是空的[]    
+            #查看有沒有下一頁
+            try:
+                next_item = diet_data[10]
+                nextPage = int(page)+1
+            except:
+                nextPage = None  
+
             result={
+                    "nextPage":nextPage,
                     "plans":diet_data 
                     }  
         except mysql.connector.Error as err:

@@ -85,8 +85,8 @@ def handle_add_food(request):
                             "error":True,
                             "message":"不好意思,資料庫暫時有問題,維修中"}
                 return jsonify(response_msg), 500
-            elif result == True: 
-                response_msg={"ok": True}
+            elif result: 
+                response_msg={"ok": True,"food_id":result["food_id"]}
                 return jsonify(response_msg), 201 #api test ok
         elif connection == "error":  #如果沒有順利取得連線
             response_msg={
@@ -111,7 +111,7 @@ def handle_delete_food(request):
                 return jsonify(response_msg), 500 
             elif result: #表示刪除食物資料成功
                     response_msg={ "ok": True }
-                    return jsonify(response_msg), 200 #api test ok
+                    return jsonify(response_msg), 204 #api test ok
             else:
                 response_msg={
                             "error":True,
