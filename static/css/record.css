@@ -33,7 +33,7 @@ div{
     font-size: 38px;
     flex: none;
     position: relative;
-    right:30px;
+    right:15px;
 }
 .logo{
     width:50px;
@@ -671,7 +671,7 @@ td {
 .load-plan{
     border-radius: 10px;
     padding-top: 10px;
-    padding-bottom: 40px;
+    padding-bottom: 50px;
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start;
@@ -686,7 +686,7 @@ td {
 .diet-plan{
     width: 100%;
     position: relative;
-    height: 500px;
+    height: 450px;
     overflow: auto;
 }
 
@@ -752,21 +752,7 @@ table.plan-table {
 }
 
  /*選擇框框內的飲食計畫*/
- /*
-.item{
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    text-align: center;
-    border: 1px solid lightslategrey;
-    border-radius: 5px;
-    padding-top: 10px;
-    padding-bottom: 10px
-} 
 
-.item:hover{
-    cursor: pointer;
-    opacity: 0.6;
-}*/
 
 
 .selected{
@@ -824,20 +810,18 @@ table.plan-table {
 }
 
 .add-food-form{
-    padding-top: 20px;
-    padding-bottom: 55px;
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start;
     align-items: center;
     position: relative;
     background-color: #E8E8E8;
+    height: 100%;
 }
 
 .add-food-title {
     flex: none;
     position: relative;
-    margin-bottom: 20px;
     font-weight: 900;
     font-size: 20px;
     color: lightslategray;
@@ -856,14 +840,18 @@ table.plan-table {
 
 .add-remind {
     color: #757575;
-    margin-top: 15px;
     padding-left: 30px;
 }
 
+.fill-food-name,.add-food-form>.fill{
+    margin-bottom: 0px;
+}
+
+
+
 .add-food-btn {
-    position: absolute;
-    right: 5px;
-    bottom: 8px;
+    position: relative;
+    left:58%;
 }
 
 .close-add{
@@ -891,3 +879,53 @@ table.plan-table {
     color: #F0754F;
 }
 
+/*跳出我的計畫匡的新增計畫部分*/
+.add-plan{
+    border-top: 1px solid lightgray;
+    width: 100%;
+    height: 100px;
+    display: grid;
+    grid-template-columns: repeat(5,1fr);
+    align-content: center;
+}
+
+
+.add-plan_title{
+    text-align: center;
+    position: relative;
+}
+
+.add-plan_span{
+    position: relative;
+    display: block;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.add-plan_protein,.add-plan_fat,.add-plan_carbs,.add-plan_calories{
+    text-align: center;
+    position: relative;
+    height:82px;
+}
+
+.add-plan_input{
+    width: 120px;
+    height: 25px;
+    margin: 0px;
+    box-sizing: border-box; 
+    border: none;
+    border-radius: 5px;
+    margin-top: 5px;
+    padding: 5px;
+}
+
+.add-plan_input:focus{
+    outline: none;
+}
+
+.add-plan-reminder{
+    margin-left: 10px;
+    color: #757575;
+    position: absolute;
+    bottom: 5px;
+}

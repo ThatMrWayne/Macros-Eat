@@ -81,9 +81,13 @@ async function delete_my_food(food_id){
                                                     headers: {"Authorization" : `Bearer ${jwt}`}
                                                 });                               
         if(response.status===204){  //204 刪除我的食物成功
-            //從我的食物table移除
-            let tr = document.getElementById(food_id).parentElement;
-            tr.remove();
+            //新增我的食物成功,直接重新打一次get_my_food,把my_food_page歸0,先把tbody清空
+            let tbody = document.querySelector(".my-food-body");
+            while(tbody.firstChild){
+                tbody.firstChild.remove(); 
+            };
+            my_food_page = 0;
+            get_my_food(my_food_page);      
         }else if(response.status === 400){ //刪除失敗,該食物不存在或不屬於此會員
             console.log("刪除失敗");
         }else if(response.status === 403){ //
@@ -124,6 +128,7 @@ function create_my_tr(food){
     let delete_icon = new Image();
     delete_icon.src = "/picture/icon_delete.png";
     td_delete.addEventListener("click",function(){ //註冊刪除飲食紀錄
+        can_get_my_food = false; //按下去的時候要先變false
         delete_my_food(this.id);
     });
     td_delete.appendChild(delete_icon);
@@ -150,17 +155,13 @@ async function add_food(payload,jwt){ //新增食物API
             console.log(result);
             let payload_obj = JSON.parse(payload);
             console.log(payload_obj);
-            //新增我的食物成功,顯示在我的食物table,要再打一次api要food_id(怎麼要到food id)
-            added_food_id = result["food_id"];
-            payload_obj["food_id"] = added_food_id;
-            let tr = create_my_tr(payload_obj);
+            //新增我的食物成功,直接重新打一次get_my_food,把my_food_page歸0,先把tbody清空
             let tbody = document.querySelector(".my-food-body");
-            let first_tr = tbody.firstChild;
-            if(first_tr){
-                first_tr.before(tr); //把新增的食物放到第一個
-            }else{
-                tbody.appendChild(tr);
+            while(tbody.firstChild){
+                tbody.firstChild.remove(); 
             };
+            my_food_page = 0;
+            get_my_food(my_food_page);
             //把新增食物匡清空,提示訊息清空
             let food_name = document.getElementById("new-food-name");
             let protein = document.getElementById("new-food-protein");
@@ -270,7 +271,7 @@ function render_my_food_window(background){
     tbody.classList.add("my-food-body");
     get_my_food(my_food_page) //取得食物資料
     show_my_food.addEventListener("scroll",function(){ //my-food table註冊滑動載入my-food事件
-        if(this.scrollHeight-this.scrollTop === this.clientHeight){
+        if(this.scrollHeight-this.scrollTop <= this.clientHeight){
             if(can_get_my_food && my_food_page){
                 can_get_my_food = false;
                 get_my_food(my_food_page);
@@ -377,6 +378,7 @@ function render_my_food_window(background){
         //送出新增的食物資料前先檢查有沒有都填了＆資料正不正確
         let validate = validate_new_food();
         if(validate){
+            can_get_my_food = false; //按下去的時候要先變false
             console.log("ok");
             let jwt = localStorage.getItem("JWT");
             let json_data = organize_new_food();
@@ -443,9 +445,13 @@ async function delete_plan(plan_id){
                                                     headers: {"Authorization" : `Bearer ${jwt}`}
                                                 });                               
         if(response.status===204){  //204 刪除我的計畫成功
-            //從我的飲食計畫table移除
-            let tr = document.getElementById(plan_id).parentElement;
-            tr.remove();
+            //從我的飲食計畫table移除 ,也是一樣要重新get_diet_plan
+            let tbody = document.querySelector(".plan-body");
+            while(tbody.firstChild){
+                tbody.firstChild.remove(); 
+            };    
+            my_plan_page = 0;
+            get_diet_plan(my_plan_page,"foredit");
         }else if(response.status === 400){ //刪除失敗,日飲食計畫不存在或該日飲食計畫不屬於此會員
             console.log("刪除失敗");
         }else if(response.status === 403){ //
@@ -461,6 +467,111 @@ async function delete_plan(plan_id){
     };
 };
 
+
+
+//新增飲食計畫
+async function add_diet_plan(payload,jwt){
+    try{
+        let response = await fetch('/api/plans',{
+                                     method: 'post',
+                                     body : payload,
+                                     headers: {"Authorization" : `Bearer ${jwt}`,'Content-Type': 'application/json'}
+                                    });
+        let result = await response.json();                            
+        if(response.status === 201){ //新增我計畫完成
+            //新增完成,插到我的計畫table
+            let payload_obj = JSON.parse(payload);
+            console.log(payload_obj);
+            //新增我計畫成功,直接重新打一次get_diet_plan,把my_plan_page歸0,先把tbody清空
+            let tbody = document.querySelector(".plan-body");
+            while(tbody.firstChild){
+                tbody.firstChild.remove(); 
+            };    
+            my_plan_page = 0;
+            get_diet_plan(my_plan_page,"foredit");    
+            //把新增計畫匡清空,提示訊息清空
+            let protein = document.getElementsByName("new-plan_protein")[0];
+            let fat = document.getElementsByName("new-plan_fat")[0];
+            let carbs = document.getElementsByName("new-plan_carbs")[0];
+            let calories = document.getElementsByName("new-plan_calories")[0];
+            calories.value="";
+            protein.value="";
+            fat.value="";
+            carbs.value="";
+            let tip = document.querySelector(".tip");
+            if(tip){
+                tip.remove()
+            };
+        }else if (response.status === 403){
+            console.log('JWT已失效,請重新登入');
+            localStorage.removeItem("JWT");
+            window.location.href = '/';
+        }else if (response.status === 400){
+            console.log(result);
+        }else{
+            console.log('伺服器錯誤');
+        }
+    }catch(message){
+        console.log(`${message}`)
+        throw Error('Fetching was not ok!!.')
+    };  
+}; 
+
+
+
+//驗證新增飲食計畫資料
+function validate_new_plan(){
+    let protein = document.getElementsByName("new-plan_protein")[0];
+    let fat = document.getElementsByName("new-plan_fat")[0];
+    let carbs = document.getElementsByName("new-plan_carbs")[0];
+    let calories = document.getElementsByName("new-plan_calories")[0];
+    let result = true;
+    if(!protein.value || Number(protein.value)<0 || !Number.isInteger(Number(protein.value))){
+        show_tip('Enter an integer percentage','.new-input-protein');
+        result = false;
+        return result;
+    }else if(!fat.value || Number(fat.value)<0 || !Number.isInteger(Number(fat.value))){
+        show_tip('Enter an integer percentage','.new-input-fat');
+        result = false;
+        return result;
+    }else if(!carbs.value || Number(carbs.value)<0 || !Number.isInteger(Number(carbs.value))){
+        show_tip('Enter an integer percentage','.new-input-carbs');
+        result = false;
+        return result;
+    }else if(!calories.value || Number(calories.value)<0 || !Number.isInteger(Number(calories.value))){
+        show_tip('Enter an integer calories','.new-input-calories');
+        result = false;
+        return result;
+    }else if( Number(carbs.value)+Number(fat.value)+Number(protein.value) !== 100 ){
+        const tip = document.querySelector('.tip');
+        if(tip){
+            document.documentElement.style.setProperty('--color',"none");
+            tip.remove();
+        }
+        result = false;
+        return result;
+    }
+    return result     
+};
+
+
+
+//組織新增飲食計畫資料
+function organize_new_plan(){
+    let protein = document.getElementsByName("new-plan_protein")[0].value;
+    let fat = document.getElementsByName("new-plan_fat")[0].value;
+    let carbs = document.getElementsByName("new-plan_carbs")[0].value;
+    let calories = document.getElementsByName("new-plan_calories")[0].value;
+    let data={};
+    data["plan_calories"] = Number(calories);
+    data["protein"] = Number(protein);
+    data["fat"] = Number(fat);
+    data["carbs"] = Number(carbs);
+    let current_date = new Date();
+    let timestamp = Math.floor(current_date.getTime()/1000);
+    data["create_at"] = timestamp;
+    return JSON.stringify(data)
+}
 
 
 
@@ -490,6 +601,7 @@ function create_plan_tr_edit(plan){
     let delete_icon = new Image();
     delete_icon.src = "/picture/icon_delete.png";
     td_delete.addEventListener("click",function(){ //註冊刪除飲食計畫
+        can_get_my_plan = false; //按下去的時候要先變false
         delete_plan(this.id);
     });
     td_delete.appendChild(delete_icon);
@@ -527,7 +639,7 @@ function render_my_plan_window(background){
     let diet_plan = document.createElement("div");
     diet_plan.classList.add("diet-plan");//
     diet_plan.addEventListener("scroll",function(){ //plan table註冊滑動載入my-food事件
-        if(this.scrollHeight-this.scrollTop === this.clientHeight){
+        if(this.scrollHeight-this.scrollTop <= this.clientHeight){
             if(can_get_my_plan && my_plan_page){
                 can_get_my_plan = false;
                 get_diet_plan(my_plan_page,"foredit");
@@ -557,7 +669,85 @@ function render_my_plan_window(background){
     load_plan.appendChild(title_div);
     load_plan.appendChild(break_line);
     load_plan.appendChild(diet_plan);
-    //
+    //新增計畫區塊
+    let add_plan = document.createElement("div");
+    add_plan.classList.add("add-plan");
+    //add your new plan
+    let add_plan_title = document.createElement("div");
+    add_plan_title.classList.add("add-plan_title");
+    let span = document.createElement("span");
+    span.classList.add("add-plan_span");
+    span.innerHTML = "Add your new plan here.";
+    add_plan_title.appendChild(span);
+    //新protein
+    let add_plan_protein = document.createElement("div");
+    add_plan_protein.classList.add("add-plan_protein");
+    let div_protein = document.createElement("div");
+    div_protein.innerHTML = "Protein(%)";
+    let input_protein = document.createElement("input");
+    input_protein.classList.add("add-plan_input");
+    input_protein.classList.add("new-input-protein");
+    input_protein.setAttribute("type","number");
+    input_protein.setAttribute("step","1");
+    input_protein.setAttribute("min","0");
+    input_protein.setAttribute("name","new-plan_protein");
+    add_plan_protein.appendChild(div_protein);
+    add_plan_protein.appendChild(input_protein);
+    //新fat
+    let add_plan_fat = document.createElement("div");
+    add_plan_fat.classList.add("add-plan_fat");
+    let div_fat = document.createElement("div");
+    div_fat.innerHTML = "Fat(%)";
+    let input_fat = document.createElement("input");
+    input_fat.classList.add("add-plan_input");
+    input_fat.classList.add("new-input-fat");
+    input_fat.setAttribute("type","number");
+    input_fat.setAttribute("step","1");
+    input_fat.setAttribute("min","0");
+    input_fat.setAttribute("name","new-plan_fat");
+    add_plan_fat.appendChild(div_fat);
+    add_plan_fat.appendChild(input_fat);
+    //新carb
+    let add_plan_carbs = document.createElement("div");
+    add_plan_carbs.classList.add("add-plan_carbs");
+    let div_carbs = document.createElement("div");
+    div_carbs.innerHTML = "Carbs(%)";
+    let input_carbs = document.createElement("input");
+    input_carbs.classList.add("add-plan_input");
+    input_carbs.classList.add("new-input-carbs");
+    input_carbs.setAttribute("type","number");
+    input_carbs.setAttribute("step","1");
+    input_carbs.setAttribute("min","0");
+    input_carbs.setAttribute("name","new-plan_carbs");
+    add_plan_carbs.appendChild(div_carbs);
+    add_plan_carbs.appendChild(input_carbs);
+    //新calories
+    let add_plan_calories = document.createElement("div");
+    add_plan_calories.classList.add("add-plan_calories");
+    let div_calories = document.createElement("div");
+    div_calories.innerHTML = "Calories(%)";
+    let input_calories = document.createElement("input");
+    input_calories.classList.add("add-plan_input");
+    input_calories.classList.add("new-input-calories");
+    input_calories.setAttribute("type","number");
+    input_calories.setAttribute("step","1");
+    input_calories.setAttribute("min","0");
+    input_calories.setAttribute("name","new-plan_calories");
+    add_plan_calories.appendChild(div_calories);
+    add_plan_calories.appendChild(input_calories); 
+    //reminder
+    let remind = document.createElement("div");
+    remind.classList.add("add-plan-reminder");
+    remind.innerHTML="(Percentage must add to 100%)";
+    //最後
+    add_plan.appendChild(add_plan_title);
+    add_plan.appendChild(add_plan_protein);
+    add_plan.appendChild(add_plan_fat);
+    add_plan.appendChild(add_plan_carbs);
+    add_plan.appendChild(add_plan_calories);
+    load_plan.appendChild(add_plan);
+    load_plan.appendChild(remind);
+    //Cancel & save change button
     let select_btn = document.createElement("div");
     select_btn.classList.add("select-btn");
     let span_cancel = document.createElement("span");
@@ -574,6 +764,17 @@ function render_my_plan_window(background){
     });
     let span_select = document.createElement("span");
     span_select.classList.add("submit-select");
+    span_select.addEventListener("click",function(){ //點擊新增飲食計畫
+        //送出新增的飲食計畫前先檢查有沒有都填了＆資料正不正確
+        let validate = validate_new_plan();
+        if(validate){
+            can_get_my_plan = false; //按下去的時候要先變false
+            console.log("ok");
+            let jwt = localStorage.getItem("JWT");
+            let json_data = organize_new_plan();
+            add_diet_plan(json_data,jwt);
+        };     
+    });
     span_select.innerHTML="Save change";
     select_btn.appendChild(span_cancel);
     select_btn.appendChild(span_select);

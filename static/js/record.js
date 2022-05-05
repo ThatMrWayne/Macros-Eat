@@ -394,7 +394,7 @@ function show_date(main_container,date_format){
         let datepicker_toggle_div = document.createElement("div");
         datepicker_toggle_div.classList.add("datepicker-toggle");
         let date_img = new Image();
-        date_img.src = "/picture/calendar48.png";
+        date_img.src = "/picture/planner.png";
         date_img.classList.add("datepicker-toggle-button");
         let date_input = document.createElement("input");
         date_input.classList.add("datepicker-input");
@@ -1026,7 +1026,7 @@ function pop_load_diet_plan(background){
     let diet_plan = document.createElement("div");
     diet_plan.classList.add("diet-plan");//
     diet_plan.addEventListener("scroll",function(){ //plan table註冊滑動載入my-food事件
-        if(this.scrollHeight-this.scrollTop === this.clientHeight){
+        if(this.scrollHeight-this.scrollTop <= this.clientHeight){
             if(can_get_my_plan && my_plan_page){
                 can_get_my_plan = false;
                 get_diet_plan(my_plan_page,"forload");
@@ -1088,7 +1088,7 @@ function pop_load_diet_plan(background){
             let payload={};
             let selected = document.getElementById(select_diet_plan_id);
             let selected_children = selected.children;
-            let info=["plan_calories","protein","carbs","fat"];
+            let info=["protein","fat","carbs","plan_calories"];
             for(let i=0;i<info.length;i++){
                 payload[info[i]] = Number(selected_children[i+1].textContent);
             };
@@ -1097,6 +1097,7 @@ function pop_load_diet_plan(background){
             payload = JSON.stringify(payload);
             console.log(payload);
             post_select_plan(payload,jwt,on_date_format);
+            can_get_my_plan = false;
         }
     });
     select_btn.appendChild(span_cancel);
@@ -1168,7 +1169,9 @@ async function post_select_plan(payload,jwt,date_format){ //打 /records post
             //重新render一次紀錄區塊
             let timestamp = JSON.parse(payload)["create_at"];
             get_record(timestamp,date_format);
-            console.log("走到遠");
+            //還原
+            can_get_my_plan = true;
+            my_plan_page = 0;
         }else if (response.status === 403){
             console.log('JWT已失效,請重新登入');
             localStorage.removeItem("JWT");

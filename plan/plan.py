@@ -95,14 +95,21 @@ def handle_add_diet_plan(request):
         connection = db.get_diet_plan_cnx() #取得飲食計畫相關操作的自定義connection物件
         if isinstance(connection,Connection): #如果有順利取得連線
             user_id = Utils_obj.get_member_id_from_jwt(request)
+             #轉成台灣時區
+            gmtTimeDelta = datetime.timedelta(hours=8)
+            gmtTZObject = datetime.timezone(gmtTimeDelta,name="GMT")
+            d = datetime.datetime.fromtimestamp(request_data["create_at"]).astimezone(gmtTZObject)
+            s = d.strftime("%Y/%m/%d %H:%M:%S")
+            plan_name = "saved plan at " + s
+            request_data["plan_name"] = plan_name
             result = connection.insert_new_diet_plan(request_data,user_id)
             if result == "error": #如果檢查回傳結果是"error",代表資料庫query時發生錯誤
                 response_msg={
                             "error":True,
                             "message":"不好意思,資料庫暫時有問題,維修中"}
                 return jsonify(response_msg), 500
-            elif result == True: 
-                response_msg={"ok": True}
+            elif result: 
+                response_msg={"ok": True, "plan_id": result["plan_id"], "plan_name": result["plan_name"]}
                 return jsonify(response_msg), 201 
         elif connection == "error":  #如果沒有順利取得連線
             response_msg={
