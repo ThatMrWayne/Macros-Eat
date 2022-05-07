@@ -665,7 +665,7 @@ td {
     transform: translateX(-50%);
     background: white;
     animation: popout 1s;
-    background: #e8e8e8;
+    background: rgba(220,220,220,1);
 }
 
 .load-plan{
@@ -686,7 +686,7 @@ td {
 .diet-plan{
     width: 100%;
     position: relative;
-    height: 450px;
+    height: 300px;
     overflow: auto;
 }
 
@@ -795,11 +795,17 @@ table.plan-table {
     animation: popout 1s;
     display: grid;
     grid-template-columns: 6fr 4fr;
+    border-bottom-left-radius: 10px;
+    border-top-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-top-right-radius: 10px;
 }
 
 
 .show-my-food{
     overflow: auto;
+    border-bottom-left-radius: 10px;
+    border-top-left-radius: 10px;
 }
 
 .my-food-table{
@@ -809,6 +815,12 @@ table.plan-table {
     width: 100%;
 }
 
+.add-food{
+    border-bottom-right-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+
 .add-food-form{
     display: flex;
     flex-wrap: wrap;
@@ -817,6 +829,8 @@ table.plan-table {
     position: relative;
     background-color: #E8E8E8;
     height: 100%;
+    border-bottom-right-radius: 10px;
+    border-top-right-radius: 10px;
 }
 
 .add-food-title {

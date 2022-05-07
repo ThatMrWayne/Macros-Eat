@@ -1,0 +1,172 @@
+.select-date-range{
+    margin-left: 30px;
+}
+
+.select-date-range > label {
+    margin-right: 10px;
+    font-size: 20px;
+    vertical-align: middle;
+}
+
+.select-date-range > input {
+    height: 30px;
+    border: none;
+    border-radius: 5px;
+    padding: 5px;
+    vertical-align: middle;
+}
+
+.weight-title{
+    position: absolute;
+    right: 50px;
+    font-family: 'Gill Sans', 'Gill Sans MT', 'Trebuchet MS', sans-serif;
+    font-size: 35px;
+}
+
+.weight-record-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: start;
+}
+
+.weight-input-container {
+    flex: none;
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 15px;
+    width: 95%;
+    margin-bottom: 15px;
+}
+
+/*新增今日體重*/
+
+.add-weight {
+    flex: none;
+    border: 1px solid #dcdcdc;
+    width: 20%;
+    height: 110px;
+    position: relative;
+    border-radius: 10px;
+    margin-right: 20px;
+    background-color: #dcdcdc;
+}
+
+.add-weight > span{
+    margin-top: 10px;
+    display: block;
+    margin-bottom: 5px;
+    margin-left: 10px;
+    color: #757575;
+}
+
+
+input.add-weight-bar{
+    display: inline-block;
+    width: 70px;
+    height: 20px;
+    margin-left: 10px;
+    border: none;
+    border-radius: 10px;
+    padding: 5px;
+}
+
+div.add-weight-btn{
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+}
+
+div.add-weight-btn>span.cancel-add-weight{
+    margin-right: 10px;
+    color: #757575;
+}
+
+div.add-weight-btn>span.submit-add-weight{
+    background-color: #F0754F;
+    border-radius: 8px;
+    padding-right: 4px;
+    padding-left: 4px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    color: lightyellow;
+}
+
+
+/*更新今日體重*/
+
+
+.update-weight {
+    flex: none;
+    border: 1px solid #dcdcdc;
+    width: 25%;
+    height: 110px;
+    position: relative;
+    border-radius: 10px;
+    background-color: #dcdcdc;
+}
+
+.update-weight > span{
+    margin-top: 10px;
+    display: block;
+    margin-bottom: 5px;
+    margin-left: 10px;
+    color: #757575;
+}
+
+input.update-weight-bar{
+    display: inline-block;
+    width: 70px;
+    height: 20px;
+    margin-left: 10px;
+    border: none;
+    border-radius: 10px;
+    padding: 5px;
+}
+
+input.update-weight-bar:focus,input.add-weight-bar:focus{
+    outline: none;
+}
+
+
+div.update-weight-btn{
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+}
+
+div.update-weight-btn>span.cancel-update-weight{
+    margin-right: 10px;
+    color: #757575;
+}
+
+div.update-weight-btn>span.submit-update-weight{
+    background-color: #F0754F;
+    border-radius: 8px;
+    padding-right: 4px;
+    padding-left: 4px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    color: lightyellow;
+}
+
+
+.cancel-add-weight:hover,.submit-add-weight:hover,.submit-update-weight:hover,.cancel-update-weight:hover{
+    cursor: pointer;
+}
+
+
+
+
+/*折線圖*/
+
+.line-chart{
+    position: relative;
+    width: 76%;
+    flex: none;
+}
+
+.line-chart > #weight{
+    box-sizing: border-box;
+    display: block;
+}

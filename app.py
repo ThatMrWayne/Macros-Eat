@@ -129,6 +129,13 @@ def t():
 	return ' '.join([str(e) for e in result])
 '''
 
+@app.route("/range")
+def r():
+	return render_template("range.html")
+
+
+
+
 
 
 if __name__ == "__main__":

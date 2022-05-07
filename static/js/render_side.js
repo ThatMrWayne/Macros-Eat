@@ -1,5 +1,10 @@
 let my_food_page = 0;
 let can_get_my_food = true; 
+//
+let weight_action = true;
+//查看有沒有已經在體重紀錄頁面
+let already_on_weight_page = false;
+//查看有沒有已經在飲食紀錄頁面
 
 
 
@@ -790,10 +795,6 @@ function render_my_plan_window(background){
 
 
 
-
-
-
-
 /* My Plan */
 
 function render_my_plan(navmenu){
@@ -812,6 +813,452 @@ function render_my_plan(navmenu){
 }
 
 
+/* 我的體重紀錄部分 */
+
+function validate_weight(name_attr,class_attr){
+    let weight_input = document.getElementsByName(name_attr)[0];
+    result = true;
+    if(!weight_input.value || !Number(weight_input.value)){
+        show_tip('Enter a valid weight', "."+class_attr);
+        result = false;
+        return result;
+    }else if(Number(weight_input.value)<20 || Number(weight_input.value)>200){
+        show_tip('Weight should be between 20 and 200',"." + class_attr);
+        result = false;
+        return result;
+    }
+    return result
+};
+
+
+function organize_weight_data(name_attr){
+    let weight_input = document.getElementsByName(name_attr)[0];
+    let weight = Number((Number(weight_input.value).toFixed(1)));
+    let today = new Date();
+    let today_utc = date_to_stamp(today); // 今天的
+    let data;
+    if(name_attr==="addweight"){
+        data = {
+            "create_at" : today_utc,
+            "weight" : weight
+        };
+    }else{
+        data = {
+            "create_at" : today_utc,
+            "new_weight" : weight
+        };
+    }    
+    return JSON.stringify(data)
+};
+
+
+
+
+//轉換選擇日期成timstamp
+function date_to_stamp(d){
+    let year = d.getFullYear(); //2022
+    let month = d.getMonth(); //4
+    let date = d.getDate();   //28
+    let new_date = new Date(year,month,date);
+    let now_utc =  new_date.getTime();
+    return now_utc;
+};
+
+
+
+
+async function get_weight(sdate,edate){
+    let jwt = localStorage.getItem("JWT");
+    try{
+        let response = await fetch(`/api/weight?sdate=${sdate}&edate=${edate}`,{
+                                                method: 'get',
+                                                headers: {"Authorization" : `Bearer ${jwt}`}
+                                                });
+        let result = await response.json();                                
+        if(response.ok){  //200情況下  得到會員的體重資料插入長條圖
+            //先把舊的刪掉
+            let canvas = Chart.getChart("weight");
+            if(canvas){
+                canvas.destroy(); 
+            };
+            //
+            let final_data = [];
+            let how_many_days = ((edate - sdate)/86400000)+1;
+            console.log("幾多天:"+how_many_days);
+            let select_date = [sdate];
+            for(let i=0;i<how_many_days-1;i++){
+                sdate += 86400000;
+                select_date.push(sdate);
+            };
+            console.log(select_date);
+            //重畫一次,把長條圖的data更新,
+            if(result["weight_record"]){ //表示有體重紀錄
+                let weight = result["weight_record"];
+                let weight_data = {}
+                let temp_weight = [] //為了計算最大最小公斤用
+                for(let i=0;i < weight.length;i++){
+                    weight_data[weight[i]["create_at"]] = weight[i]["weight"];
+                    temp_weight.push(weight[i]["weight"]);
+                };
+                for(let i=0;i<select_date.length;i++){
+                    if(weight_data[select_date[i]]){
+                        final_data.push({
+                            x : select_date[i],
+                            y : weight_data[select_date[i]]
+                        });
+                        
+                           
+                    }else{
+                        final_data.push({
+                            x : select_date[i],
+                            y : null
+                        })
+                    };
+                };
+                //根據最大最小公斤調整長條圖y軸最大最小值
+                weight_config.options.scales.y.suggestedMin = Math.min.apply(null, temp_weight)-5;
+                weight_config.options.scales.y.suggestedMax = Math.max.apply(null, temp_weight)+5;
+                dataLI.datasets[0].data = final_data;
+            }else{ //表示沒有體重紀錄
+                for(let i=0;i<select_date.length;i++){
+                    final_data.push({
+                        x : select_date[i],
+                        y : null
+                    });
+                };
+                dataLI.datasets[0].data = final_data;
+            };
+            // re-render
+            let line_chart = new Chart(
+                document.getElementById("weight").getContext("2d"),
+                weight_config
+            );
+            weight_action = true;
+        }else if(response.status === 400){
+            console.log(result);
+        }else if(response.status === 403){ //拒絕存取
+            console.log('JWT已失效,請重新登入');
+            localStorage.removeItem("JWT");
+            window.location.href = '/';
+        }else if(response.status === 500){ //如果是500,代表伺服器(資料庫)內部錯誤
+            console.log(result);
+        };
+    }catch(message){
+        console.log(`${message}`)
+        throw Error('Fetching was not ok!!.')
+    }; 
+
+};            
+
+
+async function add_today_weight(payload,jwt){
+    try{
+        let response = await fetch('/api/weight',{
+                                     method: 'post',
+                                     body : payload,
+                                     headers: {"Authorization" : `Bearer ${jwt}`,'Content-Type': 'application/json'}
+                                    });
+        let result = await response.json();                            
+        if(response.status === 201){ //新增當天體重完成
+            //新增完成,更新長條圖,直接重新打get_weight一次
+            let payload_obj = JSON.parse(payload);
+            let end_date = new Date();
+            let end_utc = date_to_stamp(end_date); // 今天是end date
+            let start_utc = end_utc - (6*86400000);
+            get_weight(start_utc,end_utc);
+            //把體重匡清空,提示訊息清空
+            let weight_input = document.getElementsByName("addweight")[0];
+            weight_input.value = "";
+            let tip = document.querySelector(".tip");
+            if(tip){
+                tip.remove()
+            };
+        }else if (response.status === 403){
+            console.log('JWT已失效,請重新登入');
+            localStorage.removeItem("JWT");
+            window.location.href = '/';
+        }else if (response.status === 400){
+            console.log(result);
+            let weight_input = document.getElementsByName("addweight")[0];
+            weight_input.value = "";
+            show_tip('Already have record.',"." + "add-weight-title");
+            weight_action = true;
+        }else{
+            console.log('伺服器錯誤');
+        }
+    }catch(message){
+        console.log(`${message}`)
+        throw Error('Fetching was not ok!!.')
+    };  
+};   
+
+
+async function update_today_weight(payload,jwt){
+    try{
+        let response = await fetch('/api/weight',{
+                                     method: 'patch',
+                                     body : payload,
+                                     headers: {"Authorization" : `Bearer ${jwt}`,'Content-Type': 'application/json'}
+                                    });
+        let result = await response.json();                            
+        if(response.ok){ //更新紀錄target完成
+             //更新今日體重完成,更新長條圖,直接重新打get_weight一次
+             let payload_obj = JSON.parse(payload);
+             let end_date = new Date();
+             let end_utc = date_to_stamp(end_date); // 今天是end date
+             let start_utc = end_utc - (6*86400000);
+             get_weight(start_utc,end_utc);
+             //把體重匡清空,提示訊息清空
+             let weight_input = document.getElementsByName("updateweight")[0];
+             weight_input.value = "";
+             let tip = document.querySelector(".tip");
+             if(tip){
+                 tip.remove()
+             };
+        }else if (response.status === 403){
+            console.log('JWT已失效,請重新登入');
+            localStorage.removeItem("JWT");
+            window.location.href = '/';
+        }else if (response.status === 400){
+            console.log(result);
+            let weight_input = document.getElementsByName("updateweight")[0];
+             weight_input.value = "";
+            show_tip('No record for today to update.',"." + "update-weight-title");
+            weight_action = true;
+        }else{
+            console.log('伺服器錯誤');
+        }
+    }catch(message){
+        console.log(`${message}`)
+        throw Error('Fetching was not ok!!.')
+    }   
+};
+
+
+
+
+
+function show_weight_section(){
+    //先把原本的日曆和日期顯示拿掉
+    let datepicker_toggle = document.querySelector(".datepicker-toggle");
+    let show_date = document.querySelector(".show-date");
+    datepicker_toggle.remove();
+    show_date.remove();
+    //再放上日期區間選擇和體重title
+    let select_date_range = document.createElement("div");
+    select_date_range.classList.add("select-date-range");
+    let label = document.createElement("label");
+    label.innerHTML = "Select a date range to show your weight.";
+    let daterange_input = document.createElement("input");
+    daterange_input.setAttribute("type","text");
+    daterange_input.setAttribute("name","daterange");
+    select_date_range.appendChild(label);
+    select_date_range.appendChild(daterange_input);
+    //weight record title
+    let title_div = document.createElement("div");
+    title_div.classList.add("weight-title")
+    title_div.innerHTML = "Weight Record";
+    //放到calender_container裡
+    let calender_container = document.querySelector(".calender-container");
+    calender_container.appendChild(select_date_range);
+    calender_container.appendChild(title_div);
+    //再把left record 和right record拿掉(從有紀錄的頁面過來的話)
+    let left_record = document.querySelector(".left-record");
+    let right_record = document.querySelector(".right-record");
+    //把 start record拿掉(從沒有紀錄的頁面過來的話)
+    let start_record = document.querySelector(".start-record")
+    if(left_record && right_record){
+        left_record.remove();
+        right_record.remove();
+    }else if(start_record){
+        start_record.remove();
+    }
+    //把record-container換成grid-template-column=1fr
+    let record_container = document.querySelector(".record-container");
+    record_container.style.gridTemplateColumns="1fr";
+    ////放體重輸入匡,再把圖放進去
+    let weight_record = document.createElement("div");
+    weight_record.classList.add("weight-record-container");
+    //體重輸入匡塊
+    let weight_input_container = document.createElement("div");
+    weight_input_container.classList.add("weight-input-container");
+    //新增今日體重
+    let add_weight = document.createElement("div");
+    add_weight.classList.add("add-weight");
+     //新增體重輸入條
+    let add_weight_title = document.createElement("span");
+    add_weight_title.classList.add("add-weight-title");
+    add_weight_title.innerHTML = "Reocrd today's weight (kg) :";
+    let add_weight_bar = document.createElement("input");
+    add_weight_bar.classList.add("add-weight-bar");
+    add_weight_bar.setAttribute("name","addweight");
+    add_weight_bar.setAttribute('type',"number");
+    add_weight_bar.setAttribute("step","0.1");
+    add_weight_bar.setAttribute("min","0");
+    //新增體重提交鈕
+    let add_weight_btn = document.createElement("div");
+    add_weight_btn.classList.add("add-weight-btn");
+    let span_cancel = document.createElement("span");
+    span_cancel.classList.add("cancel-add-weight");
+    span_cancel.innerHTML="Cancel";
+    span_cancel.addEventListener("click",function(){ //清空體重
+        let weight_input = document.getElementsByName("addweight")[0];
+        weight_input.value = "";
+    });
+    let span_submit = document.createElement("span");
+    span_submit.classList.add("submit-add-weight");
+    span_submit.innerHTML="Save";
+    span_submit.addEventListener("click",function(){ //新增體重
+        //先驗證是否有填入
+        if(weight_action){
+            weight_action = false;
+            let result = validate_weight("addweight","add-weight-title");
+            if(result){
+                let data = organize_weight_data("addweight");
+                let jwt = localStorage.getItem("JWT");
+                add_today_weight(data,jwt);
+            }else{
+                weight_action = true;
+            }
+        }    
+    });
+    add_weight_btn.appendChild(span_cancel);
+    add_weight_btn.appendChild(span_submit);
+    //
+    add_weight.appendChild(add_weight_title);
+    add_weight.appendChild(add_weight_bar);
+    add_weight.appendChild(add_weight_btn);
+    //
+    weight_input_container.appendChild(add_weight);
+    //更新今日體重
+    let update_weight = document.createElement("div");
+    update_weight.classList.add("update-weight");
+    //更新體重輸入條
+    let update_weight_title = document.createElement("span");
+    update_weight_title.classList.add("update-weight-title");
+    update_weight_title.innerHTML = "Update today's weight (kg) :";
+    let update_weight_bar = document.createElement("input");
+    update_weight_bar.classList.add("update-weight-bar");
+    update_weight_bar.setAttribute("name","updateweight");
+    update_weight_bar.setAttribute('type',"number");
+    update_weight_bar.setAttribute("step","0.1");
+    update_weight_bar.setAttribute("min","0");
+    //更新體重提交鈕
+    let update_weight_btn = document.createElement("div");
+    update_weight_btn.classList.add("update-weight-btn");
+    let update_span_cancel = document.createElement("span");
+    update_span_cancel.classList.add("cancel-update-weight");
+    update_span_cancel.innerHTML="Cancel";
+    update_span_cancel.addEventListener("click",function(){ //清空體重
+        let weight_input = document.getElementsByName("updateweight")[0];
+        weight_input.value = "";
+    });
+    let update_span_submit = document.createElement("span");
+    update_span_submit.classList.add("submit-update-weight");
+    update_span_submit.innerHTML="Update";
+    update_span_submit.addEventListener("click",function(){ //更新體重
+        //先驗證是否有填入
+        let result = validate_weight("updateweight","update-weight-title");
+        if(result){
+            let data = organize_weight_data("updateweight");
+            let jwt = localStorage.getItem("JWT");
+            update_today_weight(data,jwt);
+        }else{
+            weight_action = true;
+        }
+    });
+    update_weight_btn.appendChild(update_span_cancel);
+    update_weight_btn.appendChild(update_span_submit);
+    //
+    update_weight.appendChild(update_weight_title);
+    update_weight.appendChild(update_weight_bar);
+    update_weight.appendChild(update_weight_btn); 
+    //
+    weight_input_container.appendChild(update_weight);
+    //
+    weight_record.appendChild(weight_input_container);
+
+    //折線圖區
+    let line_chart = document.createElement("div");
+    line_chart.classList.add("line-chart");
+    let canvas = document.createElement("canvas");
+    canvas.setAttribute("id","weight");
+    line_chart.appendChild(canvas);
+    //放到weight_record裡
+    weight_record.appendChild(line_chart);
+    //再放到record_container裡
+    record_container.appendChild(weight_record);
+    //註冊datepicker選擇後事件
+    $('input[name="daterange"]').daterangepicker({
+        opens: 'right'
+    }, function(start, end, label) {
+        if(start.format('YYYY-MM-DD') === end.format('YYYY-MM-DD')){
+            console.log('不能一樣');
+        }else{
+            let sutc = date_to_stamp(start._d);
+            let eutc = date_to_stamp(end._d);
+            get_weight(sutc,eutc);
+        }
+    });
+    //一開始render完先顯示已今天為準過去七天的體重
+    let end_date = new Date();
+    let end_utc = date_to_stamp(end_date); // 今天是end date
+    let start_utc = end_utc - (6*86400000);
+    get_weight(start_utc,end_utc);
+};
+
+
+/* weight record */
+
+function render_my_weight(navmenu){
+    let weight_record = document.createElement("div");
+    weight_record.classList.add("nav-page");
+    weight_record.classList.add("weight-record");
+    let span = document.createElement("span");
+    span.setAttribute("id","weightrecord");
+    span.appendChild(document.createTextNode("Weight Record"));
+    span.addEventListener("click",function(){ //按下後產生體重紀錄頁面
+        //要看有沒有已經在體重紀錄頁面
+        if(!already_on_weight_page){
+            already_on_weight_page = true;
+            already_on_record_page = false;
+            show_weight_section();
+        }
+    });
+    weight_record.appendChild(span);
+    navmenu.appendChild(weight_record);
+}
+
+/* Daily Record */
+function render_my_record(navmenu){
+    let diet_record = document.createElement("div");
+    diet_record.classList.add("nav-page");
+    diet_record.classList.add("daily-record");
+    let span = document.createElement("span");
+    span.setAttribute("id","dailyrecord");
+    span.appendChild(document.createTextNode("Daily Record"));
+    span.addEventListener("click",function(){ //按下後回到紀錄頁面
+        //要看有沒有已經在紀錄頁面
+        if(!already_on_record_page){
+            already_on_weight_page = false;
+            already_on_record_page = true;
+            //把calender-container和record-container都移掉
+            let calender_container = document.querySelector(".calender-container");
+            let record_container = document.querySelector(".record-container");
+            calender_container.remove();
+            record_container.remove();
+            get_record(on_date_utc,on_date_format);
+            already_on_record_page = true;
+        }
+    });
+    diet_record.appendChild(span);
+    navmenu.appendChild(diet_record);
+}
+
+
+
+
+
 
 
 
@@ -828,11 +1275,9 @@ function render_sidebar(user_data){
         render_user_profile(navmenu,user_data);
         render_my_food(navmenu);
         render_my_plan(navmenu);
-
-
+        render_my_weight(navmenu);
+        render_my_record(navmenu);
     }
     
-
-
 
 }
