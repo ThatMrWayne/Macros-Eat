@@ -1,6 +1,4 @@
-import json
 import time
-import os
 import threading
 from flask import *
 from flask_jwt_extended import JWTManager

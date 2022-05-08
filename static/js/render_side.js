@@ -803,7 +803,7 @@ function render_my_plan(navmenu){
     personal_plan.classList.add("personal-plan");
     let span = document.createElement("span");
     span.setAttribute("id","dietplan");
-    span.appendChild(document.createTextNode("Diet Plan"));
+    span.appendChild(document.createTextNode("My Diet Plan"));
     span.addEventListener("click",function(){ //按下後產生我的飲食計畫
         let bg = render_my_plan_window(createBack());
         document.body.appendChild(bg);
