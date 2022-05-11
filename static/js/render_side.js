@@ -280,8 +280,12 @@ function render_my_food_window(background){
             if(can_get_my_food && my_food_page){
                 can_get_my_food = false;
                 get_my_food(my_food_page);
-            };
-        };
+            }else{
+                console.log("哲瑋")
+            }
+        }else{
+            console.log("沒有喔")
+        }
     });
     table.appendChild(tbody);
     show_my_food.appendChild(table);
@@ -1042,8 +1046,10 @@ function show_weight_section(){
     //先把原本的日曆和日期顯示拿掉
     let datepicker_toggle = document.querySelector(".datepicker-toggle");
     let show_date = document.querySelector(".show-date");
+    let daily_title = document.querySelector(".daily-title");
     datepicker_toggle.remove();
     show_date.remove();
+    daily_title.remove();
     //再放上日期區間選擇和體重title
     let select_date_range = document.createElement("div");
     select_date_range.classList.add("select-date-range");
@@ -1088,7 +1094,7 @@ function show_weight_section(){
      //新增體重輸入條
     let add_weight_title = document.createElement("span");
     add_weight_title.classList.add("add-weight-title");
-    add_weight_title.innerHTML = "Reocrd today's weight (kg) :";
+    add_weight_title.innerHTML = "Record today's weight (kg) :";
     let add_weight_bar = document.createElement("input");
     add_weight_bar.classList.add("add-weight-bar");
     add_weight_bar.setAttribute("name","addweight");

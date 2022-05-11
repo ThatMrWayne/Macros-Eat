@@ -1,3 +1,4 @@
+import json
 from flask import request
 from flask import Blueprint
 from flask import make_response
@@ -9,8 +10,13 @@ from flask_jwt_extended import decode_token
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from model import db
+from model import redis_db
 from model.connection import Connection
 from utils import Utils_obj
+from flask import current_app
+from celery_factory.celery_tasks import del_myrecord_cache
+
+
 
 record = Blueprint('record', __name__,static_folder='static',static_url_path='/record')
 
@@ -137,7 +143,10 @@ def handle_add_record(request):
                             "error":True,
                             "message":"不好意思,資料庫暫時有問題,維修中"}
                 return jsonify(response_msg), 500
-            elif result == True: 
+            elif result == True:  #順利新增紀錄,要清除cache裡的資料
+                timestamp = request_data["create_at"]
+                redis_key = f'get_my_record{user_id}'
+                redis_db.redis_instance.hdel(redis_key,str(timestamp))
                 response_msg={"ok": True}
                 return jsonify(response_msg), 201 #api test ok
         elif connection == "error":  #如果沒有順利取得連線
@@ -148,16 +157,9 @@ def handle_add_record(request):
 
 
 #取得使用者的日紀錄＋取得飲食紀錄
-def handle_get_record(request):
+def handle_get_record(datetimestamp,user_id):
     connection = db.get_daily_record_cnx() #取得每日紀錄操作相關的自定義connection物件
-    if isinstance(connection,Connection): #如果有順利取得連線
-        user_id = Utils_obj.get_member_id_from_jwt(request)
-        datetimestamp = request.args.get('datetime')  
-        if not datetimestamp or not datetimestamp.isdigit():
-            return jsonify({
-                            "error": True,
-                            "message": "未提供日期或時間戳錯誤"
-                            }), 400     
+    if isinstance(connection,Connection): #如果有順利取得連線   
         data = connection.get_record_info(datetimestamp,user_id)
         if data == "error":
             response_msg={
@@ -166,7 +168,7 @@ def handle_get_record(request):
             return jsonify(response_msg), 500          
         else: #取得資料成功  
             if not data: #代表當日沒有紀錄
-                return jsonify({"day_record":None,"food_record":None})
+                return jsonify({"day_record":None,"food_record":None}), 200
             else: #代表有當日紀錄,但不一定有飲食紀錄
                 result = organize_record_data(data)
                 return jsonify(result), 200   #                   
@@ -215,7 +217,10 @@ def handle_update_record(request):
                             "error":True,
                             "message":"不好意思,資料庫暫時有問題,維修中"}
                 return jsonify(response_msg), 500
-            elif result == True: #更新成功
+            elif result == True: #更新成功,要把對應那天的cache清空
+                timestamp = request_data["create_at"]
+                redis_key = f'get_my_record{user_id}'
+                redis_db.redis_instance.hdel(redis_key,str(timestamp))
                 response_msg={ "ok":True }
                 return jsonify(response_msg), 200
             else:
@@ -244,5 +249,39 @@ def records():
         update_record_result = handle_update_record(request)
         return update_record_result
     elif request.method == "GET": #如果是GET,代表要取得日紀錄(包括當日吃的紀錄)
+        datetimestamp = request.args.get('datetime')
+        if not datetimestamp or not datetimestamp.isdigit():
+            return jsonify({
+                            "error": True,
+                            "message": "未提供日期或時間戳錯誤"
+                            }), 400   
+        else:
+            user_id = Utils_obj.get_member_id_from_jwt(request)                    
+            redis_key = f'get_my_record{user_id}' # e.g => get_my_record18
+            try:
+                r = redis_db.redis_instance.hget(redis_key,str(datetimestamp))
+                if r: #如果redis有資料
+                    print("cache hits!")
+                    data = json.loads(r)
+                    result = jsonify(data), 200  
+                else:  #如果redis沒資料,就要去mysql拿,再存入redis,要send一個background task 半天內後刪除
+                    print("cache miss!")
+                    result = handle_get_record(datetimestamp,user_id)
+                    if result[0].status_code == 200: #如果result成功,才存入redis
+                        data = {str(datetimestamp) : result[0].get_data()} #result[0].get_data()已是byte string
+                        redis_db.redis_instance.hset(redis_key, mapping = data)
+                        print("task sended!")
+                        current_app.celery.send_task('celery_tasks.delmyrecordCache',args=[redis_key,datetimestamp],countdown=120)                             
+            except: #如果redis掛掉,就要去mysql拿
+                result = handle_get_record(datetimestamp,user_id) 
+            return result
+        
+        
+        
+        
+        
+        
+        
+        
         get_record_result = handle_get_record(request)
         return get_record_result

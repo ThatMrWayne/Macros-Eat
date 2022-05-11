@@ -27,7 +27,7 @@ async function submit_information(payload,jwt){
         }else if (response.status === 400){
             console.log(result)
         }else{
-            console.log('伺服器錯誤');
+            console.log(result);
         }
     }catch(message){
         console.log(`${message}`)

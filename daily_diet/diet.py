@@ -10,6 +10,7 @@ from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from daily_record import record
 from model import db
+from model import redis_db
 from model.connection import Connection
 from utils import Utils_obj
 
@@ -136,7 +137,10 @@ def handle_add_diet(resuest):
                             "error":True,
                             "message":"不好意思,資料庫暫時有問題,維修中"}
                 return jsonify(response_msg), 500
-            elif result: 
+            elif result:  #新增飲食紀錄成功,要把對應的cache刪除(get_my_record18)
+                timestamp = request_data["create_at"]
+                redis_key = f'get_my_record{user_id}'
+                redis_db.redis_instance.hdel(redis_key,str(timestamp))
                 response_msg={"ok": True, "intake_id": result["intake_id"]}
                 return jsonify(response_msg), 201 #api test ok
             else:
@@ -152,10 +156,11 @@ def handle_add_diet(resuest):
 
 def handle_delete_diet(request):
         intake_id = request.args.get("intake_id")
-        if not intake_id:
+        timestamp = request.args.get("datetime")
+        if not intake_id or not timestamp:
             response_msg={
                           "error":True,
-                          "message":"刪除失敗,沒有給intake_id"}
+                          "message":"刪除失敗,沒有給intake_id or datetime"}
             return jsonify(response_msg), 400 
         connection = db.get_daily_diet_cnx()   #取得飲食紀錄相關操作的自定義connection物件
         if isinstance(connection,Connection): #如果有順利取得連線
@@ -166,7 +171,9 @@ def handle_delete_diet(request):
                             "error":True,
                             "message":"不好意思,資料庫暫時有問題,維修中"}
                 return jsonify(response_msg), 500 
-            elif result: #表示刪除飲食資料成功
+            elif result: #表示刪除飲食資料成功,更新對應cache
+                    redis_key = f'get_my_record{user_id}'
+                    redis_db.redis_instance.hdel(redis_key,str(timestamp))
                     response_msg={ "ok": True }
                     return jsonify(response_msg), 204 #api test ok
             else:
@@ -188,6 +195,13 @@ def handle_delete_diet(request):
 @jwt_required_for_intake()
 def intakes():
     if request.method == "POST": #如果是POST,代表要新增吃的紀錄
+
+
+
+
+
+
+
         add_record_result = handle_add_diet(request)
         return add_record_result
     elif request.method == "DELETE": #如果是delete,代表要刪除吃的紀錄

@@ -1,5 +1,4 @@
 import json
-import re
 import datetime
 from flask import request
 from flask import Blueprint
@@ -11,8 +10,11 @@ from flask_jwt_extended import verify_jwt_in_request
 from flask_jwt_extended import decode_token
 from functools import wraps
 from model import db
+from model import redis_db
 from model.connection import Connection
 from utils import Utils_obj
+from flask import current_app
+from celery_factory.celery_tasks import del_myplan_cache
 
 
 
@@ -108,7 +110,9 @@ def handle_add_diet_plan(request):
                             "error":True,
                             "message":"不好意思,資料庫暫時有問題,維修中"}
                 return jsonify(response_msg), 500
-            elif result: 
+            elif result: #更新成功,要把cache清空
+                redis_key = f'get_my_plan{user_id}'
+                redis_db.redis_instance.delete(redis_key)
                 response_msg={"ok": True, "plan_id": result["plan_id"], "plan_name": result["plan_name"]}
                 return jsonify(response_msg), 201 
         elif connection == "error":  #如果沒有順利取得連線
@@ -132,7 +136,9 @@ def handle_delete_diet_plan(request):
                             "error":True,
                             "message":"不好意思,資料庫暫時有問題,維修中"}
                 return jsonify(response_msg), 500 
-            elif result: #表示刪除飲食計畫成功
+            elif result: #表示刪除飲食計畫成功,要把cache清空
+                    redis_key = f'get_my_plan{user_id}'
+                    redis_db.redis_instance.delete(redis_key)
                     response_msg={ "ok": True }
                     return jsonify(response_msg), 204 
             else:
@@ -182,7 +188,7 @@ def handle_update_diet_plan(request):
                             "error":True,
                             "message":"不好意思,資料庫暫時有問題,維修中"}
                 return jsonify(response_msg), 500
-            elif result == True: #更新成功
+            elif result == True: 
                 response_msg={ "ok":True }
                 return jsonify(response_msg), 200
             else:
@@ -195,32 +201,28 @@ def handle_update_diet_plan(request):
                         "error":True,
                         "message":"不好意思,資料庫暫時有問題維修中"}          
             return jsonify(response_msg), 500  
-def handle_get_diet_plans(request):
+def handle_get_diet_plans(page,user_id):
     connection = db.get_diet_plan_cnx() #取得飲食計畫相關操作的自定義connection物件
-    if isinstance(connection,Connection): #如果有順利取得連線
-        page = request.args.get('page')
-        #如果沒有給page或是page給的不是是數字形式，gg
-        if not page or not page.isdigit():
+    if isinstance(connection,Connection): #如果有順利取得連線            
+        data = connection.get_diet_info(page,user_id)
+        if data == "error":
             response_msg={
-                        "nextPage":None,
-                        "data":[]}
-            res=make_response(response_msg,200)  
-        elif page.isdigit(): 
-            user_id = Utils_obj.get_member_id_from_jwt(request)             
-            data = connection.get_diet_info(page,user_id)
-            if data == "error":
-                response_msg={
-                    "error":True,
-                    "message":"不好意思,資料庫暫時有問題,維修中"}
-                return jsonify(response_msg), 500          
-            else:   
-                return jsonify(data), 200                       
+                "error":True,
+                "message":"不好意思,資料庫暫時有問題,維修中"}
+            return jsonify(response_msg), 500          
+        else:   
+            return jsonify(data), 200                       
     elif connection == "error":  #如果沒有順利取得連線
         response_msg={
                 "error":True,
                 "message":"不好意思,資料庫暫時有問題,維修中"}
         return jsonify(response_msg), 500 
 
+
+
+
+
+#PATCH沒有用到
 
 
 #要驗證JWT
@@ -237,5 +239,34 @@ def plans():
         delete_diet_result = handle_delete_diet_plan(request)
         return delete_diet_result
     elif request.method == "GET": #如果是GET,代表要取得食物飲食計畫列表
-        diet_plans = handle_get_diet_plans(request)
-        return diet_plans
+        page = request.args.get('page')
+        #如果沒有給page或是page給的不是是數字形式，gg
+        if not page or not page.isdigit():
+            response_msg={
+                        "nextPage":None,
+                        "data":[]}
+            res=make_response(response_msg,200)  
+        elif page.isdigit(): 
+            user_id = Utils_obj.get_member_id_from_jwt(request)
+            redis_key = f'get_my_plan{user_id}' # e.g => get_my_plan18
+            try:
+                r = redis_db.redis_instance.hget(redis_key,str(page))
+                if r: #如果redis有資料
+                    print("cache hits!")
+                    data = json.loads(r)
+                    result = jsonify(data), 200  
+                else:  #如果redis沒資料,就要去mysql拿,再存入redi,要send一個background task 2分鐘後刪除
+                    print("cache miss!")
+                    result = handle_get_diet_plans(page,user_id)
+                    if result[0].status_code == 200: #如果result成功,才存入redis
+                        data = {str(page) : result[0].get_data()} #result[0].get_data()已是byte string
+                        redis_db.redis_instance.hset(redis_key, mapping = data)
+                        print("task sended!")
+                        current_app.celery.send_task('celery_tasks.delmyplanCache',args=[redis_key,page],countdown=120)                             
+            except: #如果redis掛掉,就要去mysql拿
+                result = handle_get_diet_plans(page,user_id) 
+        return result
+
+
+
+

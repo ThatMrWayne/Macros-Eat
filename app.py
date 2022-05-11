@@ -13,11 +13,24 @@ from plan import plan_blueprint
 from weight import weight_blueprint
 import config
 from model import db
+from cache import cache
+from celery_factory.make_celery import make_celery
+
 
 
 
 app=Flask(__name__,static_folder="static",static_url_path="/")
+#config for flask object
 app.config.from_object(config.DevelopmentConfig)
+
+celery_obj = make_celery(app)
+app.celery = celery_obj
+
+
+# flask caching part 
+cache.init_app(app)
+
+
 app.register_blueprint(auth_blueprint)
 app.register_blueprint(food_blueprint)
 app.register_blueprint(record_blueprint)
@@ -26,6 +39,7 @@ app.register_blueprint(diet_blueprint)
 app.register_blueprint(weight_blueprint)
 
 jwt = JWTManager(app)
+
 
 """
 class AuthMiddleWare:

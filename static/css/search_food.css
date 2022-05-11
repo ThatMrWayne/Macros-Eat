@@ -1,22 +1,32 @@
 .search-result{
     position: absolute;
     top: 46px;
-    left: 20px;
-    background: lightsalmon;
+    left: 25px;
+    background: white;
     z-index:2;
+    border-radius: 6px
 }
 .u{
     list-style-type: none;
-    border: 1px solid black;
+    border: 1px solid lightgray;
     box-sizing: border-box;
     width: 200px;
     margin: 0px;
     padding: 0px;
     height:200px;
     overflow:auto;
+    border-radius: 6px
+}
+
+
+.u > li{
+    padding-top: 3px;
+    padding-left: 5px;
+    padding-bottom: 3px;
 }
 
 li.food-item:hover{
-    opacity: 0.7;
+    color : #F0754F ;
     cursor: pointer;
+    opacity: 1;
 }

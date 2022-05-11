@@ -286,7 +286,7 @@ def handle_update_user_data(request): #update會員資料的時候就要一併�
             if result == "error": #如果檢查回傳結果是"error",代表資料庫query時發生錯誤
                 response_msg={
                             "error":True,
-                            "message":"不好意思,資料庫暫時有問題,維修中"}
+                            "message":"不好意思,資料庫暫時有問題,維修中a"}
                 return jsonify(response_msg), 500
             elif result == True: #更新成功
                 response_msg={ "ok":True }
@@ -294,13 +294,13 @@ def handle_update_user_data(request): #update會員資料的時候就要一併�
                 recommended_plan = calc_plan(input)
                 connection = db.get_diet_plan_cnx()
                 insert_plan = connection.insert_new_diet_plan(recommended_plan,user_id)
-                if insert_plan == True:
-                    print('新增推薦計畫成功')
-                else:
+                if insert_plan == "error":
                     response_msg={
                     "error":True,
-                    "message":"不好意思,資料庫暫時有問題,維修中"}
-                    return jsonify(response_msg), 500    
+                    "message":"不好意思,資料庫暫時有問題,維修中b"}
+                    return jsonify(response_msg), 500 
+                elif insert_plan:
+                    print('新增推薦計畫成功')
                 #查看jwt裡的initial如果=true,代表是第一次更新資料
                 initial = Utils_obj.get_member_initial_from_jwt(request) 
                 if initial == True:
@@ -317,13 +317,13 @@ def handle_update_user_data(request): #update會員資料的時候就要一併�
                     else:
                         response_msg={
                         "error":True,
-                        "message":"不好意思,資料庫暫時有問題,維修中"}
+                        "message":"不好意思,資料庫暫時有問題,維修中c"}
                         return jsonify(response_msg), 500                   
                 return jsonify(response_msg), 200 #api test ok
         elif connection == "error":  #如果沒有順利取得連線
             response_msg={
                         "error":True,
-                        "message":"不好意思,資料庫暫時有問題維修中"}          
+                        "message":"不好意思,資料庫暫時有問題維修中d"}          
             return jsonify(response_msg), 500    
 
 

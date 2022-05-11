@@ -1,3 +1,4 @@
+import json
 from flask import request
 from flask import Blueprint
 from flask import make_response
@@ -9,8 +10,12 @@ from flask_jwt_extended import decode_token
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from model import db
+from model import redis_db
 from model.connection import Connection
 from utils import Utils_obj
+from cache import cache
+from flask import current_app
+from celery_factory.celery_tasks import del_myfood_cache
 
 
 
@@ -85,7 +90,9 @@ def handle_add_food(request):
                             "error":True,
                             "message":"不好意思,資料庫暫時有問題,維修中"}
                 return jsonify(response_msg), 500
-            elif result: 
+            elif result: #如果成功新增食物,要把cache對應資料刪掉
+                redis_key = f'get_my_food{user_id}'
+                redis_db.redis_instance.delete(redis_key)
                 response_msg={"ok": True,"food_id":result["food_id"]}
                 return jsonify(response_msg), 201 #api test ok
         elif connection == "error":  #如果沒有順利取得連線
@@ -109,7 +116,9 @@ def handle_delete_food(request):
                             "error":True,
                             "message":"不好意思,資料庫暫時有問題,維修中"}
                 return jsonify(response_msg), 500 
-            elif result: #表示刪除食物資料成功
+            elif result: #表示刪除食物資料成功,要把cache對應資料刪掉
+                    redis_key = f'get_my_food{user_id}'
+                    redis_db.redis_instance.delete(redis_key)
                     response_msg={ "ok": True }
                     return jsonify(response_msg), 204 #api test ok
             else:
@@ -122,32 +131,22 @@ def handle_delete_food(request):
                         "error":True,
                         "message":"不好意思,資料庫暫時有問題,維修中"}              
             return jsonify(response_msg), 500    
-def handle_get_my_food_data(request):
+def handle_get_my_food_data(page,user_id):
     connection = db.get_food_cnx() #取得景點相關操作的自定義connection物件
-    if isinstance(connection,Connection): #如果有順利取得連線
-        page = request.args.get('page')
-        #如果沒有給page或是page給的不是是數字形式，gg
-        if not page or not page.isdigit():
+    if isinstance(connection,Connection): #如果有順利取得連線          
+        data = connection.get_my_food_info(page,user_id) 
+        if data == "error":
             response_msg={
-                        "nextPage":None,
-                        "data":[]}
-            res=make_response(response_msg,200)  
-        elif page.isdigit(): 
-            user_id = Utils_obj.get_member_id_from_jwt(request)             
-            data = connection.get_my_food_info(page,user_id)
-            if data == "error":
-                response_msg={
-                        "error":True,
-                        "message":"不好意思,資料庫暫時有問題,維修中"}
-                return jsonify(response_msg), 500          
-            else:   
-                return jsonify(data), 200                       
+                    "error":True,
+                    "message":"不好意思,資料庫暫時有問題,維修中"}
+            return jsonify(response_msg), 500          
+        else:
+            return jsonify(data), 200                       
     elif connection == "error":  #如果沒有順利取得連線
         response_msg={
                 "error":True,
                 "message":"不好意思,資料庫暫時有問題,維修中"}
         return jsonify(response_msg), 500    
-    return res
 def handle_get_public_food_data(request):
     connection = db.get_food_cnx() #取得景點相關操作的自定義connection物件
     if isinstance(connection,Connection): #如果有順利取得連線
@@ -184,8 +183,34 @@ def foods():
         delete_food_result = handle_delete_food(request)
         return delete_food_result
     elif request.method == "GET": #如果是GET,代表要取得食物分頁資料
-        get_food_result = handle_get_my_food_data(request)
-        return get_food_result
+        page = request.args.get('page')
+        #如果沒有給page或是page給的不是是數字形式，gg
+        if not page or not page.isdigit():
+            response_msg={
+                        "nextPage":None,
+                        "data":[]}
+            result = make_response(response_msg,200)  
+        elif page.isdigit(): 
+            user_id = Utils_obj.get_member_id_from_jwt(request) #用get_my_food{user_id}當cache key
+            redis_key = f'get_my_food{user_id}' # e.g => get_my_food18
+            try:
+                r = redis_db.redis_instance.hget(redis_key,str(page))
+                if r: #如果redis有資料
+                    print("cache hits!")
+                    data = json.loads(r)
+                    result = jsonify(data), 200  
+                else:  #如果redis沒資料,就要去mysql拿,再存入redi,要send一個background task 2分鐘後刪除
+                    print("cache miss!")
+                    result = handle_get_my_food_data(page,user_id)
+                    if result[0].status_code == 200: #如果result成功,才存入redis
+                        data = {str(page) : result[0].get_data()} #result[0].get_data()已是byte string
+                        redis_db.redis_instance.hset(redis_key, mapping = data)
+                        print("task sended!")
+                        current_app.celery.send_task('celery_tasks.delmyfoodCache',args=[redis_key,page],countdown=120)                             
+            except: #如果redis掛掉,就要去mysql拿
+                result = handle_get_my_food_data(page,user_id)  
+        return result            
+
 
 
 
@@ -193,6 +218,27 @@ def foods():
 #這個是用來在新增食物紀錄時,在search bar 搜尋時on the fly search
 @food.route('/api/public-food', methods=["GET"])
 @jwt_required_for_food()
+@cache.cached(timeout=30, query_string=True)
 def public_food():
     get_food_result = handle_get_public_food_data(request)
     return get_food_result
+
+
+
+'''
+@food.route("/testc1")
+def testc():
+    print("calling long celery task")
+    result = current_app.celery.send_task('celery_tasks.test1',countdown=10)
+    #r = result.get()
+    #print("芹菜結果:",r)
+    return "長芹菜ok"
+
+@food.route("/testc2")
+def testc2():
+    print("calling short celery task")
+    result = current_app.celery.send_task('celery_tasks.test2',countdown=5)
+    #r = result.get()
+    #print("芹菜結果:",r)
+    return "短芹菜ok"
+'''    

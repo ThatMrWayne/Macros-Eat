@@ -1,3 +1,4 @@
+import json
 import mysql.connector
 from mysql.connector import errorcode
 from mysql.connector import pooling
@@ -9,6 +10,8 @@ from model.connection import Plan_connection
 from model.connection import Record_connection
 from model.connection import Diet_connection
 from model.connection import Weight_connection
+
+import redis
 
 TABLES = {}
 #members
@@ -47,7 +50,7 @@ TABLES['members'] = (
 TABLES['food'] = (
     "CREATE TABLE IF NOT EXISTS `food` ("
     "  `food_id` bigint NOT NULL AUTO_INCREMENT,"
-    "  `member_id` bigint,"
+    "  `member_id` bigint NOT NULL,"
     "  `food_name` varchar(255) NOT NULL,"
     "  `protein` float(5,1) NOT NULL," #g
     "  `fat` float(5,1) NOT NULL," #g
@@ -212,8 +215,42 @@ class DataBase():
             print(err)
             return "error"                  
 
-
-                
-
              
-db = DataBase()           
+db = DataBase()
+
+
+class RedisWrapper:
+    def __init__(self):
+        self.redis_instance = redis.Redis(host='127.0.0.1',port=6379)
+
+redis_db = RedisWrapper()
+
+'''
+data = [{
+        "name":"wayne",
+        "age":29.5,
+        },
+        {
+        "name":"shane",
+        "age":28.5,
+        },
+        {
+        "name":"josh",
+        "age":27.5,
+        },
+        {
+        "name":"mike",
+        "age":26,
+        }]
+
+value = json.dumps(data)
+
+m = {"0" : value}
+
+#redis_db.redis_instance.hset("get_my_food18",mapping = m)
+
+r = redis_db.redis_instance.hget("get_my_food18","1")
+
+print(r)
+
+'''
