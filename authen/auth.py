@@ -13,6 +13,7 @@ from flask_jwt_extended import decode_token
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from model import db
+from model import redis_db
 from model import Connection
 from utils import Utils_obj
 
@@ -164,7 +165,7 @@ def handle_signup(request):
                             "error":True,
                             "message":"不好意思,資料庫暫時有問題,維修中"}
                     return jsonify(response_msg), 500
-                elif result == True: #如果檢查回傳結果是true代表新增會員到資料庫成功
+                elif result == True: #如果檢查回傳結果是true代表新增會員到資料庫成功,
                     response_msg={ "ok":True }
                     return jsonify(response_msg), 201 #api test ok
         elif connection == "error":  #如果沒有順利取得連線
@@ -202,13 +203,37 @@ def handle_signin(request):
                 if check_result:
                     #產生JWT_token
                     if identity ==1 and result["initial"]==1: #表示是第一次登入
+                        data = {str(result["member_id"]) : json.dumps(
+                                {"room_id" : 0,
+                                "name" : result["name"],
+                                "socket_id" : [0],
+                                "status" : 0	
+                                }
+					        )}
+                        redis_db.redis_instance.hsetnx("user",mapping=data)
                         access_token = create_access_token(identity=json.dumps({'email':email,'id':result["member_id"],'name':result["name"],'identity':identity,'initial':True}),expires_delta=datetime.timedelta(days=5))
                         response_msg = {"ok":True,"initial":True}
                     elif identity ==1 and result["initial"]==0: #表示不是第一次登入
+                        data = {str(result["member_id"]) : json.dumps(
+                                {"room_id" : 0,
+                                "name" : result["name"],
+                                "socket_id" : [0],
+                                "status" : 0	
+                                }
+					        )}
+                        redis_db.redis_instance.hsetnx("user",mapping=data)
                         access_token = create_access_token(identity=json.dumps({'email':email,'id':result["member_id"],'name':result["name"],'identity':identity,'initial':False}),expires_delta=datetime.timedelta(days=5))
                         session["id"] = result["member_id"] #在登入的時候就給cookie
                         response_msg = {"ok":True,"initial":False}                      
-                    elif identity ==2:
+                    elif identity ==2: #5/14  營養師登入後,要存入營養師資料到redis,準備給諮詢用
+                        data = {str(result["nutri_id"]) : json.dumps(
+                                {"room_id" : 0,
+                                "name" : result["name"],
+                                "socket_id" : [0],
+                                "status" : 0	
+                                }
+					        )}
+                        redis_db.redis_instance.hsetnx("nutri",mapping=data)
                         session["id"] = result["nutri_id"]
                         access_token = create_access_token(identity=json.dumps({'email':email,'id':result["nutri_id"],'name':result["name"],'identity':identity}),expires_delta=datetime.timedelta(days=5))
                         response_msg = {"ok":True,"initial":None}

@@ -175,18 +175,15 @@ div.plan{
 
 
 
-
-
-
-
-
-
 .left-record{
     display: grid;
     /*justify-content: center;
     align-items: center;*/
     grid-template-rows: 1.5fr 8.5fr;
 }
+
+
+/*action 區*/
 
 
 .action-container{
@@ -241,14 +238,6 @@ div.plan{
 
 
 .intake-record{
-    /*border: 0.5px lightgray solid;
-    flex: none;
-    width:80%;
-    height:80%;
-    border-radius: 10px;
-    box-shadow: 3px 3px 5px 4px rgb(0 0 0 / 10%);
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr 9fr;*/
     display: flex;
     justify-content: center;
     align-items: center;
@@ -346,6 +335,109 @@ div.plan{
     color: #F0754F;
 }
 
+
+/*直接輸入區*/
+
+.input-directly-box{
+    box-sizing: border-box;
+    border-radius: 10px;
+    width: 450px;
+    position: relative;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    animation: popout 0.5s;
+}
+
+.input-directly-form{
+    border-radius: 10px;
+    padding-top: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+    position: relative;
+    background-color: #E8E8E8;    
+}
+
+
+.input-directly-title{
+    width: 100%;
+    flex: none;
+    margin-bottom: 10px;
+    position: relative;
+    font-weight: 900;
+    font-size: 22px;
+    color: lightslategray;
+    padding-left: 30px;    
+}
+
+
+.directly-title{
+    display: inline-block;
+    width: 130px;
+    font-weight: 700;
+    font-size: 20px;
+    color: #757575;    
+}
+
+
+.directly-food-name{
+    margin-top: 15px;
+}
+
+
+.fill-food-amount,.fill-food-protein,.fill-food-fat,.fill-food-carbs,.show-food-calo{
+    margin-top: 10px;
+}
+
+
+#caculate-food-calo{
+    width: 50px;
+    display: inline-block;
+}
+
+.directly-btn-box{
+    text-align: right;
+    padding-right: 5px;
+    width: 100%;
+    flex: none;
+    padding-bottom: 5px
+}
+
+
+
+.submit-directly{
+    background-color: #F0754F;
+    border-radius: 8px;
+    padding-right: 4px;
+    padding-left: 4px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    color: lightyellow;
+    display: inline-block;
+}
+
+.close-directly{
+    margin-right: 15px;
+    color: #757575;
+    margin-left: 25px;
+}
+
+.submit-directly:hover{
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+.close-directly:hover{
+    cursor: pointer;
+    color: #F0754F;
+}
+
+#directly-tip{
+    color:#F0754F;
+}
 
 
 /* 食物table*/

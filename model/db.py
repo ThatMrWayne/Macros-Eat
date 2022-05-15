@@ -4,12 +4,14 @@ from mysql.connector import errorcode
 from mysql.connector import pooling
 from config import MYSQL_PASSWORD
 from config import MYSQL_USER
+from config import MONGODB_URL_
 from model.connection import Auth_connection
 from model.connection import Food_connection
 from model.connection import Plan_connection
 from model.connection import Record_connection
 from model.connection import Diet_connection
 from model.connection import Weight_connection
+from pymongo import MongoClient
 
 import redis
 
@@ -128,7 +130,7 @@ class DataBase():
                 'raise_on_warnings': True,
                 }
             # create connection
-            self.cnxpool = pooling.MySQLConnectionPool(pool_name="tinipool", pool_size=5, **config)
+            self.cnxpool = pooling.MySQLConnectionPool(pool_name="tinipool", pool_size=32, **config)
         except mysql.connector.Error as err:
             if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
                 print("Something is wrong with your user name or password")
@@ -218,12 +220,29 @@ class DataBase():
              
 db = DataBase()
 
-
+#------- redis---------#
 class RedisWrapper:
     def __init__(self):
         self.redis_instance = redis.Redis(host='127.0.0.1',port=6379)
 
 redis_db = RedisWrapper()
+
+
+
+
+#------- mongodb --------#
+class MongoWrapper:
+    def __init__(self):
+        self.client = MongoClient(
+            f"mongodb+srv://{MONGODB_URL_}/myFirstDatabase?retryWrites=true&w=majority")
+        self.db = self.client.whatueat
+
+mongo_db = MongoWrapper()
+
+
+
+
+
 
 '''
 data = [{

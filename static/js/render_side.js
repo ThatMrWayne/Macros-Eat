@@ -5,6 +5,7 @@ let weight_action = true;
 //查看有沒有已經在體重紀錄頁面
 let already_on_weight_page = false;
 //查看有沒有已經在飲食紀錄頁面
+let already_on_record_page = true;
 
 
 
@@ -29,6 +30,7 @@ function render_user_profile(navmenu,user_data){
     let span = document.createElement("span");
     span.classList.add("username");
     span.setAttribute("id",user_data["member_id"]);
+    span.setAttribute("identity",user_data["identity"]);
     span.appendChild(document.createTextNode(user_data["name"]));
     span.addEventListener("click",function(){ //按下後跑去會員頁面
         render_member_page(); //
@@ -821,7 +823,7 @@ function render_my_plan(navmenu){
 
 function validate_weight(name_attr,class_attr){
     let weight_input = document.getElementsByName(name_attr)[0];
-    result = true;
+    let result = true;
     if(!weight_input.value || !Number(weight_input.value)){
         show_tip('Enter a valid weight', "."+class_attr);
         result = false;
@@ -956,6 +958,8 @@ async function get_weight(sdate,edate){
 
 
 async function add_today_weight(payload,jwt){
+    console.log(payload);
+    console.log(typeof(payload));
     try{
         let response = await fetch('/api/weight',{
                                      method: 'post',
@@ -998,15 +1002,20 @@ async function add_today_weight(payload,jwt){
 
 
 async function update_today_weight(payload,jwt){
+    console.log(payload);
+    console.log(typeof(payload));
     try{
         let response = await fetch('/api/weight',{
-                                     method: 'patch',
+                                     method: 'PATCH',
                                      body : payload,
                                      headers: {"Authorization" : `Bearer ${jwt}`,'Content-Type': 'application/json'}
                                     });
+        console.log("嘎嘎");  
+        console.log(response);                          
         let result = await response.json();                            
         if(response.ok){ //更新紀錄target完成
              //更新今日體重完成,更新長條圖,直接重新打get_weight一次
+             console.log(result);
              let payload_obj = JSON.parse(payload);
              let end_date = new Date();
              let end_utc = date_to_stamp(end_date); // 今天是end date
@@ -1020,6 +1029,7 @@ async function update_today_weight(payload,jwt){
                  tip.remove()
              };
         }else if (response.status === 403){
+            console.log(result);
             console.log('JWT已失效,請重新登入');
             localStorage.removeItem("JWT");
             window.location.href = '/';
@@ -1167,6 +1177,8 @@ function show_weight_section(){
         let result = validate_weight("updateweight","update-weight-title");
         if(result){
             let data = organize_weight_data("updateweight");
+            console.log(data);
+            console.log(typeof(data))
             let jwt = localStorage.getItem("JWT");
             update_today_weight(data,jwt);
         }else{
@@ -1263,8 +1275,20 @@ function render_my_record(navmenu){
 
 
 
-
-
+/* health helper */
+function render_health_helper(navmenu){
+    let health_helper = document.createElement("div");
+    health_helper.classList.add("nav-page");
+    health_helper.classList.add("health-helper");
+    let span = document.createElement("span");
+    span.setAttribute("id","healthhelper");
+    span.appendChild(document.createTextNode("Health Helper"));
+    span.addEventListener("click",function(){ //按下後跑到聊天分頁
+        window.open('http://127.0.0.1:3100/helper', '_blank'); //按下後開啟新分頁
+    });
+    health_helper.appendChild(span);
+    navmenu.appendChild(health_helper);
+}
 
 
 
@@ -1283,6 +1307,10 @@ function render_sidebar(user_data){
         render_my_plan(navmenu);
         render_my_weight(navmenu);
         render_my_record(navmenu);
+        render_health_helper(navmenu);
+
+
+
     }
     
 

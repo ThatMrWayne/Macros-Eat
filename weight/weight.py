@@ -61,14 +61,19 @@ def handle_get_weight(request):
 
 
 def handle_update_weight(request):
+        print('咁天得')
+        print(request)
         #前端送過來的是json檔
         try:
             request_data = request.get_json()
+            print(request_data)
+            print(type(request_data))
         #如果POST過來根本沒有json檔
         except:
             response_msg={
                           "error":True,
                           "message":"更新失敗,缺少更新資料"}
+            print("更新失敗,缺少更新資料")              
             return jsonify(response_msg), 400
         labels = ["create_at","new_weight"]
         input = {}
@@ -79,12 +84,14 @@ def handle_update_weight(request):
             response_msg={
                           "error":True,
                           "message":"更新失敗,更新資料不完整"}
+            print("更新失敗,更新資料不完整")
             return jsonify(response_msg), 400
         #後端也要更新的資料正不正確 防止有人不是從瀏覽器更新
         if  (type(input["new_weight"]) not in [int, float]) or (input["new_weight"] > 200) or (input["new_weight"]<30):
             response_msg={
                           "error":True,
                           "message":"更新失敗,體重不正確"}
+            print("更新失敗,體重不正確")              
             return jsonify(response_msg), 400
         #取得連線物件
         connection = db.get_weight_cnx() #取得體重操作相關的自定義connection物件
@@ -97,12 +104,14 @@ def handle_update_weight(request):
                             "message":"不好意思,資料庫暫時有問題,維修中"}
                 return jsonify(response_msg), 500
             elif result == True: #更新成功
-                response_msg={ "ok":True }
+                response_msg={"ok": True}
+                print("成功")
                 return jsonify(response_msg), 200
             else:
                 response_msg={
                             "error":True,
                             "message":"該日體重不存在"}  
+                print("該日體重不存在")            
                 return jsonify(response_msg), 400    
         elif connection == "error":  #如果沒有順利取得連線
             response_msg={
@@ -173,8 +182,12 @@ def records():
         add_weight_result = handle_add_weight(request)
         return add_weight_result
     elif request.method == "PATCH": #如果是patch,代表要更新當日體重
+        print(request)
+        print('更新體重')
         update_weight_result = handle_update_weight(request)
         return update_weight_result
     elif request.method == "GET": #如果是GET,代表要取得體重紀錄列表
+        print("取得體重")
+        print(request)
         get_weight_result = handle_get_weight(request)
         return get_weight_result

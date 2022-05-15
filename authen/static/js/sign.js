@@ -613,7 +613,7 @@ async function sendJWT(jwt){
                                     });
         let result = await response.json();         
         console.log(result);                
-        if(response.ok && result.data["initial"]===0){
+        if(response.ok && result.data["identity"]===1 && result.data["initial"]===0){
                 // 進到首頁時,如果已登入過就轉到紀錄畫面
                 if(window.location.pathname==='/'){
                     window.location.href='/record';
@@ -621,48 +621,21 @@ async function sendJWT(jwt){
                     //  4/24 這邊要動態render出records頁面
                     //window.setTimeout(function(){render_record()},5000);
                     render_record(result.data);
-                    
-
-
-
-                    //右上角放小頭像
-                //    let login = document.querySelector('.login');
-                //    let img  = new Image();
-                //    img.src="/picture/member.png";
-                //    img.id = "signout";
-                //    img.addEventListener('click',function(){
-                //        let drop = document.getElementById('myDropdown');
-                //        drop.classList.toggle('show-dropdown');
-                //    });
-                //    login.appendChild(img);
-                    //下拉選單
-                //    let dropdownBox = document.createElement('div');
-                //    dropdownBox.classList.add("dropdown-content");
-                //    dropdownBox.id="myDropdown";
-                //    let mailBox = document.createElement('div');
-                //    mailBox.id = "user-email";
-                //    mailBox.setAttribute("user-name",result.data.name);//把使用者姓名種在屬性裡
-                //    mailBox.setAttribute("identity",result.data.identity); //把使用者身份種在屬性裡
-                //    mailBox.appendChild(document.createTextNode(`${result.data.email}`));
-                //    let logoutBtn = document.createElement('div');
-                //    logoutBtn.id="logout";
-                //    logoutBtn.appendChild(document.createTextNode("登出"));
-                //    logoutBtn.addEventListener('click',handleSignOut);
-                //    dropdownBox.appendChild(mailBox);
-                //    dropdownBox.appendChild(logoutBtn);
-                //    login.appendChild(dropdownBox);
-                //    console.log('準備連socket')
-                    
-                //    socket_connect();
-                }else if(window.location.pathname==='/chat'){
-                    //這邊做動態render諮詢頁面
-                };
-        }else if(response.ok && result.data["initial"]===1){ //代表登入後就跳跳掉沒有填表單
+                }else if(window.location.pathname==='/helper'){
+                    connect_socket(1);
+                }
+        }else if(response.ok && result.data["identity"]===1 && result.data["initial"]===1){ //代表登入後就跳跳掉沒有填表單
             if(window.location.pathname==='/'){
                 render_fillin() //顯示表單給他填;
             }else{
                 window.location.replace('/') //導回首頁
             };    
+        }else if(response.ok && result.data["identity"]===2){ //代表是營養師,直接導到諮詢頁面
+            if(window.location.pathname==='/helper'){
+                connect_socket(2);
+            }else{
+                window.location.href="/helper";
+            }
         }else{
             console.log('jwt已失效');
             localStorage.removeItem("JWT");

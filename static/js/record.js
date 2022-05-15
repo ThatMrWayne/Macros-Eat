@@ -77,7 +77,7 @@ async function delete_intake(intake_id,datetime){
 };
 
 //新增飲食紀錄 
-async function add_intake(payload){
+async function add_intake(payload,method){
     let jwt = localStorage.getItem("JWT");
     try{
         let response = await fetch("/api/intakes",{
@@ -88,17 +88,6 @@ async function add_intake(payload){
         let result = await response.json();                                
         if(response.status===201){  //201 
             let payload_obj = JSON.parse(payload);
-            //清空
-            let input_amount = document.getElementById("food_portion")
-            let input_food = document.getElementById("food_name");
-            input_amount.value="";
-            input_food.value="";
-            let l = [".consume-p",".consume-f",".consume-c",".consume-calo"];
-            for(let i = 0;i<l.length;i++){
-                let td = document.querySelector(l[i]);
-                td.innerHTML="0";
-            };
-
             //新增成功,顯示在吃過的東西,要再打一次api要intake_id(怎麼要到intake id)
             //直接加在insert_new_diet裡面,會回傳intake_id
             added_intake_id = result["intake_id"];
@@ -112,16 +101,18 @@ async function add_intake(payload){
                 tbody.appendChild(tr);
             }
             //要更新current status數值
-            let current_calories = document.querySelector(".current-calo");
+            //在卡路里部分判斷是用哪種action
+            if(method === "search"){
+                let current_calories = document.querySelector(".current-calo");
+                let new_calories = Number(current_calories.textContent)+select_food["calories"];
+                current_calories.innerHTML = String(new_calories);
+            };
             let current_protein = document.querySelector(".current-protein_g");
             let current_carbs = document.querySelector(".current-carbs_g");
             let current_fat = document.querySelector(".current-fat_g");
-            let new_calories = Number(current_calories.textContent)+select_food["calories"];
-            console.log(new_calories);
             let new_protein = Number((Number((current_protein.textContent.split("g"))[0])+payload_obj["protein"]).toFixed(1));
             let new_carbs = Number((Number((current_carbs.textContent.split("g"))[0])+payload_obj["carbs"]).toFixed(1));
             let new_fat = Number((Number((current_fat.textContent.split("g"))[0])+payload_obj["fat"]).toFixed(1));
-            current_calories.innerHTML = String(new_calories);
             current_protein.innerHTML = String(new_protein)+"g";
             current_carbs.innerHTML = String(new_carbs)+"g";
             current_fat.innerHTML = String(new_fat)+"g";
@@ -138,8 +129,9 @@ async function add_intake(payload){
                 canvas.destroy();
             };
             let pie = document.getElementById("pfc").getContext("2d");
-            let percentage_p = Math.round(new_protein*4/new_calories*100);
-            let percentage_f = Math.round(new_fat*9/new_calories*100);
+            let temp_calories = new_protein*4 + new_fat*9 + new_carbs*9;
+            let percentage_p = Math.round(new_protein*4/temp_calories*100);
+            let percentage_f = Math.round(new_fat*9/temp_calories*100);
             let percentage_c = 100 - percentage_p - percentage_f;
             group.amount[0] = percentage_p;
             group.amount[1] = percentage_c;
@@ -382,7 +374,21 @@ function pop_search_food(background){
                 "carbs" : consume_carbs,
                 "amount" : Number(Number(input_amount.value).toFixed(1))
             }            
-            add_intake(JSON.stringify(payload));
+            let promise = add_intake(JSON.stringify(payload),"search");
+            promise.then((result)=>{
+                //清空
+                let input_amount = document.getElementById("food_portion")
+                let input_food = document.getElementById("food_name");
+                input_amount.value="";
+                input_food.value="";
+                let l = [".consume-p",".consume-f",".consume-c",".consume-calo"];
+                for(let i = 0;i<l.length;i++){
+                let td = document.querySelector(l[i]);
+                td.innerHTML="0";
+                };
+            }).catch((msg)=>{
+                console.log(msg)
+            })
         }else{ //顯示訊息說要選好
             let message = "Please confirm input is completed.";
             console.log(message);
@@ -405,6 +411,295 @@ function pop_search_food(background){
     background.appendChild(search_food_box);
     return background;
 };
+
+function show_tip_directly(message){
+    let tip = document.getElementById("directly-tip");
+    if(tip){
+        tip.remove();
+    };
+    let close_btn = document.querySelector(".close-directly");
+    let tip_span = document.createElement("span");
+    tip_span.id="directly-tip";
+    tip_span.appendChild(document.createTextNode(message));
+    close_btn.before(tip_span);
+}
+
+function validate_input_directly(){
+    let result = true;
+    let food_name = document.getElementsByName("directly-food-name")[0].value;
+    let input_food_amount = document.getElementsByName("input-food-amount")[0].value;
+    let input_food_protein = document.getElementsByName("input-food-protein")[0].value;
+    let input_food_fat = document.getElementsByName("input-food-fat")[0].value;
+    let input_food_carbs = document.getElementsByName("input-food-carbs")[0].value;
+    if(!food_name || !input_food_amount || !input_food_protein || !input_food_fat || !input_food_carbs){
+        show_tip_directly("Please enter each blank.");
+        result = false;
+        return result;
+    }else if(typeof(Number(input_food_amount))!=="number" || typeof(Number(input_food_protein))!=="number" || typeof(Number(input_food_fat))!=="number" || typeof(Number(input_food_carbs))!=="number"){
+        show_tip_directly("Please enter a valid value.");
+        result = false;
+        return result;
+    }else if(Number(input_food_amount)<0 || Number(input_food_protein)<0 || Number(input_food_fat)<0 || Number(input_food_carbs)<0){
+        show_tip_directly("Please enter a non-negative value.");
+        result = false;
+        return result;
+    }else if(Number(input_food_amount)===0){
+        show_tip_directly("Amount must be > 0.");
+        result = false;
+        return result;
+    }else if(Number(input_food_fat)+Number(input_food_protein)+Number(input_food_carbs)===0){
+        show_tip_directly("Protein + fat + carbs must be > 0.");
+        result = false;
+        return result;
+    }else{    
+        return result;
+    }    
+}
+
+
+
+
+
+
+
+function pop_input_directly(background){
+    let directly_box = document.createElement("div");
+    directly_box.classList.add("input-directly-box");
+    let input_directly_form = document.createElement("form");
+    input_directly_form.classList.add("input-directly-form");
+    //小title
+    let title_div = document.createElement("div");
+    title_div.classList.add("input-directly-title");
+    title_div.innerHTML = "Input information about what you've eaten directly."
+    //填入食物名稱
+    let fill_food_name = document.createElement("div");
+    fill_food_name.classList.add("directly-food-name");
+    fill_food_name.classList.add("fill");
+    let span1 = document.createElement("span");
+    span1.classList.add("directly-title");
+    span1.innerHTML = "Food name :";
+    let input_food_name = document.createElement("input");
+    input_food_name.setAttribute("type","text");
+    input_food_name.setAttribute("name","directly-food-name");
+    fill_food_name.appendChild(span1);
+    fill_food_name.appendChild(input_food_name);
+    //填入食物的量
+    let fill_food_amount = document.createElement("div");
+    fill_food_amount.classList.add("fill-food-amount");
+    fill_food_amount.classList.add("fill");
+    let span2 = document.createElement("span");
+    span2.classList.add("directly-title");
+    span2.innerHTML = "Amount :";
+    let input_food_amount = document.createElement("input");
+    input_food_amount.setAttribute("type","number");
+    input_food_amount.setAttribute("step","0.1");
+    input_food_amount.setAttribute("min","0");
+    input_food_amount.setAttribute("name","input-food-amount");
+    let span2_1 = document.createElement("span");
+    span2_1.innerHTML="g";
+    fill_food_amount.appendChild(span2);
+    fill_food_amount.appendChild(input_food_amount);
+    fill_food_amount.appendChild(span2_1);
+    //填入蛋白質
+    let fill_food_protein = document.createElement("div");
+    fill_food_protein.classList.add("fill-food-protein");
+    fill_food_protein.classList.add("fill");
+    let span3 = document.createElement("span");
+    span3.classList.add("directly-title");
+    span3.innerHTML = "Protein :";
+    let input_food_protein = document.createElement("input");
+    input_food_protein.setAttribute("type","number");
+    input_food_protein.setAttribute("step","0.1");
+    input_food_protein.setAttribute("min","0");
+    input_food_protein.setAttribute("name","input-food-protein");
+    input_food_protein.addEventListener("input",function(){
+        let cal = document.getElementById("caculate-food-calo");
+        let f = document.getElementsByName("input-food-fat")[0].value;
+        let c = document.getElementsByName("input-food-carbs")[0].value;
+        let value = this.value;
+        if(!f || typeof(Number(f))!== "number" || Number(f)<0){
+            f = 0;
+        }else{
+            f = Number(Number(f).toFixed(1))*9
+        };
+        if(!c || typeof(Number(c))!== "number" || Number(c)<0){
+            c = 0;
+        }else{
+            c = Number(Number(c).toFixed(1))*4
+        };
+        if(typeof(Number(value))==="number" && Number(value)>=0){
+            cal.innerHTML = String(Number(Number(value).toFixed(1))*4 + f + c);
+        }else{
+            cal.innerHTML = String(Math.round(0 + f + c));
+        }
+    });
+    let span3_1 = document.createElement("span");
+    span3_1.innerHTML="g";
+    fill_food_protein.appendChild(span3);
+    fill_food_protein.appendChild(input_food_protein);
+    fill_food_protein.appendChild(span3_1);
+    //填入脂肪
+    let fill_food_fat = document.createElement("div");
+    fill_food_fat.classList.add("fill-food-fat");
+    fill_food_fat.classList.add("fill");
+    let span4 = document.createElement("span");
+    span4.classList.add("directly-title");
+    span4.innerHTML = "Fat :";
+    let input_food_fat = document.createElement("input");
+    input_food_fat.setAttribute("type","number");
+    input_food_fat.setAttribute("step","0.1");
+    input_food_fat.setAttribute("min","0");
+    input_food_fat.setAttribute("name","input-food-fat");
+    input_food_fat.addEventListener("input",function(){
+        let cal = document.getElementById("caculate-food-calo");
+        let p = document.getElementsByName("input-food-protein")[0].value;
+        let c = document.getElementsByName("input-food-carbs")[0].value;
+        let value = this.value;
+        if(!p || typeof(Number(p))!== "number" || Number(p)<0){
+            p = 0;
+        }else{
+            p = Number(Number(p).toFixed(1))*4
+        };
+        if(!c || typeof(Number(c))!== "number" || Number(c)<0){
+            c = 0;
+        }else{
+            c = Number(Number(c).toFixed(1))*4
+        };
+        if(typeof(Number(value))==="number" && Number(value)>=0){
+            cal.innerHTML = String(Number(Number(value).toFixed(1))*9 + p + c);
+        }else{
+            cal.innerHTML = String(Math.round(0 + p + c));
+        }
+    });
+    let span4_1 = document.createElement("span");
+    span4_1.innerHTML="g";
+    fill_food_fat.appendChild(span4);
+    fill_food_fat.appendChild(input_food_fat);
+    fill_food_fat.appendChild(span4_1);
+    //填入碳水
+    let fill_food_carbs = document.createElement("div");
+    fill_food_carbs.classList.add("fill-food-carbs");
+    fill_food_carbs.classList.add("fill");
+    let span5 = document.createElement("span");
+    span5.classList.add("directly-title");
+    span5.innerHTML = "Carbs :";
+    let input_food_carbs = document.createElement("input");
+    input_food_carbs.setAttribute("type","number");
+    input_food_carbs.setAttribute("step","0.1");
+    input_food_carbs.setAttribute("min","0");
+    input_food_carbs.setAttribute("name","input-food-carbs");
+    input_food_carbs.addEventListener("input",function(){
+        let cal = document.getElementById("caculate-food-calo");
+        let p = document.getElementsByName("input-food-protein")[0].value;
+        let f = document.getElementsByName("input-food-fat")[0].value;
+        let value = this.value;
+        if(!p || typeof(Number(p))!== "number" || Number(p)<0){
+            p = 0;
+        }else{
+            p = Number(Number(p).toFixed(1))*4
+        };
+        if(!f || typeof(Number(f))!== "number" || Number(f)<0){
+            f = 0;
+        }else{
+            f = Number(Number(f).toFixed(1))*9
+        };
+        if(typeof(Number(value))==="number" && Number(value)>=0){
+            cal.innerHTML = String(Number(Number(value).toFixed(1))*4 + p + f);
+        }else{
+            cal.innerHTML = String( Math.round(0 + p + f));
+        }
+    });
+    let span5_1 = document.createElement("span");
+    span5_1.innerHTML="g";
+    fill_food_carbs.appendChild(span5);
+    fill_food_carbs.appendChild(input_food_carbs);
+    fill_food_carbs.appendChild(span5_1);
+    //顯示卡路里
+    let show_food_calo = document.createElement("div");
+    show_food_calo.classList.add("show-food-calo");
+    show_food_calo.classList.add("fill");
+    let span6 = document.createElement("span");
+    span6.classList.add("directly-title");
+    span6.innerHTML = "Calories :";
+    let span6_1 = document.createElement("span");
+    span6_1.id = "caculate-food-calo";
+    span6_1.appendChild(document.createTextNode("0"));
+    let span6_2 = document.createElement("span");
+    span6_2.innerHTML="kcal";
+    show_food_calo.appendChild(span6);
+    show_food_calo.appendChild(span6_1);
+    show_food_calo.appendChild(span6_2);
+    //按鈕
+    let btn_div = document.createElement("div");
+    btn_div.classList.add("directly-btn-box");
+    let submit_btn = document.createElement("span");
+    submit_btn.classList.add("submit-directly");
+    submit_btn.innerHTML = "Add";
+    submit_btn.addEventListener("click",function(){ //註冊直接輸入飲食事件
+        //送出資料前先檢查有沒有都填了＆資料正不正確
+        let validate = validate_input_directly();
+        if(validate){
+            console.log("ok");
+            let food_name = document.getElementsByName("directly-food-name")[0].value;
+            let input_food_amount = document.getElementsByName("input-food-amount")[0].value;
+            let input_food_protein = document.getElementsByName("input-food-protein")[0].value;
+            let input_food_fat = document.getElementsByName("input-food-fat")[0].value;
+            let input_food_carbs = document.getElementsByName("input-food-carbs")[0].value;
+            let payload = {
+                "create_at" : on_date_utc,
+                "record_id" : record_id,
+                "food_name" : food_name,
+                "protein" : Number(Number(input_food_protein).toFixed(1)),
+                "fat" : Number(Number(input_food_fat).toFixed(1)),
+                "carbs" : Number(Number(input_food_carbs).toFixed(1)),
+                "amount" : Number(Number(input_food_amount).toFixed(1))
+            }            
+            let promise = add_intake(JSON.stringify(payload),"directly");
+            promise.then((result)=>{
+                let calories = Number(document.getElementById("caculate-food-calo").textContent);
+                let current_calories = document.querySelector(".current-calo");
+                let new_calories = Number(current_calories.textContent)+calories;
+                current_calories.innerHTML = String(new_calories);
+                //清空
+                document.getElementsByName("directly-food-name")[0].value="";
+                document.getElementsByName("input-food-amount")[0].value="";
+                document.getElementsByName("input-food-protein")[0].value="";
+                document.getElementsByName("input-food-fat")[0].value="";
+                document.getElementsByName("input-food-carbs")[0].value="";
+                document.getElementById("caculate-food-calo").innerHTML="0";
+
+            }).catch((msg)=>{
+                console.log(msg)
+            });
+        };        
+    });
+    let close_btn = document.createElement("span");
+    close_btn.classList.add("close-directly");
+    close_btn.innerHTML = "Close";
+    close_btn.addEventListener("click",function(){ //關掉更新window
+        //關掉框框
+        document.body.classList.toggle("stop-scrolling");
+        let bg = document.getElementsByClassName('bg');
+        document.body.removeChild(bg[0]);
+    });
+    btn_div.appendChild(close_btn);
+    btn_div.appendChild(submit_btn);
+    //最後
+    let break_div = document.createElement("div");
+    break_div.classList.add("break");
+    input_directly_form.appendChild(title_div);
+    input_directly_form.appendChild(break_div)
+    input_directly_form.appendChild(fill_food_name);
+    input_directly_form.appendChild(fill_food_amount);
+    input_directly_form.appendChild(fill_food_protein);
+    input_directly_form.appendChild(fill_food_fat);
+    input_directly_form.appendChild(fill_food_carbs);
+    input_directly_form.appendChild(show_food_calo);
+    input_directly_form.appendChild(btn_div);
+    directly_box.appendChild(input_directly_form);
+    background.appendChild(directly_box);
+    return background;
+}
 
 
 
@@ -475,8 +770,9 @@ function show_consume(main_container,food_record){
         let input_directly_span = document.createElement("span");
         input_directly_span.appendChild(document.createTextNode("Input directly"));
         input_directly.appendChild(input_directly_span); 
-        input_directly.addEventListener("click",function(){
-
+        input_directly.addEventListener("click",function(){ //按下input directly跳出視窗
+            let bg = pop_input_directly(createBack());
+            document.body.appendChild(bg);
         });
         //action裝起來
         action_container.appendChild(action_title);
@@ -589,7 +885,7 @@ function show_date(main_container,date_format){
 async function update_target(payload,jwt){
     try{
         let response = await fetch('/api/records',{
-                                     method: 'patch',
+                                     method: 'PATCH',
                                      body : payload,
                                      headers: {"Authorization" : `Bearer ${jwt}`,'Content-Type': 'application/json'}
                                     });
