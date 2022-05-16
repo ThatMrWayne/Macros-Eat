@@ -2,6 +2,7 @@ import json
 import mysql.connector
 from mysql.connector import errorcode
 from mysql.connector import pooling
+
 from config import MYSQL_PASSWORD
 from config import MYSQL_USER
 from config import MONGODB_URL_
@@ -11,6 +12,7 @@ from model.connection import Plan_connection
 from model.connection import Record_connection
 from model.connection import Diet_connection
 from model.connection import Weight_connection
+
 from pymongo import MongoClient
 
 import redis
@@ -223,12 +225,22 @@ db = DataBase()
 #------- redis---------#
 class RedisWrapper:
     def __init__(self):
-        self.redis_instance = redis.Redis(host='127.0.0.1',port=6379)
+        self.redis_instance = redis.Redis(host='127.0.0.1',port=6379,decode_responses=True)
 
 redis_db = RedisWrapper()
 
+'''
+redis_db.redis_instance.hset("test","u1",json.dumps({"name":"wayne"}))
+
+g = redis_db.redis_instance.hget("test","u1")
+print(type(g))
+print(g)
 
 
+#r = redis_db.redis_instance.smembers("u1")
+#x=list(int(i) for i in r)
+#print(x)
+'''
 
 #------- mongodb --------#
 class MongoWrapper:
@@ -239,8 +251,18 @@ class MongoWrapper:
 
 mongo_db = MongoWrapper()
 
+#collection = mongo_db.db.message_history
 
+#collection.update_one({"hsitory_id":"123"},{"$setOnInsert":{"msg":[1,2,3]}},upsert=True)
 
+#r = collection.update_one({"hsitory_id":"123"},{
+#                                            "$setOnInsert":
+#                                                {"msg":[1,2,3]},
+                                           
+#                                            },upsert=True)
+#print(dir(r))
+
+#print(r.modified_count)
 
 
 

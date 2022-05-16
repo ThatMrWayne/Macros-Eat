@@ -622,6 +622,7 @@ async function sendJWT(jwt){
                     //window.setTimeout(function(){render_record()},5000);
                     render_record(result.data);
                 }else if(window.location.pathname==='/helper'){
+                    console.log("幹幹叫")
                     connect_socket(1);
                 }
         }else if(response.ok && result.data["identity"]===1 && result.data["initial"]===1){ //代表登入後就跳跳掉沒有填表單

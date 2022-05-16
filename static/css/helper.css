@@ -19,7 +19,6 @@
 /*side bar*/
 
 .status-container{
-    border: 1px solid orange;
     height: 350px;
     overflow-y: auto;
 }
@@ -35,7 +34,8 @@
 }
 
 .status:hover{
-    opacity: 0.5;
+    opacity: 0.8;
+    cursor: pointer;
 }
 
 
@@ -130,11 +130,12 @@
     padding-left: 5px;
     border-width:1px;
     border-radius: 8px;
-    border: 1px lightgray solid;
+    border: 1px rgba(180,180,180) solid;
     font-size: 16px;
 }
 #message::-webkit-input-placeholder{
     font-size: 16px;
+    color:#707070;
 }
 
 #message:focus{
@@ -146,14 +147,12 @@
     width:35px;
     height: 35px;
     margin-left: 5px;
-    border:1px #666 solid;
     border-radius: 20%;
-    transition: 0.5s ease-in-out;
 }
 
 #send_message:hover{
     cursor: pointer;
-    border-radius: 50%;
+    
 }
 
 
@@ -166,4 +165,26 @@
 ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
 color: #b8b8b8;
 opacity: 1; /* Firefox */
+}
+
+
+/* 訊息格子 */
+.msg-box{
+    margin-left: 15px;
+    margin-top: 20px;
+    width: 70%;
+    word-break: break-word;
+    color:white;
+    font-family:sans-serif;
+}
+
+.msg_div{
+    color: #f5f5f5;
+} 
+
+
+.message-time{
+    margin-left: 20px;
+    font-size: 12px;
+    color:lightgrey;
 }
