@@ -3,12 +3,8 @@ from flask import request
 from flask import Blueprint
 from flask import make_response
 from flask import jsonify 
-from flask_jwt_extended import create_access_token
-from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import verify_jwt_in_request
-from flask_jwt_extended import decode_token
 from functools import wraps
-from werkzeug.security import generate_password_hash, check_password_hash
 from model import db
 from model import redis_db
 from model.connection import Connection

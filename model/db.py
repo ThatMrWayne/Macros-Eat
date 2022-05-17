@@ -251,19 +251,23 @@ class MongoWrapper:
 
 mongo_db = MongoWrapper()
 
-#collection = mongo_db.db.message_history
+collection = mongo_db.db.message_history
 
 #collection.update_one({"hsitory_id":"123"},{"$setOnInsert":{"msg":[1,2,3]}},upsert=True)
+'''
+r = collection.update_one({"hsitory_id":"123"},{
+                                            "$setOnInsert":
+                                                {"msg":[1,2,3,4,5,6]},
+                                            },upsert=True)
+print(dir(r))
 
-#r = collection.update_one({"hsitory_id":"123"},{
-#                                            "$setOnInsert":
-#                                                {"msg":[1,2,3]},
-                                           
-#                                            },upsert=True)
-#print(dir(r))
+print(r.modified_count)
+print(r.matched_count)
+print(r.raw_result)
 
-#print(r.modified_count)
+collection.update_one({"hsitory_id":"123"},{"$set":{"test":1}})
 
+'''
 
 
 '''
