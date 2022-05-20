@@ -1,3 +1,7 @@
+nginx_for_ssl
+test-redis.py
+.dockerignore
+docker-compose.yml
 .DS_Store
 .idea
 # Byte-compiled / optimized / DLL files

@@ -192,7 +192,7 @@ function create_tr(food){
 
 function create_plan_tr_load(plan){
     let tr = document.createElement("tr");
-    tr.setAttribute("id",plan["plan_id"]);
+    tr.setAttribute("id","plan-"+plan["plan_id"]);
     tr.classList.add("plan-item");
     tr.addEventListener("click",function(){  //按下計畫後會assign plan id給全域變數,然後變色
         let previous_selected = document.querySelector(".selected");
@@ -528,7 +528,7 @@ function pop_input_directly(background){
             c = Number(Number(c).toFixed(1))*4
         };
         if(typeof(Number(value))==="number" && Number(value)>=0){
-            cal.innerHTML = String(Number(Number(value).toFixed(1))*4 + f + c);
+            cal.innerHTML = String( Math.round(Number(Number(value).toFixed(1))*4 + f + c) );
         }else{
             cal.innerHTML = String(Math.round(0 + f + c));
         }
@@ -566,7 +566,7 @@ function pop_input_directly(background){
             c = Number(Number(c).toFixed(1))*4
         };
         if(typeof(Number(value))==="number" && Number(value)>=0){
-            cal.innerHTML = String(Number(Number(value).toFixed(1))*9 + p + c);
+            cal.innerHTML = String( Math.round(Number(Number(value).toFixed(1))*9 + p + c) );
         }else{
             cal.innerHTML = String(Math.round(0 + p + c));
         }
@@ -604,7 +604,7 @@ function pop_input_directly(background){
             f = Number(Number(f).toFixed(1))*9
         };
         if(typeof(Number(value))==="number" && Number(value)>=0){
-            cal.innerHTML = String(Number(Number(value).toFixed(1))*4 + p + f);
+            cal.innerHTML = String( Math.round(Number(Number(value).toFixed(1))*4 + p + f));
         }else{
             cal.innerHTML = String( Math.round(0 + p + f));
         }

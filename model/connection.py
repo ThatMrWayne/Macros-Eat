@@ -12,6 +12,7 @@ class Auth_connection(Connection):
     def check_if_member_exist(self,email,identity):
         result,msg=None,None
         cursor = self.cnx.cursor(dictionary=True)
+        cursor.execute("USE {}".format('macroseat'))
         if identity ==1:
             query = "SELECT name FROM members WHERE email=%(email)s"
         elif identity == 2:
@@ -35,6 +36,7 @@ class Auth_connection(Connection):
     def insert_new_member(self,name,email,hash_password,identity,date):
         result, msg = None, None
         cursor = self.cnx.cursor(dictionary=True)
+        cursor.execute("USE {}".format('macroseat'))
         if identity==1:
             query = "INSERT INTO members VALUES (DEFAULT,%(name)s,%(email)s,%(password)s,%(date)s,null,null,null,null,null,null,true,%(identity)s)"
             input_data = {'date':date,'name': name, 'email': email, 'password': hash_password,'identity':identity}
@@ -60,6 +62,7 @@ class Auth_connection(Connection):
     def confirm_member_information(self,email,identity):
         result, msg = None, None
         cursor = self.cnx.cursor(dictionary=True)
+        cursor.execute("USE {}".format('macroseat'))
         if identity==1:
             query = "SELECT member_id, hash_password, name, initial, identity FROM members WHERE email=%(email)s"
         elif identity==2:
@@ -84,6 +87,7 @@ class Auth_connection(Connection):
     def retrieve_member_information(self,id,identity):
         result, msg = None, None
         cursor = self.cnx.cursor(dictionary=True)
+        cursor.execute("USE {}".format('macroseat'))
         #2022/4/8: members要加一欄idendity,要另外加一個新表:營養師
         if identity ==1:
             query = "SELECT member_id, name, email, height, weight, target, identity, initial FROM members WHERE member_id=%(id)s"
@@ -108,6 +112,7 @@ class Auth_connection(Connection):
     def update_member_info(self,input,id):
         result, msg = None, None
         cursor = self.cnx.cursor(dictionary=True)
+        cursor.execute("USE {}".format('macroseat'))
         query = "UPDATE members SET gender = %(gender)s, height = %(height)s, weight=%(weight)s, habit=%(habit)s,target=%(target)s,age=%(age)s WHERE member_id=%(id)s" 
         input_data = {'gender':input["gender"],"height": round(input["height"],1), "weight": round(input["weight"],1), 
         'habit': input["habit"], 'target':input["target"],"age":input["age"],"id":id}
@@ -129,6 +134,7 @@ class Auth_connection(Connection):
     def change_initial_state(self,email):
         msg = None
         cursor = self.cnx.cursor()
+        cursor.execute("USE {}".format('macroseat'))
         query = "UPDATE members SET initial = %(initial)s WHERE email=%(email)s" 
         input_data = {'initial': False,"email": email}
         try:
@@ -150,6 +156,7 @@ class Food_connection(Connection):
     def insert_new_food(self,request_data,user_id):
         result, msg = None, None
         cursor = self.cnx.cursor(dictionary=True)
+        cursor.execute("USE {}".format('macroseat'))
         query1 = "INSERT INTO food VALUES (DEFAULT,%(member_id)s,%(food_name)s,%(protein)s,%(fat)s,%(carbs)s)"
         query2 = "SELECT food_id FROM food WHERE member_id = %(member_id)s ORDER BY food_id DESC LIMIT 0,1"
         input_data = {'member_id': user_id, 'food_name': request_data["food_name"], 'protein': request_data["protein"], 'fat':request_data["fat"], 'carbs':request_data["carbs"]}
@@ -174,6 +181,7 @@ class Food_connection(Connection):
     def delete_food(self,food_id,user_id):
         result, msg = None, None
         cursor = self.cnx.cursor(buffered=True)
+        cursor.execute("USE {}".format('macroseat'))
         query = "DELETE FROM food WHERE food_id = %(food_id)s AND member_id=%(member_id)s" 
         input_data = {'food_id':food_id,"member_id": user_id}
         try:
@@ -202,6 +210,7 @@ class Food_connection(Connection):
     def get_my_food_info(self,page,user_id):
         msg,food_data,nextPage,result = None,None,None,None
         cursor= self.cnx.cursor(dictionary=True)
+        cursor.execute("USE {}".format('macroseat'))
         try:
             query = ("SELECT food_id, food_name, protein, fat, carbs from "
             "food WHERE member_id = %(member_id)s ORDER BY food_id DESC LIMIT %(st)s, 11 ")
@@ -232,6 +241,7 @@ class Food_connection(Connection):
     def get_public_food_info(self,keyword):
         msg,food_data = None,None
         cursor= self.cnx.cursor(dictionary=True)
+        cursor.execute("USE {}".format('macroseat'))
         try:
             keyword_query = ("SELECT food_id, food_name, protein, fat, carbs from "
             "food WHERE MATCH(`food_name`) AGAINST( %(food)s IN NATURAL LANGUAGE MODE )") 
@@ -256,6 +266,7 @@ class Plan_connection(Connection):
     def insert_new_diet_plan(self,request_data,user_id):
         result, msg = None, None
         cursor = self.cnx.cursor(dictionary=True)
+        cursor.execute("USE {}".format('macroseat'))
         query1 = "INSERT INTO plans VALUES (DEFAULT,%(create_at)s,%(member_id)s,%(protein)s,%(fat)s,%(carbs)s,%(plan_calories)s,%(plan_name)s)"
         query2 = "SELECT plan_id, plan_name FROM plans WHERE member_id = %(member_id)s ORDER BY plan_id DESC LIMIT 0,1"
         input_data = {'member_id': user_id, 'create_at' : request_data["create_at"] ,'plan_name': request_data.get("plan_name") ,'plan_calories': request_data["plan_calories"], 'protein': request_data["protein"], 'fat':request_data["fat"], 'carbs':request_data["carbs"]}
@@ -280,6 +291,7 @@ class Plan_connection(Connection):
     def update_diet_info(self,input,user_id):
         result, msg = None, None
         cursor = self.cnx.cursor(dictionary=True)
+        cursor.execute("USE {}".format('macroseat'))
         query = "UPDATE plans SET plan_calories = %(plan_calories)s, protein = %(protein)s , fat = %(fat)s , carbs=%(carbs)s WHERE plan_id = %(plan_id)s AND member_id = %(member_id)s" 
         input_data = {'member_id': user_id, 'plan_calories':input["plan_calories"],'plan_id':input["plan_id"],"protein": input["protein"],"fat":input["fat"],"carbs":input["carbs"]}
         try:
@@ -307,6 +319,7 @@ class Plan_connection(Connection):
     def delete_diet(self,plan_id,user_id):
         result, msg = None, None
         cursor = self.cnx.cursor(buffered=True)
+        cursor.execute("USE {}".format('macroseat'))
         query = "DELETE FROM plans WHERE plan_id = %(plan_id)s AND member_id=%(member_id)s" 
         input_data = {'plan_id':plan_id,"member_id": user_id}
         try:
@@ -334,6 +347,7 @@ class Plan_connection(Connection):
     def get_diet_info(self,page,user_id):
         msg,diet_data,nextPage,result = None,None,None,None
         cursor= self.cnx.cursor(dictionary=True)
+        cursor.execute("USE {}".format('macroseat'))
         try:
             query = ("SELECT plan_id, plan_name, plan_calories,protein, fat, carbs from "
             "plans WHERE member_id = %(member_id)s ORDER BY plan_id DESC LIMIT %(st)s, 11") #member_id foreign key is non-clustered index
@@ -365,6 +379,7 @@ class Record_connection(Connection):
     def insert_new_record(self,request_data,user_id):
         result, msg = None, None
         cursor = self.cnx.cursor(dictionary=True)
+        cursor.execute("USE {}".format('macroseat'))
         query = "INSERT INTO records VALUES (DEFAULT,%(create_at)s,%(member_id)s,%(protein)s,%(fat)s,%(carbs)s,%(plan_calories)s)"
         input_data = {'member_id': user_id, 'create_at' : request_data["create_at"] ,'plan_calories': request_data["plan_calories"], 'protein': request_data["protein"], 'fat':request_data["fat"], 'carbs':request_data["carbs"]}
         try:
@@ -386,6 +401,7 @@ class Record_connection(Connection):
     def update_record(self,input,user_id): 
         result, msg = None, None
         cursor = self.cnx.cursor(dictionary=True)
+        cursor.execute("USE {}".format('macroseat'))
         query = "UPDATE records SET plan_calories = %(plan_calories)s, protein = %(protein)s , fat = %(fat)s , carbs=%(carbs)s WHERE record_id = %(record_id)s AND member_id = %(member_id)s" 
         input_data = {'member_id': user_id, 'record_id':input["record_id"],"protein": input["protein"],"fat":input["fat"],"carbs":input["carbs"], "plan_calories":input["plan_calories"]}
         try:
@@ -413,6 +429,7 @@ class Record_connection(Connection):
     def get_record_info(self,datetimestamp,user_id):
         msg,record = None,None
         cursor= self.cnx.cursor(dictionary=True)
+        cursor.execute("USE {}".format('macroseat'))
         try:
             query = ("SELECT s1.record_id, s1.plan_calories, s1.protein AS record_protein, s1.fat AS record_fat, s1.carbs AS record_carbs,"
             "s2.intake_id, s2.food_name, s2.protein, s2.fat, s2.carbs, s2.amount from records as s1"
@@ -434,6 +451,7 @@ class Diet_connection(Connection):
     def insert_new_diet(self,request_data,user_id):
         result, msg = None, None
         cursor = self.cnx.cursor(dictionary=True)
+        cursor.execute("USE {}".format('macroseat'))
         query1 = "SELECT member_id FROM records WHERE record_id = %(record_id)s"
         query2 = "INSERT INTO intakes VALUES (DEFAULT,%(record_id)s,%(food_name)s,%(protein)s,%(fat)s,%(carbs)s,%(amount)s,%(member_id)s)"
         query3 = "SELECT intake_id FROM intakes WHERE record_id = %(record_id)s ORDER BY intake_id DESC LIMIT 0,1"
@@ -473,6 +491,7 @@ class Diet_connection(Connection):
     def delete_diet(self,intake_id,user_id): 
         result, msg = None, None
         cursor = self.cnx.cursor()
+        cursor.execute("USE {}".format('macroseat'))
         query = "DELETE FROM intakes WHERE intake_id = %(intake_id)s AND member_id = %(member_id)s" 
         input_data = {'intake_id':intake_id, 'member_id':user_id}
         try:
@@ -501,6 +520,7 @@ class Diet_connection(Connection):
     def get_diet_info(self,datetimestamp,user_id):
         msg,record = None,None
         cursor= self.cnx.cursor(dictionary=True)
+        cursor.execute("USE {}".format('macroseat'))
         try:
             query = ("SELECT s1.record_id,"
             "s2.food_name, s2.protein, s2.fat, s2.carbs, s2.amount from records as s1"
@@ -522,6 +542,7 @@ class Weight_connection(Connection):
     def insert_new_weight(self,input,user_id):
         result, msg = None, None
         cursor = self.cnx.cursor(dictionary=True)
+        cursor.execute("USE {}".format('macroseat'))
         query1 = "SELECT weight_id FROM weight WHERE member_id = %(member_id)s AND create_at = %(create_at)s"
         query2 = "INSERT INTO weight VALUES (DEFAULT,%(create_at)s,%(member_id)s,%(weight)s)"
         input_data = {'member_id': user_id, 'create_at':input['create_at'], 'weight':input["weight"]}
@@ -550,6 +571,7 @@ class Weight_connection(Connection):
     def update_weight(self,input,user_id): 
         result, msg = None, None
         cursor = self.cnx.cursor()
+        cursor.execute("USE {}".format('macroseat'))
         query = "UPDATE weight SET weight = %(new_weight)s WHERE member_id = %(member_id)s AND create_at = %(create_at)s" 
         input_data = {'member_id': user_id, 'create_at':input["create_at"], "new_weight":input["new_weight"]}
         try:
@@ -577,6 +599,7 @@ class Weight_connection(Connection):
     def get_weight_info(self,start_date,end_date,user_id):
         msg,record = None,None
         cursor= self.cnx.cursor(dictionary=True)
+        cursor.execute("USE {}".format('macroseat'))
         try:
             query = ("SELECT create_at, weight "
             "from weight WHERE member_id = %(member_id)s AND (create_at BETWEEN %(start_date)s AND %(end_date)s) ORDER BY create_at")

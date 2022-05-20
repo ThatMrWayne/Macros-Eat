@@ -1,5 +1,4 @@
 import json
-from tokenize import Number
 from flask import request
 from flask import Blueprint
 from flask import jsonify 
@@ -9,7 +8,7 @@ from flask_jwt_extended import verify_jwt_in_request
 from functools import wraps
 from model import db
 from model import redis_db
-from model import mongo_db
+#from model import mongo_db
 from model.connection import Connection
 from utils import Utils_obj
 from flask import current_app
@@ -44,7 +43,7 @@ def binary_search(target, etime):
             return mid
         elif guess["time"] > etime:
             high = mid-1
-        elif guess < etime:
+        elif guess["time"] < etime:
             low = mid+1
     return None
 
@@ -67,7 +66,8 @@ def read_message():
             key = str(session["id"]) +"a"+id   
         #先從redis拿
         try:
-            messages = json.loads(redis_db.redis_instance.hget(key))
+            messages = redis_db.redis_instance.lrange(key,0,-1)
+            messages = list(json.loads(i) for i in messages)
             print(messages)
             #一次拿11筆,是不是用binary search比較快
             match_index = binary_search(messages, int(etime))
@@ -128,27 +128,40 @@ def read_message():
 @message.route("/api/unread-message",methods=["GET"])
 @jwt_required_for_message()
 def unread_message():
+    print('未讀啊啊啊啊')
+    print(request)
     stime = request.args.get("stime")
+    print(stime)
     etime = request.args.get("etime")
     identity = request.args.get("identity")
     id = request.args.get("id")
     if not etime or not stime or not identity or not id : 
         return jsonify({"data":[]}), 200  
-    elif not etime.isdigit() or not stime.isdigit() or not identity.isdigit() or not id.isdigit():
+    elif not etime.isdigit() or not identity.isdigit() or not id.isdigit():
         return jsonify({"data":[]}), 200 
+    elif stime!="-1" and not stime.isdigit():
+        return jsonify({"data":[]}), 200     
     else: 
         if int(identity) == 1: #代表是營養師要拿跟使用者的對話紀錄
             key = id+"a"+str(session["id"])
+            print(key)
         else: #代表是使用者要拿跟營養師的對話紀錄
             key = str(session["id"]) +"a"+id   
         #先從redis拿
-        try:
-            messages = json.loads(redis_db.redis_instance.hget(key))
+        try: #是list不是hash
+            messages = redis_db.redis_instance.lrange(key,0,-1)
+            print(messages)
+            print(type(messages))
+            print(type(messages[0]))
+            print(messages[0])
+            messages = list(json.loads(i) for i in messages)
             print(messages)
             #是不是用binary search比較快
             if stime=="-1":
                 end_match_index = binary_search(messages,int(etime))
+                print(end_match_index)
                 data = messages[end_match_index::-1]
+                print("打他:",data)
                 return jsonify({"data":data}), 200 
             else:    
                 start_match_index = binary_search(messages, int(stime))

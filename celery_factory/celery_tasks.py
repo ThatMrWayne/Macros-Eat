@@ -1,6 +1,6 @@
 from celery import shared_task
 from model import redis_db
-from model import mongo_db
+#from model import mongo_db
 
 
 
@@ -15,7 +15,7 @@ def celery_test():
 def celery_test():
     print("this is a short celery task.")
 '''
-
+'''
 #刪除我的食物快取
 @shared_task(name="celery_tasks.delmyfoodCache")
 def del_myfood_cache(key,page):
@@ -89,6 +89,8 @@ def update_nutri_read(key,message_time):
     #一定已經有這個document因為是使用者先傳訊息給營養師
     collection.update_one({"history_id" : key}, {"$set":{"nutri_read":message_time}})    
 
+
+
 #更新營養師的"未讀時間"
 @shared_task(name="celery_tasks.updateNutriUnread")
 def update_nutri_unread(key,message_time):
@@ -100,7 +102,7 @@ def update_nutri_unread(key,message_time):
 #----- 營養師傳訊息給使用者 ----#
 
 #更新使用者"未讀時間"和營養師的"已讀時間"
-@shared_task(name="celery_tasks.updateUureadNread")
+@shared_task(name="celery_tasks.updateUunreadNread")
 def update_unread_read(key,message_time):
     collection = mongo_db.db.message_history 
     #一定已經有這個document因為前面就已經先存訊息了
@@ -122,3 +124,12 @@ def update_user_read_unread(key,user_read,user_unread):
     collection = mongo_db.db.message_history 
     #一定已經有這個document因為前面就已經先存訊息了
     collection.update_one({"history_id" : key}, {"$set":{"user_read":user_read,"user_unread":user_unread}})
+
+
+#------- 營養師取完未讀對話紀錄 ------#
+@shared_task(name="celery_tasks.updateNutriReadUnread")
+def update_nutri_read_unread(key,nutri_read,nutri_unread):
+    collection = mongo_db.db.message_history 
+    #一定已經有這個document因為前面就已經先存訊息了
+    collection.update_one({"history_id" : key}, {"$set":{"nutri_read":nutri_read,"nutri_unread":nutri_unread}})
+'''       

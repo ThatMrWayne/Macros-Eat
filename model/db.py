@@ -1,18 +1,18 @@
-import json
 import mysql.connector
 from mysql.connector import errorcode
 from mysql.connector import pooling
-
 from config import MYSQL_PASSWORD
 from config import MYSQL_USER
 from config import MONGODB_URL_
+from config import CACHE_REDIS_HOST_
+from config import REDIS_USER
+from config import REDIS_PASSWORD
 from model.connection import Auth_connection
 from model.connection import Food_connection
 from model.connection import Plan_connection
 from model.connection import Record_connection
 from model.connection import Diet_connection
 from model.connection import Weight_connection
-
 from pymongo import MongoClient
 
 import redis
@@ -127,9 +127,9 @@ class DataBase():
             config = {
                 'user': MYSQL_USER,
                 'password': MYSQL_PASSWORD,
-                'host': '127.0.0.1',
-                'database': 'whatueat',
+                'host': "database-macroseat.cvtkgqdz8ivt.us-east-1.rds.amazonaws.com",
                 'raise_on_warnings': True,
+                'port': 3306
                 }
             # create connection
             self.cnxpool = pooling.MySQLConnectionPool(pool_name="tinipool", pool_size=32, **config)
@@ -142,27 +142,53 @@ class DataBase():
                 print(err.msg)
             exit(1)
 
-        '''   
-        #tables=['members','food','records','intakes','plans','weight']
-        tables=['food','intakes']
+
+        cnx = self.cnxpool.get_connection()
+        cursor= cnx.cursor()
+        try:
+            cursor.execute("USE {}".format('macroseat'))
+            #cursor.execute("drop table {}".format('comment'))
+        except mysql.connector.Error as err:
+            print("Database {} does not exists.".format('macroseat'))
+            if err.errno == errorcode.ER_BAD_DB_ERROR:
+                self.create_database(cursor)
+                cnx.commit()
+                print("Database {} created successfully.".format('macroseat'))
+                cnx.database = 'macroseat'
+                cursor.close()
+                cnx.close()
+            else:
+                print(err)
+                exit(1)
+
+          
+        tables=['nutris','members','food','records','intakes','plans','weight']
         for table in tables:
         #建立資料表
             cnx = self.cnxpool.get_connection()
             cursor= cnx.cursor()
+            cursor.execute("USE {}".format('macroseat'))
             try:
                 table_description = TABLES[table]
                 print(f"Creating table : {table} ")
                 cursor.execute(table_description)
                 cnx.commit()
                 print('execute over')
-            except mysql.connector.Error as err: #為啥明明就沒有members還是會跑到這
+            except mysql.connector.Error as err: 
                 print(err)
             finally:
                 cursor.close()
                 cnx.close() 
-        '''    
+           
 
-
+    @staticmethod
+    def create_database(cursor):
+        try:
+            cursor.execute(
+                "CREATE DATABASE {}".format('macroseat'))
+        except mysql.connector.Error as err:
+            print("Failed creating database: {}".format(err))
+            exit(1)
 
 
     #取得驗證登入註冊相關操作的自定義connection物件
@@ -225,22 +251,11 @@ db = DataBase()
 #------- redis---------#
 class RedisWrapper:
     def __init__(self):
-        self.redis_instance = redis.Redis(host='127.0.0.1',port=6379,decode_responses=True)
+        self.redis_instance = redis.Redis(host=CACHE_REDIS_HOST_,port=6379,decode_responses=True,user=REDIS_USER,password=REDIS_PASSWORD)
+
 
 redis_db = RedisWrapper()
 
-'''
-redis_db.redis_instance.hset("test","u1",json.dumps({"name":"wayne"}))
-
-g = redis_db.redis_instance.hget("test","u1")
-print(type(g))
-print(g)
-
-
-#r = redis_db.redis_instance.smembers("u1")
-#x=list(int(i) for i in r)
-#print(x)
-'''
 
 #------- mongodb --------#
 class MongoWrapper:
@@ -249,53 +264,7 @@ class MongoWrapper:
             f"mongodb+srv://{MONGODB_URL_}/myFirstDatabase?retryWrites=true&w=majority")
         self.db = self.client.whatueat
 
-mongo_db = MongoWrapper()
-
-collection = mongo_db.db.message_history
-
-#collection.update_one({"hsitory_id":"123"},{"$setOnInsert":{"msg":[1,2,3]}},upsert=True)
-'''
-r = collection.update_one({"hsitory_id":"123"},{
-                                            "$setOnInsert":
-                                                {"msg":[1,2,3,4,5,6]},
-                                            },upsert=True)
-print(dir(r))
-
-print(r.modified_count)
-print(r.matched_count)
-print(r.raw_result)
-
-collection.update_one({"hsitory_id":"123"},{"$set":{"test":1}})
-
-'''
+#mongo_db = MongoWrapper()
 
 
-'''
-data = [{
-        "name":"wayne",
-        "age":29.5,
-        },
-        {
-        "name":"shane",
-        "age":28.5,
-        },
-        {
-        "name":"josh",
-        "age":27.5,
-        },
-        {
-        "name":"mike",
-        "age":26,
-        }]
 
-value = json.dumps(data)
-
-m = {"0" : value}
-
-#redis_db.redis_instance.hset("get_my_food18",mapping = m)
-
-r = redis_db.redis_instance.hget("get_my_food18","1")
-
-print(r)
-
-'''

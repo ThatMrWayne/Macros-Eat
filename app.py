@@ -17,10 +17,9 @@ from message import message_blueprint
 import config
 from model import db
 from model import redis_db
-from model import mongo_db
 from cache import cache
 from celery_factory.make_celery import make_celery
-
+#import celery_factory.celery_tasks
 
 
 
@@ -42,6 +41,7 @@ app.register_blueprint(record_blueprint)
 app.register_blueprint(plan_blueprint)
 app.register_blueprint(diet_blueprint)
 app.register_blueprint(weight_blueprint)
+app.register_blueprint(message_blueprint)
 
 jwt = JWTManager(app)
 socketio = SocketIO(app)
@@ -124,7 +124,7 @@ def helper():
 #-----------------使用者-----------------#
 #user connect驗證
 @socketio.on('connect',namespace='/user')
-def auth_connect(auth):
+def auth_connect_(auth):
 	try:
 		print("開始囉")
 		decode_JWT = decode_token(auth["token"])
@@ -183,8 +183,9 @@ def auth_connect(auth):
 
 #----給營養師的訊息-----#
 @socketio.on('message_to_nutri',namespace='/user')
-def msg_to_nutri(payload): #payload={"message":message,"receiver":receiver,"token":jwt}
+def msg_to_nutri_(payload): #payload={"message":message,"receiver":receiver,"token":jwt}
 	try:
+		print('嘿嘿嘿嘿')
 		decode_JWT = decode_token(payload["token"])
 		data=json.loads(decode_JWT["sub"]) 
 		user_name = data["name"]
@@ -251,7 +252,7 @@ def msg_to_nutri(payload): #payload={"message":message,"receiver":receiver,"toke
 
 #----- 更新使用者的"已讀時間" ----#
 @socketio.on('update_user_read',namespace="/user")
-def update_user_read(payload):
+def update_user_read_(payload):
 	#payload = { "nutri_id" : data["nutri_id"],"time" : data["time"]}
 	#先更新redis裡面message_status的user_read
 	user_id = session["id"]
@@ -265,7 +266,7 @@ def update_user_read(payload):
 
 #----- 更新使用者的"未讀時間" ----#
 @socketio.on('update_user_unread',namespace="/user")
-def update_user_unread(payload):
+def update_user_unread_(payload):
 	#payload = { "nutri_id" : data["nutri_id"],"time" : data["time"]}
 	#先更新redis裡面message_status的user_unread
 	user_id = session["id"]
@@ -281,7 +282,7 @@ def update_user_unread(payload):
 
 #----- 更新使用者的"已讀時間"和"未讀時間" ----#
 @socketio.on('update_user_read_unread',namespace="/user")
-def update_user_read_unread(payload):
+def update_user_read_unread_(payload):
 	#payload = {"user_read":nutritionist[nutri_id]["user_read"],"user_unread":-1,"nutri_id":on_which_nutri}}
 	#先更新redis裡面message_status的user_read和user_unread
 	user_id = session["id"]
@@ -351,7 +352,7 @@ def auth_connect_nutri(auth):
 
 #----- 更新營養師的"已讀時間" ----#
 @socketio.on('update_nutri_read',namespace="/nutri")
-def update_nutri_read(payload):
+def update_nutri_read_(payload):
 	#payload = { "user_id" : data["user_id"],"time" : data["time"]}
 	#先更新redis裡面message_status的nutri_read
 	nutri_id = session["id"]
@@ -365,7 +366,7 @@ def update_nutri_read(payload):
 	
 #----- 更新營養師的"未讀時間" ------#
 @socketio.on('update_nutri_unread',namespace="/nutri")
-def update_nutri_unread(payload):
+def update_nutri_unread_(payload):
 	#payload = { "user_id" : data["user_id"],"time" : data["time"]}
 	#先更新redis裡面message_status的nutri_unread
 	nutri_id = session["id"]
@@ -375,14 +376,14 @@ def update_nutri_unread(payload):
 	status["nutri_unread"] = payload["time"]
 	redis_db.redis_instance.hset("message_status",key,json.dumps(status))
 	#再send_task給mongodb做message_history的nutri_unread更新
-	current_app.celery.send_task('celery_tasks.updateNutriUnRead',args=[key,payload["time"]]) 
+	current_app.celery.send_task('celery_tasks.updateNutriUnread',args=[key,payload["time"]]) 
 
 
 
 
 #----給使用者的訊息-----#
 @socketio.on('message_to_user',namespace='/user')
-def msg_to_user(payload): #payload={"message":message,"receiver":receiver,"token":jwt}
+def msg_to_user_(payload): #payload={"message":message,"receiver":receiver,"token":jwt}
 	try:
 		decode_JWT = decode_token(payload["token"])
 		data=json.loads(decode_JWT["sub"]) 
@@ -423,14 +424,27 @@ def msg_to_user(payload): #payload={"message":message,"receiver":receiver,"token
 			status["nutri_read"] = message_time
 			redis_db.redis_instance.hset("message_status", key, json.dumps(status))
 			#redis一更新完,馬上send_task給mongodb
-			current_app.celery.send_task('celery_tasks.updateUureadNread',args=[key,message_time]) #5
+			current_app.celery.send_task('celery_tasks.updateUunreadNread',args=[key,message_time]) #5
 		#最後user和nutri的history in redis (是set in redis)和user和nutri的history存到mongodb
 		#這邊不用再存一次,因為使用者一傳就已經新增紀錄了
 	except:
 		emit("authencation_fail")
 
 
-
+#----- 更新營養師的"已讀時間"和"未讀時間" ----#
+@socketio.on('update_nutri_read_unread',namespace="/nutri")
+def update_nutri_read_unread_(payload):
+	#payload = {"nutri_read":user[user_id]["nutri_read"],"nutri_unread":-1,"user_id":on_which_user}
+	#先更新redis裡面message_status的user_read和user_unread
+	nutri_id = session["id"]
+	key = str(payload["user_id"]) + "a" + str(nutri_id)
+	status = redis_db.redis_instance.hget("message_status",key)
+	status = json.loads(status)
+	status["nutri_unread"] = -1
+	status["nutri_read"] = payload["nutri_read"]
+	redis_db.redis_instance.hset("message_status",key,json.dumps(status))
+	#再send_task給mongodb做message_history的user_unread更新
+	current_app.celery.send_task('celery_tasks.updateNutriReadUnread',args=[key,payload["nutri_read"],-1])
 
 
 
@@ -442,7 +456,8 @@ def msg_to_user(payload): #payload={"message":message,"receiver":receiver,"token
 #------------------------------#
 @app.route("/test")
 def f():
-	return render_template("test.html")
+	current_app.celery.send_task('task.test_insert',args=["x",1])
+	return 'ok'
 
 
 

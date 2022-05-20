@@ -107,14 +107,15 @@
 
 .display-message-section{
     overflow-y: auto;
+    height: 550px;
 }
 
 *::-webkit-scrollbar {
-    background: #707070;
+    background: lightgray;
 }
 
 *::-webkit-scrollbar-thumb {
-    background-color: #696969;    /* color of the scroll thumb */
+    background-color: #707070;    /* color of the scroll thumb */
     border-radius: 20px;       /* roundness of the scroll thumb */
 }
 
@@ -162,7 +163,10 @@
 #arrow{
     width: 100%;
     /**transition: 1s ease-in-out;**/
-    
+}
+
+.log{
+    padding-bottom: 10px;
 }
 
 ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
@@ -182,11 +186,15 @@ opacity: 1; /* Firefox */
 }
 
 .msg-box>span{
-    color:mediumseagreen;
+    color:#52C0BC;
+    font-size: 20px;
+    font-weight: bold;
 }
 
+
+
 .msg_div{
-    color: #f5f5f5;
+    color: dimgray
 } 
 
 

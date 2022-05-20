@@ -125,7 +125,7 @@ async function get_unread_message_with_nutri(stime,etime){
             //顯示出來 
             let log_div = document.getElementById("log-"+on_which_nutri);
             let display_message_section =document.querySelector(".display-message-section");
-            for(let i=0;i<result["data"].legnth;i++){
+            for(let i=0;i<result["data"].length;i++){
                 let message_box;
                 if(result["data"][i]["by"]==="n"+on_which_nutri){
                     let message_time_format = generate_msg_time_format(result["data"][i]["time"]);
@@ -230,6 +230,7 @@ async function get_read_message_with_user(etime){
 //營養師要與使用者的未讀訊息
 async function get_unread_message_with_user(stime,etime){
     let jwt = localStorage.getItem("JWT");
+    console.log('hihihi');
     try{
         if(!stime){
             stime = -1;
@@ -238,21 +239,30 @@ async function get_unread_message_with_user(stime,etime){
                                                 method: 'get',
                                                 headers: {"Authorization" : `Bearer ${jwt}`}
                                                 });
-        let result = await response.json();                                
+        let result = await response.json(); 
+        console.log(result);                               
         if(response.ok){  //200情況下  
+            console.log('200喔');
+            console.log(result["data"]);
             //顯示出來 
             let log_div = document.getElementById("log-"+on_which_user);
             let display_message_section =document.querySelector(".display-message-section");
-            for(let i=0;i<result["data"].legnth;i++){
+            for(let i=0;i < result["data"].length;i++){
                 let message_box;
-                if(result["data"][i]["by"]==="n"+on_which_user){
+                console.log(result["data"]);
+                if(result["data"][i]["by"]==="u"+on_which_user){
+                    console.log('uuuuu')
                     let message_time_format = generate_msg_time_format(result["data"][i]["time"]);
                     message_box = create_message_box(user[on_which_user]["name"],result["data"][i]["msg"],message_time_format);
+                    console.log(message_box);
                 }else{
+                    console.log('jjj')
                     let my_name = document.querySelector(".username").textContent;
                     let message_time_format = generate_msg_time_format(result["data"][i]["time"]);
                     message_box = create_message_box(my_name,result["data"][i]["msg"],message_time_format);
+                    console.log(message_box);
                 }; 
+                console.log('hjhjhjhj');
                 if(log_div.firstChild){
                     log_div.firstChild.before(message_box);
                     display_message_section.scrollTop =  display_message_section.scrollHeight;
@@ -390,7 +400,9 @@ function render_user(user_id,user_data){
     user_div.addEventListener("click",function(){  //按下後產生與該使用者的對話
         if(on_which_user !== user_id){ //如果按下去不等於目前所在的使用者對話筐,才要換
             //一定是與該使用者有對話過(因為是使用者主動傳訊)
-            user[on_which_user]["oldest_time"] = null;
+            if(on_which_user){
+                user[on_which_user]["oldest_time"] = null;
+            }
             on_which_user = user_id;
             lock = true; //要先鎖起來,以免有人突然傳訊息過來
             if(!user[user_id]["nutri_unread"] || user[user_id]["nutri_unread"]<0){
@@ -401,6 +413,8 @@ function render_user(user_id,user_data){
                 let temp_nutri_read = user[user_id]["nutri_read"]; //(可能是undefined)nutri_read一開始可能是沒有的,因為可能是使用者先傳後,營養師第一次點開
                 user[user_id]["nutri_unread"]= -1;
                 user[user_id]["nutri_read"]= temp_nutri_unread;
+                console.log('呵呵呵')
+                console.log(temp_nutri_read);
                 nutri_socket.emit("update_nutri_read_unread",{"nutri_read":user[user_id]["nutri_read"],"nutri_unread":-1,"user_id":on_which_user});                  
                 get_unread_message_with_user(temp_nutri_read,temp_nutri_unread);                   
             };
@@ -516,7 +530,7 @@ function connect_socket(identity){
                 if(display_message_section.scrollTop === 0){
                     lock = true;
                     let oldest_time = nutritionist[on_which_nutri]["oldest_time"];
-                    if(!oldest_time){
+                    if(oldest_time){
                         get_read_message_with_nutri(oldest_time);
                     };
                 }
@@ -572,10 +586,12 @@ function connect_socket(identity){
                     //先判斷nutritionist object有沒有這個營養師(一定有) 
                     nutritionist[String(data["nutri_id"])]["user_unread"] =  data["time"];
                     let user_div_span = document.getElementById(String(data["nutri_id"])).getElementsByClassName("user-name")[0];
-                    let unread_img = new Image();
-                    unread_img.src="/picture/unread.png";
-                    unread_img.classList.add("unread");
-                    user_div_span.appendChild(unread_img); //新增未讀圖示
+                    if(! user_div_span.getElementsByClassName("unread")[0]){
+                        let unread_img = new Image();
+                        unread_img.src="/picture/unread.png";
+                        unread_img.classList.add("unread");
+                        user_div_span.appendChild(unread_img); //新增未讀圖示
+                    };
                     //最後要emit到後端更新user_unread
                     user_socket.emit("update_user_unread",{
                                                             "nutri_id" : data["nutri_id"],
@@ -688,7 +704,7 @@ function connect_socket(identity){
                 if(display_message_section.scrollTop === 0){
                     lock = true;
                     let oldest_time = user[on_which_user]["oldest_time"];
-                    if(!oldest_time){
+                    if(oldest_time){
                         get_read_message_with_user(oldest_time);
                     };
                 }
@@ -717,10 +733,12 @@ function connect_socket(identity){
                     if(user[String(data["user_id"])]){ //表示 2 (user object已經有這個使用者了)
                         user[String(data["user_id"])]["nutri_unread"] =  data["time"];
                         let user_div_span = document.getElementById(String(data["user_id"])).getElementsByClassName("user-name")[0];
-                        let unread_img = new Image();
-                        unread_img.src="/picture/unread.png";
-                        unread_img.classList.add("unread");
-                        user_div_span.appendChild(unread_img); //新增未讀圖示
+                        if(! user_div_span.getElementsByClassName("unread")[0]){
+                            let unread_img = new Image();
+                            unread_img.src="/picture/unread.png";
+                            unread_img.classList.add("unread");
+                            user_div_span.appendChild(unread_img); //新增未讀圖示
+                        };
                     }else{ //表示 1 ,//要新增這個使用者到user object上,更新side bar
                         user[String(data["user_id"])] = {
                             "name" : data["name"],

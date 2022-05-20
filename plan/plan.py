@@ -14,7 +14,7 @@ from model import redis_db
 from model.connection import Connection
 from utils import Utils_obj
 from flask import current_app
-from celery_factory.celery_tasks import del_myplan_cache
+#from celery_factory.celery_tasks import del_myplan_cache
 
 
 
@@ -262,7 +262,7 @@ def plans():
                         data = {str(page) : result[0].get_data()} #result[0].get_data()已是byte string
                         redis_db.redis_instance.hset(redis_key, mapping = data)
                         print("task sended!")
-                        current_app.celery.send_task('celery_tasks.delmyplanCache',args=[redis_key,page],countdown=120)                             
+                        current_app.celery.send_task('task.delmyplanCache',args=[redis_key,page],countdown=120)                             
             except: #如果redis掛掉,就要去mysql拿
                 result = handle_get_diet_plans(page,user_id) 
         return result

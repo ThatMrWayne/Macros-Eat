@@ -1098,7 +1098,7 @@ table.plan-table {
 
 /*跳出我的計畫匡的新增計畫部分*/
 .add-plan{
-    border-top: 1px solid lightgray;
+    border-top: 3px solid gray;
     width: 100%;
     height: 100px;
     display: grid;
