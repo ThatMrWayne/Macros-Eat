@@ -1,4 +1,6 @@
 import mysql.connector
+import json
+from flask import current_app
 
 
 #base class
@@ -239,15 +241,17 @@ class Food_connection(Connection):
                 return result        
                 
     def get_public_food_info(self,keyword):
+        current_app.logger.info("get public fodd")
         msg,food_data = None,None
         cursor= self.cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         try:
+            current_app.logger.info(keyword)
             keyword_query = ("SELECT food_id, food_name, protein, fat, carbs from "
             "food WHERE MATCH(`food_name`) AGAINST( %(food)s IN NATURAL LANGUAGE MODE )") 
             cursor.execute(keyword_query,{"food":keyword})
             food_data = cursor.fetchall() #可能是空的[]
-   
+            current_app.logger.info(json.dumps(food_data))    
             result={
                     "data":food_data
                     }  

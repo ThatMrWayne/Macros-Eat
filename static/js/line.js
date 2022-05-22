@@ -56,9 +56,5 @@ let weight_config = {
     }
 }
 
-//render / init block
-//let line_chart =new Chart(
-//    document.getElementById("weight").getContext("2d"),
-//    config
-//)
+
 

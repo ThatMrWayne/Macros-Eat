@@ -206,21 +206,24 @@ def handle_signin(request):
                         data = json.dumps(
                                 {"room_id" : 0,
                                 "name" : result["name"],
+                                "record_socketid": [0],
                                 "socket_id" : [0],
                                 "status" : 0	
                                 })
                         redis_db.redis_instance.hsetnx("user",str(result["member_id"]),data)
-                        access_token = create_access_token(identity=json.dumps({'email':email,'id':result["member_id"],'name':result["name"],'identity':identity,'initial':True}),expires_delta=datetime.timedelta(days=5))
+                        access_token = create_access_token(identity=json.dumps({'email':email,'id':result["member_id"],'name':result["name"],'identity':identity,'initial':True}),expires_delta=datetime.timedelta(days=15))
                         response_msg = {"ok":True,"initial":True}
                     elif identity ==1 and result["initial"]==0: #表示不是第一次登入
                         data =json.dumps(
                                 {"room_id" : 0,
                                 "name" : result["name"],
+                                "record_socketid": [0],
                                 "socket_id" : [0],
                                 "status" : 0	
                                 })
                         redis_db.redis_instance.hsetnx("user",str(result["member_id"]),data)
-                        access_token = create_access_token(identity=json.dumps({'email':email,'id':result["member_id"],'name':result["name"],'identity':identity,'initial':False}),expires_delta=datetime.timedelta(days=5))
+                        access_token = create_access_token(identity=json.dumps({'email':email,'id':result["member_id"],'name':result["name"],'identity':identity,'initial':False}),expires_delta=datetime.timedelta(days=15))
+                        session.permanent = True
                         session["id"] = result["member_id"] #在登入的時候就給cookie
                         response_msg = {"ok":True,"initial":False}                      
                     elif identity ==2: #5/14  營養師登入後,要存入營養師資料到redis,準備給諮詢用
@@ -231,8 +234,9 @@ def handle_signin(request):
                                 "status" : 0	
                                 })
                         redis_db.redis_instance.hsetnx("nutri",str(result["nutri_id"]),data)
+                        session.permanent = True
                         session["id"] = result["nutri_id"]
-                        access_token = create_access_token(identity=json.dumps({'email':email,'id':result["nutri_id"],'name':result["name"],'identity':identity}),expires_delta=datetime.timedelta(days=5))
+                        access_token = create_access_token(identity=json.dumps({'email':email,'id':result["nutri_id"],'name':result["name"],'identity':identity}),expires_delta=datetime.timedelta(days=15))
                         response_msg = {"ok":True,"initial":None}
                     res = make_response(json.dumps(response_msg,ensure_ascii=False),200)
                     res.headers["access_token"] = access_token #把jwt塞在response header
@@ -329,10 +333,11 @@ def handle_update_user_data(request): #update會員資料的時候就要一併�
                     connection = db.get_auth_cnx() 
                     change_initial = connection.change_initial_state(email)   
                     if change_initial == True:
-                        session["id"] = user_id #第一次更新資料成功才給cookie(存一個email cookie 給之後disconnect用) 
+                        session.permanent = True
+                        session["id"] = user_id #第一次更新資料成功才給cookie(存一個cookie 給之後disconnect用) 
                         session["remind"] = "yes"
                         #送一個新的JWT
-                        new_access_token = create_access_token(identity=json.dumps({'email':email,'id':user_id,'name':name,'identity':1,'initial':False}),expires_delta=datetime.timedelta(days=5))  
+                        new_access_token = create_access_token(identity=json.dumps({'email':email,'id':user_id,'name':name,'identity':1,'initial':False}),expires_delta=datetime.timedelta(days=15))  
                         res = make_response(json.dumps(response_msg,ensure_ascii=False),200)
                         res.headers["access_token"] = new_access_token #把jwt塞在response header     
                         return res         
@@ -375,5 +380,6 @@ def signin():
 
 @auth.route('/api/users/signout',methods=["DELETE"])
 def signout():
+    del session["id"]
     return jsonify({"ok":True}), 200 #api test ok    
         

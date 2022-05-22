@@ -146,8 +146,11 @@ def handle_get_my_food_data(page,user_id):
 def handle_get_public_food_data(request):
     connection = db.get_food_cnx() #取得景點相關操作的自定義connection物件
     if isinstance(connection,Connection): #如果有順利取得連線
+        current_app.logger.info("取得公共食物")
         keyword = request.args.get('keyword')  
+        current_app.logger.info(keyword)
         if not keyword:
+            current_app.logger.info("沒有keyword")
             return jsonify({"data":[]}), 200         
         data = connection.get_public_food_info(keyword)
         if data == "error":
@@ -155,7 +158,9 @@ def handle_get_public_food_data(request):
                     "error":True,
                     "message":"不好意思,資料庫暫時有問題,維修中"}
             return jsonify(response_msg), 500          
-        else:   
+        else:  
+            current_app.logger.debug(json.dumps(data))
+            current_app.logger.info("public food") 
             return jsonify(data), 200           #api test ok             
     elif connection == "error":  #如果沒有順利取得連線
         response_msg={
@@ -192,16 +197,18 @@ def foods():
             try:
                 r = redis_db.redis_instance.hget(redis_key,str(page))
                 if r: #如果redis有資料
-                    print("cache hits!")
-                    data = json.loads(r)
+                    #print("cache hits!")
+                    current_app.logger.info("cache hits!")
+                    #data = json.loads(r)
                     result = jsonify(data), 200  
                 else:  #如果redis沒資料,就要去mysql拿,再存入redi,要send一個background task 2分鐘後刪除
                     print("cache miss!")
+                    current_app.logger.info("cache miss!")
                     result = handle_get_my_food_data(page,user_id)
                     if result[0].status_code == 200: #如果result成功,才存入redis
                         data = {str(page) : result[0].get_data()} #result[0].get_data()已是byte string
                         redis_db.redis_instance.hset(redis_key, mapping = data)
-                        print("task sended!")
+                        current_app.logger.info("task sended!")
                         current_app.celery.send_task('task.delmyfoodCache',args=[redis_key,page],countdown=120)                             
             except: #如果redis掛掉,就要去mysql拿
                 result = handle_get_my_food_data(page,user_id)  
@@ -216,6 +223,7 @@ def foods():
 @jwt_required_for_food()
 @cache.cached(timeout=30, query_string=True)
 def public_food():
+    current_app.logger.info("進來取得食物")
     get_food_result = handle_get_public_food_data(request)
     return get_food_result
 

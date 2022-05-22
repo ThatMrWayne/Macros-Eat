@@ -5,8 +5,6 @@ from config import MYSQL_PASSWORD
 from config import MYSQL_USER
 from config import MONGODB_URL_
 from config import CACHE_REDIS_HOST_
-from config import REDIS_USER
-from config import REDIS_PASSWORD
 from model.connection import Auth_connection
 from model.connection import Food_connection
 from model.connection import Plan_connection
@@ -127,7 +125,8 @@ class DataBase():
             config = {
                 'user': MYSQL_USER,
                 'password': MYSQL_PASSWORD,
-                'host': "database-macroseat.cvtkgqdz8ivt.us-east-1.rds.amazonaws.com",
+                'host':"localhost",
+                #'host': "database-macroseat.cvtkgqdz8ivt.us-east-1.rds.amazonaws.com",
                 'raise_on_warnings': True,
                 'port': 3306
                 }
@@ -251,7 +250,7 @@ db = DataBase()
 #------- redis---------#
 class RedisWrapper:
     def __init__(self):
-        self.redis_instance = redis.Redis(host=CACHE_REDIS_HOST_,port=6379,decode_responses=True,user=REDIS_USER,password=REDIS_PASSWORD)
+        self.redis_instance = redis.Redis(host=CACHE_REDIS_HOST_,port=6379,decode_responses=True)
 
 
 redis_db = RedisWrapper()
@@ -262,9 +261,9 @@ class MongoWrapper:
     def __init__(self):
         self.client = MongoClient(
             f"mongodb+srv://{MONGODB_URL_}/myFirstDatabase?retryWrites=true&w=majority")
-        self.db = self.client.whatueat
+        self.db = self.client.macroseat
 
-#mongo_db = MongoWrapper()
+mongo_db = MongoWrapper()
 
 
 

@@ -8,7 +8,7 @@ from flask_jwt_extended import verify_jwt_in_request
 from functools import wraps
 from model import db
 from model import redis_db
-#from model import mongo_db
+from model import mongo_db
 from model.connection import Connection
 from utils import Utils_obj
 from flask import current_app
@@ -71,12 +71,15 @@ def read_message():
             print(messages)
             #一次拿11筆,是不是用binary search比較快
             match_index = binary_search(messages, int(etime))
-            if match_index and messages[match_index-25]: #代表有前26筆
-                data = messages[match_index:match_index-26:-1]#從最新(時間最大)到最舊(時間最小)
-                return jsonify({"data":data}), 200 
-            else: #沒有的話就要去mongodb拿
-                collection = mongo_db.message_history
-                pipeline_read=[
+            print(match_index)
+            if match_index : #代表有前11筆
+                data = messages[match_index:match_index-11:-1]#從最新(時間最大)到最舊(時間最小)
+                if len(data)==11:
+                    return jsonify({"data":data}), 200 
+            #沒有的話就要去mongodb拿
+            print('去mongo拿')
+            collection = mongo_db.db.message_history
+            pipeline_read=[
                     {
                         "$match": {"history_id": key}
                     },
@@ -88,7 +91,7 @@ def read_message():
                                     "input": "$message",
                                     "as": "message",
                                     "cond": {
-                                        "$lte":["$$message.time",etime],
+                                        "$lte":["$$message.time",int(etime)],
                                     }
                                 }
                             }
@@ -103,7 +106,7 @@ def read_message():
                         }
                     },
                     {
-                        "$limit":26
+                        "$limit":11
                     },
                     {
                         "$group":{
@@ -112,10 +115,12 @@ def read_message():
                         }
                     }			
                 ]
-                read_message = 	collection.aggregate(pipeline=pipeline_read)
-                for i in read_message:
-                    data = i["message"] #從最新(時間最大)到最舊(時間最小)
-                return jsonify({"data":data}), 200   
+            read_message = 	collection.aggregate(pipeline=pipeline_read)
+            print(read_message)
+            for i in read_message:
+                data = i["message"] #從最新(時間最大)到最舊(時間最小)
+                print(data)
+            return jsonify({"data":data}), 200   
         except:
             response_msg={
                     "error":True,
@@ -171,7 +176,7 @@ def unread_message():
                     #從最新(時間最大)到最舊(時間最小)
                     return jsonify({"data":data}), 200 
                 else: #沒有的話就要去mongodb拿
-                    collection = mongo_db.message_history
+                    collection = mongo_db.db.message_history
                     pipeline_unread=[
                         {
                             "$match": {"history_id": key}
@@ -185,8 +190,8 @@ def unread_message():
                                         "as": "message",
                                         "cond": {
                                             "$and":[
-                                                {"$lte":["$$message.time",etime]},
-                                                {"$gt":["$$message.time",stime]},
+                                                {"$lte":["$$message.time",int(etime)]},
+                                                {"$gt":["$$message.time",int(stime)]},
                                             ]
                                         }
                                     }

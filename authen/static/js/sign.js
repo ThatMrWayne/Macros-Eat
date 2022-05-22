@@ -621,8 +621,13 @@ async function sendJWT(jwt){
                     //  4/24 這邊要動態render出records頁面
                     //window.setTimeout(function(){render_record()},5000);
                     render_record(result.data);
+                    user_socket = io('http://127.0.0.1:3100/user',{auth: {token: jwt, record: 1}}); //record:1代表從主紀錄頁面連線
+                    //接收來自其他分頁登出的事件,也要一併登出(刪除jwt)
+                    user_socket.on("sync_user_out",function(){
+                                        localStorage.removeItem("JWT");
+                                        window.location.reload();  
+                                    });
                 }else if(window.location.pathname==='/helper'){
-                    console.log("幹幹叫")
                     connect_socket(1);
                 }
         }else if(response.ok && result.data["identity"]===1 && result.data["initial"]===1){ //代表登入後就跳跳掉沒有填表單

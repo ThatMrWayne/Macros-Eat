@@ -105,8 +105,8 @@ div{
     margin-bottom: 20px;
 }
 div.current{
-    padding-left: 80px;
-    padding-right: 80px;
+    padding-left: 50px;
+    padding-right: 50px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -304,7 +304,7 @@ div.plan{
 
 .send-btn-container{
     text-align: right;
-    padding-right: 8px;
+    padding-right: 5px;
     padding-top: 10px;
     padding-bottom: 5px;
 }
@@ -484,13 +484,17 @@ td {
     opacity: 0.6;
 }
 
-
+.food-item-load:hover{
+    opacity: 0.6;
+    cursor: pointer;
+}
 
 .delete:hover{
     cursor: pointer;
 }
 
-.delete>img{
+
+.delete>svg{
     width:35%;
     height: 35%;
 }
@@ -1042,7 +1046,6 @@ table.plan-table {
     font-weight: 900;
     font-size: 20px;
     color: lightslategray;
-    padding-left: 20px;
     left: 50%;
     transform: translateX(-50%);
 }  
@@ -1145,4 +1148,80 @@ table.plan-table {
     color: #757575;
     position: absolute;
     bottom: 5px;
+}
+
+/* load from my food右邊區塊 */
+.load-food {
+    border-bottom-right-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.load-food-form {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+    position: relative;
+    background-color: #E8E8E8;
+    height: 100%;
+    border-bottom-right-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.load-food-title {
+    flex: none;
+    position: relative;
+    font-weight: 900;
+    font-size: 20px;
+    color: lightslategray;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.load-food-amount, .load-food-form > .fill {
+    margin-bottom: 0px;
+}
+
+.load-title {
+    display: inline-block;
+    width: 130px;
+    font-weight: 700;
+    font-size: 20px;
+    color: #757575;
+}
+
+.amt{
+    display: inline-block;
+    width: 50px;
+}
+
+.load-food-btn {
+    position: relative;
+    left: 75%;
+    top: 7px;
+}
+
+.submit-load-food {
+    background-color: #F0754F;
+    border-radius: 8px;
+    padding-right: 4px;
+    padding-left: 4px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    color: lightyellow;
+}
+
+.close-load {
+    margin-right: 15px;
+    color: #757575;
+}
+
+.submit-load-food:hover{
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+.close-load:hover{
+    cursor: pointer;
+    color: #F0754F;
 }

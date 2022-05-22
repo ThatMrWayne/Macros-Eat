@@ -1,4 +1,5 @@
 import time
+import logging
 from datetime import datetime
 import threading
 from flask import *
@@ -88,7 +89,7 @@ class TestMiddleWare:
 
 
 app.wsgi_app = TestMiddleWare(app.wsgi_app)
-#socketio = SocketIO(app)
+socketio = SocketIO(app)
 
 
 
@@ -121,11 +122,38 @@ def helper():
 
 #-----------socketIO event handler ---------#
 
+
 #-----------------使用者-----------------#
+
+#使用者登出
+@socketio.on('user_log_out',namespace='/user')
+def user_close():
+	user_id = session["id"]
+	raw_user_data = redis_db.redis_instance.hget("user",str(user_id))
+	process_user_data = json.loads(raw_user_data)
+	process_user_data["status"] = 0
+	process_user_data["room_id"] = 0
+	if process_user_data["socket_id"] != [0]:
+		for socket_id in process_user_data["socket_id"]: #通知其他分頁都要一起登出
+			if socket_id != request.sid:
+				socketio.emit("sync_user_out",namespace='/user',to=socket_id)
+	if process_user_data["record_socketid"] != [0]:
+		for record_socketid in process_user_data["record_socketid"]: #通知其他分頁都要一起登出
+			if record_socketid != request.sid:
+				socketio.emit("sync_user_out",namespace='/user',to=record_socketid)			
+	process_user_data["socket_id"] = [0]
+	process_user_data["record_socketid"] = [0]
+	redis_db.redis_instance.hset("user",str(user_id),json.dumps(process_user_data))	
+	#通知所有在nutri namepace的營養師使用者下線
+	socketio.emit('update_user_status',{"user_id":str(user_id)},namespace="/nutri")
+	
+
+
 #user connect驗證
 @socketio.on('connect',namespace='/user')
 def auth_connect_(auth):
 	try:
+		from_record = auth["record"]
 		print("開始囉")
 		decode_JWT = decode_token(auth["token"])
 		data=json.loads(decode_JWT["sub"]) 
@@ -135,34 +163,59 @@ def auth_connect_(auth):
 		raw_user_data = redis_db.redis_instance.hget("user",str(current_user_id))
 		#要看的是status
 		process_user_data = json.loads(raw_user_data)
-		print(process_user_data)
-		print(type(process_user_data))
-		if process_user_data["status"] == 1 :  #代表已經有開著諮詢頁面了
+		if process_user_data["status"] == 1 :  #代表已經上線了
 			room_id = process_user_data["room_id"]
-			old_socket_id = process_user_data["socket_id"]
-			old_socket_id.append(request.sid)
+			if from_record == 1: #如果是從主紀錄頁面連線
+				old_record_socketid = process_user_data["record_socketid"]
+				old_record_socketid.append(request.sid)
+			else:	
+				old_socket_id = process_user_data["socket_id"]
+				if old_socket_id != [0]:
+					old_socket_id.append(request.sid)
+				else:
+					process_user_data["socket_id"] = [request.sid]	
 			join_room(room_id)
 			redis_db.redis_instance.hset("user",str(current_user_id),json.dumps(process_user_data))
-		else : #代表正常上線開啟諮詢頁面
+		else : #代表正常上線
 			room_id = request.sid
 			process_user_data["room_id"] = room_id
-			process_user_data["socket_id"] = [room_id]
+			if from_record == 1: #如果是從主紀錄頁面連線
+				process_user_data["record_socketid"] = [room_id]
+			else:
+				process_user_data["socket_id"] = [room_id]
 			process_user_data["status"] = 1
 			redis_db.redis_instance.hset("user",str(current_user_id),json.dumps(process_user_data))
 		#先試看看去redis的user_history拿資料(是set)
-		user_history = redis_db.redis_instance.smembers(str(current_user_id))
+		user_history = redis_db.redis_instance.smembers("u"+str(current_user_id))
+		print(user_history)
+		print(type(user_history))
 		#拿營養師在redis資料
 		nutri  =  redis_db.redis_instance.hgetall("nutri") #return value is dictionary,but pay attention
 		if user_history: #代表使用者有跟贏養師對話過
+			user_history_list = list(i for i in user_history)
+			print(user_history_list)
 			data_for_user = {}
-			for nutri_id in list(int(i) for i in user_history):
-				message_status = json.loads(redis_db.redis_instance.hget("message_status",str(current_user_id)+"a"+str(nutri_id)))
-				data_for_user[str(nutri_id)] = {
-					"name" : nutri[str(nutri_id)]["name"],
-					"status" : nutri[str(nutri_id)]["status"],
-					"user_read" : message_status["user_read"],
-					"user_unread" : message_status["user_unread"],
-				}
+			for nutri_id in nutri.keys():
+				if nutri_id in user_history_list:
+					print(json.loads(nutri[str(nutri_id)]))
+					message_status = json.loads(redis_db.redis_instance.hget("message_status",str(current_user_id)+"a"+str(nutri_id)))
+					data_for_user[str(nutri_id)] = {
+						"name" : json.loads(nutri[str(nutri_id)])["name"],
+						"status" : json.loads(nutri[str(nutri_id)])["status"],
+						"user_read" : message_status["user_read"]
+					}
+					try:
+						temp = message_status["user_unread"]	
+						data_for_user[str(nutri_id)]["user_unread"] = temp
+					except:
+						data_for_user[str(nutri_id)]["user_unread"]= -1
+				else:
+					data_for_user[nutri_id] = { 
+						"name" : json.loads(nutri[nutri_id])["name"],
+						"status" : json.loads(nutri[nutri_id])["status"],
+						"user_read" : -1,
+						"user_unread" : -1,
+						}	
 		else: #代表使用者還沒有跟營養師對話過
 			data_for_user = {}
 			for nutri_id in nutri.keys():
@@ -174,7 +227,7 @@ def auth_connect_(auth):
 				}
 			print("嘿嘿")	
 		#認證通過，傳回去給使用者顯示		
-		socketio.emit('authentication_pass',{"user_data":user_data,"nutri_for_user":data_for_user},namespace='/user',to=room_id) 
+		socketio.emit('authentication_pass',{"user_data":user_data,"nutri_for_user":data_for_user},namespace='/user',to=request.sid) 
 		#通知所有在nutri namepace的營養師使用者上線
 		socketio.emit('update_user_status',{"user_id":str(current_user_id)},namespace="/nutri")
 	except:
@@ -199,10 +252,10 @@ def msg_to_nutri_(payload): #payload={"message":message,"receiver":receiver,"tok
 					"msg":message,
 					"by":"u"+str(user_id),
 					"to":"n"+str(nutri_id)}
-		current_app.celery.send_task('celery_tasks.pushMessage',args=[key,message_obj]) #1
+		current_app.celery.send_task('task.push_message',args=[key,message_obj]) #1
 		#訊息存入redis list	
 		redis_db.redis_instance.rpush(key,json.dumps(message_obj))	 #6
-		if redis_db.redis_instance.llen(key) > 200: #如果大於200筆					 
+		if redis_db.redis_instance.llen(key) > 50: #如果大於100筆					 
 			redis_db.redis_instance.lpop(key) #從左邊pop掉一個	
 		#不管怎麼樣馬上回傳給傳訊息者
 		user_room_id = 	json.loads(redis_db.redis_instance.hget("user",str(user_id)))["room_id"] #馬上回傳給傳訊者,需要room_id
@@ -221,13 +274,13 @@ def msg_to_nutri_(payload): #payload={"message":message,"receiver":receiver,"tok
 				status["user_read"] = message_time
 				redis_db.redis_instance.hset("message_status", key, json.dumps(status))
 				#redis一更新完,馬上send_task給mongodb
-				current_app.celery.send_task('celery_tasks.updateUserRead',args=[key,message_time]) #4
+				current_app.celery.send_task('task.update_user_read',args=[key,message_time]) #4
 				print('jjj')
 			else: #更新使用者的已讀時間
 				print('456')
 				redis_db.redis_instance.hset("message_status", key, json.dumps({"user_read" : message_time}))
 				#redis一更新完,馬上send_task給mongodb
-				current_app.celery.send_task('celery_tasks.updateUserRead',args=[key,message_time]) #4
+				current_app.celery.send_task('task.update_user_read',args=[key,message_time]) #4
 				print('kkk')
 		else: #營養師不在線,馬上更新redis
 			if status: #如果redis有對話紀錄狀態
@@ -236,16 +289,16 @@ def msg_to_nutri_(payload): #payload={"message":message,"receiver":receiver,"tok
 				status["user_read"] = message_time
 				redis_db.redis_instance.hset("message_status", key, json.dumps(status))
 				#redis一更新完,馬上send_task給mongodb
-				current_app.celery.send_task('celery_tasks.updateUreadNunread',args=[key,message_time]) #5
+				current_app.celery.send_task('task.update_read_unread',args=[key,message_time]) #5
 			else:
 				redis_db.redis_instance.hset("message_status", key,json.dumps({"nutri_unread" : message_time,"user_read" : message_time}) )
 				#redis一更新完,馬上send_task給mongodb
-				current_app.celery.send_task('celery_tasks.updateUReadNUnread',args=[key,message_time]) #5
+				current_app.celery.send_task('task.update_read_unread',args=[key,message_time]) #5
 		#最後user和nutri的history in redis (是set in redis)
 		redis_db.redis_instance.sadd("u"+str(user_id),nutri_id) #7
 		redis_db.redis_instance.sadd("n"+str(nutri_id),user_id) #8
 		#和user和nutri的history存到mongodb
-		current_app.celery.send_task('celery_tasks.updateHistoryList',args=[int(user_id),int(nutri_id)]) #9
+		current_app.celery.send_task('task.update_history_list',args=[int(user_id),int(nutri_id)]) #9
 	except:
 		emit("authencation_fail")	
 	
@@ -262,7 +315,7 @@ def update_user_read_(payload):
 	status["user_read"] = payload["time"]
 	redis_db.redis_instance.hset("message_status",key,json.dumps(status))
 	#再send_task給mongodb做message_history的user_read更新
-	current_app.celery.send_task('celery_tasks.updateUserRead',args=[key,payload["time"]])
+	current_app.celery.send_task('task.update_user_read',args=[key,payload["time"]])
 
 #----- 更新使用者的"未讀時間" ----#
 @socketio.on('update_user_unread',namespace="/user")
@@ -276,7 +329,7 @@ def update_user_unread_(payload):
 	status["user_unread"] = payload["time"]
 	redis_db.redis_instance.hset("message_status",key,json.dumps(status))
 	#再send_task給mongodb做message_history的user_unread更新
-	current_app.celery.send_task('celery_tasks.updateUserUnread',args=[key,payload["time"]])
+	current_app.celery.send_task('task.update_user_unread',args=[key,payload["time"]])
 
 
 
@@ -293,7 +346,7 @@ def update_user_read_unread_(payload):
 	status["user_read"] = payload["user_read"]
 	redis_db.redis_instance.hset("message_status",key,json.dumps(status))
 	#再send_task給mongodb做message_history的user_unread更新
-	current_app.celery.send_task('celery_tasks.updateUserReadUnread',args=[key,payload["user_read"],-1])
+	current_app.celery.send_task('task.update_user_read_unread',args=[key,payload["user_read"],-1])
 
 
 
@@ -303,6 +356,28 @@ def update_user_read_unread_(payload):
 
 
 #-------------------營養師--------------------#
+
+#營養師登出
+@socketio.on('nutri_log_out',namespace='/nutri')
+def nutri_close():
+	nutri_id = session["id"]
+	raw_nutri_data = redis_db.redis_instance.hget("nutri",str(nutri_id))
+	process_nutri_data = json.loads(raw_nutri_data)
+	process_nutri_data["status"] = 0
+	process_nutri_data["room_id"] = 0
+	for socket_id in process_nutri_data["socket_id"]: #通知其他分頁都要一起登出
+		if socket_id != request.sid:
+			socketio.emit("sync_nutri_out",namespace='/nutri',to=socket_id)		
+	process_nutri_data["socket_id"] = [0]
+	redis_db.redis_instance.hset("nutri",str(nutri_id),json.dumps(process_nutri_data))	
+	#通知所有在user namepace的營養師使用者下線
+	socketio.emit('update_nutri_status',{"nutri_id":str(nutri_id)},namespace="/user")
+
+
+
+
+
+
 @socketio.on('connect',namespace='/nutri')
 def auth_connect_nutri(auth):
 	try:
@@ -327,7 +402,7 @@ def auth_connect_nutri(auth):
 			process_nutri_data["status"] = 1
 			redis_db.redis_instance.hset("nutri",str(current_nutri_id),json.dumps(process_nutri_data))
 		#先試看看去redis的nutri_history拿資料(是set)
-		nutri_history = redis_db.redis_instance.smembers(str(current_nutri_id))
+		nutri_history = redis_db.redis_instance.smembers("n"+str(current_nutri_id))
 		#拿使用者在redis資料
 		user  =  redis_db.redis_instance.hgetall("user") #return value is dictionary
 		if nutri_history: #代表贏養師有跟使用者對話過
@@ -340,10 +415,15 @@ def auth_connect_nutri(auth):
 					"nutri_read" : message_status["nutri_read"],
 					"nutri_unread" : message_status["nutri_unread"],
 				}
+				try:
+					temp = message_status["nutri_read"]
+					data_for_nutri[str(user_id)]["nutri_read"]=  temp
+				except:
+					data_for_nutri[str(user_id)]["nutri_read"]=  -1	
 		else: #代表營養師還沒有跟使用者對話過
 			data_for_nutri = {}
 		#認證通過，傳回去給營養師顯示		
-		socketio.emit('authentication_pass',{"nutri_data":nutri_data,"user_for_nutri":data_for_nutri},namespace='/nutri',to=room_id) 
+		socketio.emit('authentication_pass',{"nutri_data":nutri_data,"user_for_nutri":data_for_nutri},namespace='/nutri',to=request.sid) 
 		#通知所有在user namepace的營養師使用者上線
 		socketio.emit('update_nutri_status',{"nutri_id":str(current_nutri_id),"name":current_nutri_name},namespace="/user")
 	except:
@@ -362,7 +442,7 @@ def update_nutri_read_(payload):
 	status["nutri_read"] = payload["time"]
 	redis_db.redis_instance.hset("message_status",key,json.dumps(status))
 	#再send_task給mongodb做message_history的nutri_read更新
-	current_app.celery.send_task('celery_tasks.updateNutriRead',args=[key,payload["time"]]) 
+	current_app.celery.send_task('task.update_nutri_read',args=[key,payload["time"]]) 
 	
 #----- 更新營養師的"未讀時間" ------#
 @socketio.on('update_nutri_unread',namespace="/nutri")
@@ -376,13 +456,13 @@ def update_nutri_unread_(payload):
 	status["nutri_unread"] = payload["time"]
 	redis_db.redis_instance.hset("message_status",key,json.dumps(status))
 	#再send_task給mongodb做message_history的nutri_unread更新
-	current_app.celery.send_task('celery_tasks.updateNutriUnread',args=[key,payload["time"]]) 
+	current_app.celery.send_task('task.update_nutri_unread',args=[key,payload["time"]]) 
 
 
 
 
 #----給使用者的訊息-----#
-@socketio.on('message_to_user',namespace='/user')
+@socketio.on('message_to_user',namespace='/nutri')
 def msg_to_user_(payload): #payload={"message":message,"receiver":receiver,"token":jwt}
 	try:
 		decode_JWT = decode_token(payload["token"])
@@ -398,10 +478,10 @@ def msg_to_user_(payload): #payload={"message":message,"receiver":receiver,"toke
 					"msg":message,
 					"by":"n"+str(nutri_id),
 					"to":"u"+str(user_id)}
-		current_app.celery.send_task('celery_tasks.pushMessage',args=[key,message_obj]) #1
+		current_app.celery.send_task('task.push_message',args=[key,message_obj]) #1
 		#訊息存入redis list	
 		redis_db.redis_instance.rpush(key,json.dumps(message_obj))	 #6 (先存最新的100條)
-		if redis_db.redis_instance.llen(key) > 200: #如果大於100筆					 
+		if redis_db.redis_instance.llen(key) > 50: #如果大於100筆					 
 			redis_db.redis_instance.lpop(key) #從左邊pop掉一個
 		#不管怎麼樣馬上回傳給傳訊息者
 		nutri_room_id = json.loads(redis_db.redis_instance.hget("nutri",str(nutri_id)))["room_id"] #馬上回傳給傳訊者,需要room_id
@@ -409,14 +489,23 @@ def msg_to_user_(payload): #payload={"message":message,"receiver":receiver,"toke
 		#首先去redis看使用者是否在線
 		user_data = json.loads(redis_db.redis_instance.hget("user",user_id))
 		status = redis_db.redis_instance.hget("message_status", key)
-		if user_data["status"] == 1: #如果使用者在線,傳出去
-			socketio.emit('show_nutri_message',{"message":message,"time":message_time,"name":nutri_name,"nutri_id":nutri_id},namespace='/user',to=user_data["room_id"]) #3
-			#如果redis有對話紀錄狀態,更新營養師的已讀時間 (應該說一定已經有status,因為是使用者先傳訊息給營養師)
-			status = json.loads(status)
-			status["nutri_read"] = message_time
-			redis_db.redis_instance.hset("message_status", key, json.dumps(status))
-			#redis一更新完,馬上send_task給mongodb
-			current_app.celery.send_task('celery_tasks.updateNutriRead',args=[key,message_time]) #4
+		if user_data["status"] == 1: #如果使用者在線,傳出去(要再看socket_id裡有沒有,有才傳)
+			if user_data["socket_id"] != [0]:
+				socketio.emit('show_nutri_message',{"message":message,"time":message_time,"name":nutri_name,"nutri_id":nutri_id},namespace='/user',to=user_data["room_id"]) #3
+				#如果redis有對話紀錄狀態,更新營養師的已讀時間 (應該說一定已經有status,因為是使用者先傳訊息給營養師)
+				status = json.loads(status)
+				status["nutri_read"] = message_time
+				redis_db.redis_instance.hset("message_status", key, json.dumps(status))
+				#redis一更新完,馬上send_task給mongodb
+				current_app.celery.send_task('task.update_nutri_read',args=[key,message_time]) #4
+			else: #代表使用者只有開著主紀錄畫面(很像不在線)
+				#如果redis有對話紀錄狀態(應該說一定已經有status,因為是使用者先傳訊息給營養師)
+				status = json.loads(status)
+				status["user_unread"] = message_time
+				status["nutri_read"] = message_time
+				redis_db.redis_instance.hset("message_status", key, json.dumps(status))
+				#redis一更新完,馬上send_task給mongodb
+				current_app.celery.send_task('task.update_unread_read',args=[key,message_time]) #5
 		else: #使用者不在線,馬上更新redis
             #如果redis有對話紀錄狀態(應該說一定已經有status,因為是使用者先傳訊息給營養師)
 			status = json.loads(status)
@@ -424,7 +513,7 @@ def msg_to_user_(payload): #payload={"message":message,"receiver":receiver,"toke
 			status["nutri_read"] = message_time
 			redis_db.redis_instance.hset("message_status", key, json.dumps(status))
 			#redis一更新完,馬上send_task給mongodb
-			current_app.celery.send_task('celery_tasks.updateUunreadNread',args=[key,message_time]) #5
+			current_app.celery.send_task('task.update_unread_read',args=[key,message_time]) #5
 		#最後user和nutri的history in redis (是set in redis)和user和nutri的history存到mongodb
 		#這邊不用再存一次,因為使用者一傳就已經新增紀錄了
 	except:
@@ -444,7 +533,7 @@ def update_nutri_read_unread_(payload):
 	status["nutri_read"] = payload["nutri_read"]
 	redis_db.redis_instance.hset("message_status",key,json.dumps(status))
 	#再send_task給mongodb做message_history的user_unread更新
-	current_app.celery.send_task('celery_tasks.updateNutriReadUnread',args=[key,payload["nutri_read"],-1])
+	current_app.celery.send_task('task.update_nutri_read_unread',args=[key,payload["nutri_read"],-1])
 
 
 
@@ -512,17 +601,9 @@ def r():
 
 
 
+if __name__ == "__main__":
+	gunicorn_logger = logging.getLogger('gunicorn.error')
+	app.logger.handlers = gunicorn_logger.handlers
+	app.logger.setLevel(gunicorn_logger.level)
 
 
-
-
-
-
-
-
-
-
-
-#if __name__ == "__main__":
-	#app.run(port=3100,host='0.0.0.0')
-    #socketio.run(app,port=3100,threaded=False)    

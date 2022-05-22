@@ -37,7 +37,7 @@ async function get_food(food,jwt){
 };
 
 
-
+//not done yet
 function render_data(data){
     let input_amount = document.getElementById("food_portion");
     if(input_amount.value){
@@ -71,32 +71,7 @@ function render_data(data){
     input_area.appendChild(div);
 }
 
-//4/27搜尋食物的事件註冊,再改成動態render時註冊
-/*
-document.getElementById("food_name").addEventListener("input",function(){
-    let value = this.value;
-    //console.log(this);
-    if(value === ""){
-        let input_area = document.getElementById("input-area");
-        if(document.querySelector(".search-result")){
-            input_area.removeChild(document.querySelector(".search-result"))
-        };
-    }else{
-        if(search_times <= 10){
-            search_times += 1;
-            //console.log(n);
-            let jwt = localStorage.getItem("JWT");
-            let search_promise = get_food(value,jwt);
-            search_promise.then((result)=>{
-                search_times -= 1;
-                //console.log(n);
-                console.log(result.data);
-                render_data(result.data);
-            });
-        }    
-    }    
-});
-*/
+
 
 
 

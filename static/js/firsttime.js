@@ -66,7 +66,6 @@ function validate_form(){
         return result;
     }else if(!height.value || !Number(height.value) || Number(height.value)<30 || Number(height.value)>230){
         show_tip('Enter a valid height','.height');
-        console.log('hhh');
         result = false;
         return result;
     }else if(!weight.value || !Number(weight.value) || Number(weight.value)<30 || Number(height.value)>500){
@@ -91,25 +90,8 @@ function organize_form(){
             data[pair[0]]=n;
         }else{
             data[pair[0]]=Number(pair[1]);
-        }
+        };
     };
     console.log(data);
     return JSON.stringify(data)
 }
-
-
-
-/** 
-window.addEventListener("load",()=>{
-    let button = document.querySelector(".submit");
-    //註冊按下calculate鈕事件
-    button.addEventListener("click",()=>{
-        //先檢查表單資料都對不對&有沒有填
-        let validate = validate_form();
-        if(validate){
-            let jwt = localStorage.getItem("JWT");
-            let json_data = organize_form();
-            submit_information(json_data,jwt);
-        }        
-    });
-})*/

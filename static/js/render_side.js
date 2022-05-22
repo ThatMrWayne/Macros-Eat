@@ -1,4 +1,5 @@
 let my_food_page = 0;
+let my_food_page_load = 0;
 let can_get_my_food = true; 
 //
 let weight_action = true;
@@ -9,7 +10,7 @@ let already_on_record_page = true;
 
 
 
-/* 會員頁部分 */
+/* 會員頁部分 (not done yet)*/
 
 async function get_member_data(){  
 
@@ -29,7 +30,7 @@ function render_user_profile(navmenu,user_data){
     img.classList.add("profile_picture");
     let span = document.createElement("span");
     span.classList.add("username");
-    span.setAttribute("id",user_data["member_id"]);
+    span.setAttribute("memberid",user_data["member_id"]);
     span.setAttribute("identity",user_data["identity"]);
     span.appendChild(document.createTextNode(user_data["name"]));
     span.addEventListener("click",function(){ //按下後跑去會員頁面
@@ -44,7 +45,7 @@ function render_user_profile(navmenu,user_data){
 /* 我的食物部分 */
 
 
-async function get_my_food(food_page){ //get_my_food成功後才render_my_food
+async function get_my_food(food_page,purpose){ //get_my_food成功後才render_my_food
     let jwt = localStorage.getItem("JWT");
     try{
         let response = await fetch('/api/my-food?page='+food_page,{ //初始page是0
@@ -59,17 +60,29 @@ async function get_my_food(food_page){ //get_my_food成功後才render_my_food
             let food = result["data"];
             if(food.length!==0){
                 for(let i=0;i<food.length;i++){
-                    let tr = create_my_tr(food[i]);
+                    let tr;
+                    if(purpose==="foredit"){
+                        tr = create_my_tr_edit(food[i]);
+                    }else if(purpose==="forload"){
+                        tr = create_my_tr_load(food[i]);
+                    };
                     tbody.appendChild(tr);
                 };
+                feather.replace();
             }    
             let next_page = result["nextPage"];
-            my_food_page = next_page;    
+            if(purpose==="foredit"){
+                my_food_page = next_page;
+            }else{
+                my_food_page_load =next_page;
+            }  
             can_get_my_food = true;      
-        }else if(response.status === 400){ //
-                
+        }else if(response.status === 403){ //
+            console.log("JWT失效,拒絕存取");
+            localStorage.removeItem("JWT");
+            window.location.replace("/"); //導回首頁,重新登入;
         }else if(response.status === 500){ //如果是500,代表伺服器(資料庫)內部錯誤
-                
+            console.log("伺服器錯誤");    
         };
     }catch(message){
         console.log(`${message}`)
@@ -94,7 +107,7 @@ async function delete_my_food(food_id){
                 tbody.firstChild.remove(); 
             };
             my_food_page = 0;
-            get_my_food(my_food_page);      
+            get_my_food(my_food_page,"foredit");      
         }else if(response.status === 400){ //刪除失敗,該食物不存在或不屬於此會員
             console.log("刪除失敗");
         }else if(response.status === 403){ //
@@ -102,7 +115,7 @@ async function delete_my_food(food_id){
             localStorage.removeItem("JWT");
             window.location.replace("/"); //導回首頁,重新登入;
         }else if(response.status === 500){ //如果是500,代表伺服器(資料庫)內部錯誤
-                console.log("伺服器錯誤");
+            console.log("伺服器錯誤");
         };
     }catch(message){
         console.log(`${message}`)
@@ -113,8 +126,8 @@ async function delete_my_food(food_id){
 
 
 
-//我的食物tr 
-function create_my_tr(food){
+//我的食物tr(編輯) 
+function create_my_tr_edit(food){
     let tr = document.createElement("tr");
     tr.classList.add("food-item");
     let th = document.createElement("th");
@@ -132,8 +145,8 @@ function create_my_tr(food){
     let td_delete = document.createElement("td");
     td_delete.classList.add("delete");
     td_delete.setAttribute("id",food["food_id"]); //把food_id直接放在垃圾桶
-    let delete_icon = new Image();
-    delete_icon.src = "/picture/icon_delete.png";
+    let delete_icon = document.createElement("i");
+    delete_icon.setAttribute("data-feather","trash");    
     td_delete.addEventListener("click",function(){ //註冊刪除飲食紀錄
         can_get_my_food = false; //按下去的時候要先變false
         delete_my_food(this.id);
@@ -149,6 +162,51 @@ function create_my_tr(food){
 
 
 
+//我的食物tr(load from my food) 
+function create_my_tr_load(food){
+    let tr = document.createElement("tr");
+    tr.classList.add("food-item-load");
+    tr.addEventListener("click",function(){ //按下計畫後會assign給全域變數select_food,然後變色
+        const tip = document.querySelector('.tip');
+        if(tip){ //如果有tip先拿掉
+            document.documentElement.style.setProperty('--color',"none");
+            tip.remove();
+        };
+        let previous_selected = document.querySelector(".selected");
+        if(previous_selected){
+            previous_selected.classList.toggle("selected");
+        };
+        this.classList.toggle("selected"); 
+        select_food["food_name"] = this.querySelector(".food-name").textContent;
+        select_food["protein"] = Number(this.querySelector(".p").textContent);
+        select_food["fat"] = Number(this.querySelector(".f").textContent);
+        select_food["carbs"] = Number(this.querySelector(".c").textContent);
+    });
+    let th = document.createElement("th");
+    th.classList.add("food-name");
+    th.appendChild(document.createTextNode(String(food["food_name"])));
+    let td_p = document.createElement("td");
+    td_p.classList.add("p");
+    td_p.appendChild(document.createTextNode(String(food["protein"])));
+    let td_f = document.createElement("td");
+    td_f.classList.add("f");
+    td_f.appendChild(document.createTextNode(String(food["fat"])));
+    let td_c = document.createElement("td");
+    td_c.classList.add("c");
+    td_c.appendChild(document.createTextNode(String(food["carbs"])));
+    tr.appendChild(th);
+    tr.appendChild(td_p);
+    tr.appendChild(td_f);
+    tr.appendChild(td_c);
+    return tr
+};
+
+
+
+
+
+
+
 async function add_food(payload,jwt){ //新增食物API
     try{
         let response = await fetch('/api/my-food',{
@@ -159,16 +217,14 @@ async function add_food(payload,jwt){ //新增食物API
         let result = await response.json();                            
         if(response.status === 201){ //新增我的食物完成
             //新增完成,插到我的食物table
-            console.log(result);
             let payload_obj = JSON.parse(payload);
-            console.log(payload_obj);
             //新增我的食物成功,直接重新打一次get_my_food,把my_food_page歸0,先把tbody清空
             let tbody = document.querySelector(".my-food-body");
             while(tbody.firstChild){
                 tbody.firstChild.remove(); 
             };
             my_food_page = 0;
-            get_my_food(my_food_page);
+            get_my_food(my_food_page,"foredit");
             //把新增食物匡清空,提示訊息清空
             let food_name = document.getElementById("new-food-name");
             let protein = document.getElementById("new-food-protein");
@@ -247,14 +303,13 @@ function organize_new_food(){
             data["carbs"]=n;
         }
     };
-    console.log(data);
     return JSON.stringify(data)
 }
 
 
 
 
-//pop out出食物顯示匡
+//pop out出食物顯示匡(編輯)
 function render_my_food_window(background){
     let my_food_box = document.createElement("div");
     my_food_box.classList.add("my-food-box");
@@ -276,18 +331,14 @@ function render_my_food_window(background){
     table.appendChild(thead);
     let tbody = document.createElement("tbody");
     tbody.classList.add("my-food-body");
-    get_my_food(my_food_page) //取得食物資料
+    get_my_food(my_food_page,"foredit") //取得食物資料
     show_my_food.addEventListener("scroll",function(){ //my-food table註冊滑動載入my-food事件
         if(this.scrollHeight-this.scrollTop <= this.clientHeight){
             if(can_get_my_food && my_food_page){
                 can_get_my_food = false;
-                get_my_food(my_food_page);
-            }else{
-                console.log("哲瑋")
+                get_my_food(my_food_page,"foredit");
             }
-        }else{
-            console.log("沒有喔")
-        }
+        };
     });
     table.appendChild(tbody);
     show_my_food.appendChild(table);
@@ -426,6 +477,253 @@ function render_my_food_window(background){
 
 
 
+
+//pop out出食物顯示框(load from my food)
+function render_my_food_window_load(background){
+    let my_food_box = document.createElement("div");
+    my_food_box.classList.add("my-food-box");
+    //先裝left的我的食物清單
+    let show_my_food = document.createElement("div");
+    show_my_food.classList.add("show-my-food");
+    let table = document.createElement("table");
+    table.classList.add("my-food-table");
+    let thead = document.createElement("thead");
+    let tr = document.createElement("tr");
+    let th_text = ["Food name","Protein(g)","Fat(g)","Carbs(g)"]
+    for(let i=0;i<th_text.length;i++){
+        let th = document.createElement("th");
+        th.classList.add("head");
+        th.appendChild(document.createTextNode(th_text[i]));
+        tr.appendChild(th);
+    };
+    thead.appendChild(tr);
+    table.appendChild(thead);
+    let tbody = document.createElement("tbody");
+    tbody.classList.add("my-food-body");
+    get_my_food(my_food_page_load,"forload"); //取得食物資料
+    show_my_food.addEventListener("scroll",function(){ //my-food table註冊滑動載入my-food事件
+        if(this.scrollHeight-this.scrollTop <= this.clientHeight){
+            if(can_get_my_food && my_food_page_load){
+                can_get_my_food = false;
+                get_my_food(my_food_page_load,"forload");
+            }
+        };
+    });
+    table.appendChild(tbody);
+    show_my_food.appendChild(table);
+    my_food_box.appendChild(show_my_food);
+    //在裝right的輸入食物的量
+    let load_amount_div = document.createElement("div");
+    load_amount_div.classList.add("load-food");
+    let load_food_form = document.createElement("form");
+    load_food_form.classList.add("load-food-form");
+    //小title
+    let title_div = document.createElement("div");
+    title_div.classList.add("load-food-title");
+    title_div.innerHTML = "Select one food and input amount";
+    //填入食物amount(必填)
+    let load_food_amount = document.createElement("div");
+    load_food_amount.classList.add("load-food-amount");
+    load_food_amount.classList.add("fill");
+    let span1 = document.createElement("span");
+    span1.classList.add("load-title");
+    span1.classList.add("load-title_amount")
+    span1.innerHTML = "Amount :";
+    let span1_1 = document.createElement("span");
+    span1_1.innerHTML="g";
+    load_food_amount.appendChild(span1);
+    let input_food_amount = document.createElement("input");
+    input_food_amount.setAttribute("id","load-my-food-amount");
+    input_food_amount.setAttribute("type","number");
+    input_food_amount.setAttribute("name","input-my-food-amount");
+    input_food_amount.setAttribute("min","0");
+    input_food_amount.setAttribute("step","0.1");
+    load_food_amount.appendChild(span1);
+    input_food_amount.addEventListener("input",function(){ //如果沒有選食物就不能填量一律取消
+        if(!select_food["food_name"]){
+            this.value="";
+            show_tip('Please select food first','.load-title_amount');            
+        }else if(Number(this.value)){ //如果輸入的是數字才動態計算pfc
+            const tip = document.querySelector('.tip');
+            if(tip){ //如果有tip先拿掉
+                document.documentElement.style.setProperty('--color',"none");
+                tip.remove();
+            };
+            let portion = (Number(this.value))/100;
+            let protein = portion * select_food["protein"];
+            let fat = portion * select_food["fat"];
+            let carbs = portion * select_food["carbs"];
+            let calo = Math.round((protein * 4) + (fat * 9) + (carbs * 4))
+            document.querySelector(".load-food-protein-amt").innerHTML = protein.toFixed(1);
+            document.querySelector(".load-food-fat-amt").innerHTML = fat.toFixed(1);
+            document.querySelector(".load-food-carbs-amt").innerHTML = carbs.toFixed(1);
+            document.querySelector(".load-food-calo-amt").innerHTML = String(calo);
+        }else if(!this.value){ //如果取消amount,pfc和calo歸零
+            const tip = document.querySelector('.tip');
+            if(tip){ //如果有tip先拿掉
+                document.documentElement.style.setProperty('--color',"none");
+                tip.remove();
+            };
+            document.querySelector(".load-food-protein-amt").innerHTML="0";
+            document.querySelector(".load-food-fat-amt").innerHTML="0";
+            document.querySelector(".load-food-carbs-amt").innerHTML="0";
+            document.querySelector(".load-food-calo-amt").innerHTML="0";
+        }
+    });
+    load_food_amount.appendChild(input_food_amount);
+    load_food_amount.appendChild(span1_1);
+    //蛋白質的量
+    let load_food_protein = document.createElement("div");
+    load_food_protein.classList.add("load-food-protein");
+    load_food_protein.classList.add("fill");
+    let span2 = document.createElement("span");
+    span2.classList.add("load-title");
+    span2.innerHTML = "Protein :";
+    let span2_1 = document.createElement("span");
+    span2_1.classList.add("load-food-protein-amt");
+    span2_1.classList.add("amt");
+    span2_1.innerHTML="0";
+    let span2_2 = document.createElement("span");
+    span2_2.innerHTML="g";
+    load_food_protein.appendChild(span2);
+    load_food_protein.appendChild(span2_1);
+    load_food_protein.appendChild(span2_2);    
+    //脂肪的量
+    let load_food_fat = document.createElement("div");
+    load_food_fat.classList.add("load-food-fat");
+    load_food_fat.classList.add("fill");
+    let span3 = document.createElement("span");
+    span3.classList.add("load-title");
+    span3.innerHTML = "Fat :";
+    let span3_1 = document.createElement("span");
+    span3_1.classList.add("load-food-fat-amt");
+    span3_1.classList.add("amt");
+    span3_1.innerHTML="0";
+    let span3_2 = document.createElement("span");
+    span3_2.innerHTML="g";
+    load_food_fat.appendChild(span3);
+    load_food_fat.appendChild(span3_1);
+    load_food_fat.appendChild(span3_2); 
+    //碳水的量
+    let load_food_carbs = document.createElement("div");
+    load_food_carbs.classList.add("load-food-carbs");
+    load_food_carbs.classList.add("fill");
+    let span4 = document.createElement("span");
+    span4.classList.add("load-title");
+    span4.innerHTML = "Carbs :";
+    let span4_1 = document.createElement("span");
+    span4_1.classList.add("load-food-carbs-amt");
+    span4_1.classList.add("amt");
+    span4_1.innerHTML="0";
+    let span4_2 = document.createElement("span");
+    span4_2.innerHTML="g";
+    load_food_carbs.appendChild(span4);
+    load_food_carbs.appendChild(span4_1);
+    load_food_carbs.appendChild(span4_2); 
+    //攝取的熱量
+    let load_food_calo = document.createElement("div");
+    load_food_calo.classList.add("load-food-calo");
+    load_food_calo.classList.add("fill");
+    let span5 = document.createElement("span");
+    span5.classList.add("load-title");
+    span5.innerHTML = "Calories :";
+    let span5_1 = document.createElement("span");
+    span5_1.classList.add("load-food-calo-amt");
+    span5_1.classList.add("amt");
+    span5_1.innerHTML="0";
+    let span5_2 = document.createElement("span");
+    span5_2.innerHTML="kcal";
+    load_food_calo.appendChild(span5);
+    load_food_calo.appendChild(span5_1);
+    load_food_calo.appendChild(span5_2);   
+    //按鈕
+    let btn_div = document.createElement("div");
+    btn_div.classList.add("load-food-btn");
+    let submit_btn = document.createElement("span");
+    submit_btn.classList.add("submit-load-food");
+    submit_btn.innerHTML = "Add";
+    submit_btn.addEventListener("click",function(){ //註冊新增飲食事件
+        //送出資料前先檢查有沒有都填了＆資料正不正確
+        let amount = document.getElementById("load-my-food-amount");
+        if(select_food["food_name"]===null){ //如果沒有選食物
+            show_tip('Please select food first','.load-title_amount');
+        }else if(!amount.value){ //如果沒有填量
+            show_tip('Enter consuming amount','.load-title_amount');
+        }else if(!Number(amount.value)){ //如果沒有填入數字的量
+            show_tip('Enter valid amount','.load-title_amount');
+        }else if(Number(amount.value)<=0){ //如果量<=0
+            show_tip('Amount needs to be > 0','.load-title_amount');
+        }else{ //才要送出
+            let consume_calo = Number(document.querySelector(".load-food-calo-amt").textContent);
+            let consume_protein = Number(document.querySelector(".load-food-protein-amt").textContent);
+            let consume_fat = Number(document.querySelector(".load-food-fat-amt").textContent);
+            let consume_carbs = Number(document.querySelector(".load-food-carbs-amt").textContent);
+            select_food["calories"] = consume_calo;
+            let payload = {
+                "create_at" : on_date_utc,
+                "record_id" : record_id,
+                "food_name" : select_food["food_name"],
+                "protein" : consume_protein,
+                "fat" : consume_fat,
+                "carbs" : consume_carbs,
+                "amount" : Number(Number(amount.value).toFixed(1))
+            };
+            let selected = document.querySelector(".selected");
+            selected.classList.toggle("selected");            
+            let promise = add_intake(JSON.stringify(payload),"load");
+            promise.then((result)=>{
+                //清空
+                let amount = document.getElementById("load-my-food-amount");
+                amount.value="";
+                let l = [".load-food-protein-amt",".load-food-fat-amt",".load-food-carbs-amt",".load-food-calo-amt"];
+                for(let i = 0;i<l.length;i++){
+                    let span = document.querySelector(l[i]);
+                    span.innerHTML="0";
+                };
+            }).catch((msg)=>{
+                console.log(msg);
+            });
+        };
+    });
+    let close_btn = document.createElement("span");
+    close_btn.classList.add("close-load");
+    close_btn.innerHTML = "Close";
+    close_btn.addEventListener("click",function(){ //關掉更新window
+        //關掉框框
+        document.body.classList.toggle("stop-scrolling");
+        let bg = document.getElementsByClassName('bg');
+        document.body.removeChild(bg[0]);
+        my_food_page_load = 0; //頁面歸零
+        can_get_my_food = true;
+        //select_food 變回來
+        select_food={"food_name":null,
+                 "food_id":null, 
+                 "protein":null,
+                 "carbs":null,
+                 "fat":null, 
+                 "calories":null}
+    });
+    btn_div.appendChild(close_btn);
+    btn_div.appendChild(submit_btn);    
+    //最後
+    load_food_form.appendChild(title_div);
+    load_food_form.appendChild(load_food_amount);
+    load_food_form.appendChild(load_food_protein);
+    load_food_form.appendChild(load_food_fat);
+    load_food_form.appendChild(load_food_carbs);
+    load_food_form.appendChild(load_food_calo);
+    load_food_form.appendChild(btn_div);
+    load_amount_div.appendChild(load_food_form);
+    my_food_box.appendChild(load_amount_div);
+    background.appendChild(my_food_box);
+    return background;      
+}
+
+
+
+
+
+
 /* My Food */
 
 function render_my_food(navmenu){
@@ -448,9 +746,10 @@ function render_my_food(navmenu){
 
 
 //刪除飲食計畫
-async function delete_plan(plan_id){
+async function delete_plan(plan_id_token){
     let jwt = localStorage.getItem("JWT");
     try{
+        let plan_id = plan_id_token.split('-')[1];
         let response = await fetch('/api/plans?plan_id='+plan_id,{
                                                     method: 'delete',
                                                     headers: {"Authorization" : `Bearer ${jwt}`}
@@ -492,7 +791,6 @@ async function add_diet_plan(payload,jwt){
         if(response.status === 201){ //新增我計畫完成
             //新增完成,插到我的計畫table
             let payload_obj = JSON.parse(payload);
-            console.log(payload_obj);
             //新增我計畫成功,直接重新打一次get_diet_plan,把my_plan_page歸0,先把tbody清空
             let tbody = document.querySelector(".plan-body");
             while(tbody.firstChild){
@@ -608,9 +906,9 @@ function create_plan_tr_edit(plan){
     td_calories.appendChild(document.createTextNode(String(plan["plan_calories"])));
     let td_delete = document.createElement("td");
     td_delete.classList.add("delete");
-    td_delete.setAttribute("id",plan["plan_id"]); //把plan_id直接放在垃圾桶
-    let delete_icon = new Image();
-    delete_icon.src = "/picture/icon_delete.png";
+    td_delete.setAttribute("id",'del-'+plan["plan_id"]); //把plan_id直接放在垃圾桶
+    let delete_icon = document.createElement("i");
+    delete_icon.setAttribute("data-feather","trash");
     td_delete.addEventListener("click",function(){ //註冊刪除飲食計畫
         can_get_my_plan = false; //按下去的時候要先變false
         delete_plan(this.id);
@@ -958,8 +1256,6 @@ async function get_weight(sdate,edate){
 
 
 async function add_today_weight(payload,jwt){
-    console.log(payload);
-    console.log(typeof(payload));
     try{
         let response = await fetch('/api/weight',{
                                      method: 'post',
@@ -969,7 +1265,6 @@ async function add_today_weight(payload,jwt){
         let result = await response.json();                            
         if(response.status === 201){ //新增當天體重完成
             //新增完成,更新長條圖,直接重新打get_weight一次
-            let payload_obj = JSON.parse(payload);
             let end_date = new Date();
             let end_utc = date_to_stamp(end_date); // 今天是end date
             let start_utc = end_utc - (6*86400000);
@@ -1002,21 +1297,15 @@ async function add_today_weight(payload,jwt){
 
 
 async function update_today_weight(payload,jwt){
-    console.log(payload);
-    console.log(typeof(payload));
     try{
         let response = await fetch('/api/weight',{
                                      method: 'PATCH',
                                      body : payload,
                                      headers: {"Authorization" : `Bearer ${jwt}`,'Content-Type': 'application/json'}
-                                    });
-        console.log("嘎嘎");  
-        console.log(response);                          
+                                    });                       
         let result = await response.json();                            
         if(response.ok){ //更新紀錄target完成
              //更新今日體重完成,更新長條圖,直接重新打get_weight一次
-             console.log(result);
-             let payload_obj = JSON.parse(payload);
              let end_date = new Date();
              let end_utc = date_to_stamp(end_date); // 今天是end date
              let start_utc = end_utc - (6*86400000);
@@ -1051,7 +1340,7 @@ async function update_today_weight(payload,jwt){
 
 
 
-
+//體重填寫reminder not done yet
 function show_weight_section(){
     //先把原本的日曆和日期顯示拿掉
     let datepicker_toggle = document.querySelector(".datepicker-toggle");
@@ -1284,6 +1573,7 @@ function render_health_helper(navmenu){
     span.setAttribute("id","healthhelper");
     span.appendChild(document.createTextNode("Health Helper"));
     span.addEventListener("click",function(){ //按下後跑到聊天分頁
+        //window.alert('歹勢,還沒開發好')
         window.open('http://127.0.0.1:3100/helper', '_blank'); //按下後開啟新分頁
     });
     health_helper.appendChild(span);
@@ -1292,26 +1582,53 @@ function render_health_helper(navmenu){
 
 
 
+/* log out */
+async function log_out(){
+    try{
+        let response = await fetch('/api/users/signout',{method: 'delete'});
+        let result = await response.json();    
+        console.log(result);                            
+        if(response.ok){ //200情況下 
+               console.log('登出成功') ;
+               localStorage.removeItem('JWT');
+               window.location.reload();
+        };
+    }catch(message){
+        console.log(`${message}`)
+        throw Error('Fetching was not ok!!.')
+    }     
+}
+
+
+function render_log_out(navmenu){
+    let logout_div = document.createElement("div");
+    logout_div.classList.add("logout");
+    logout_div.appendChild(document.createTextNode("Logout"));
+    logout_div.addEventListener("click",function(){ //按下後登出
+        log_out();
+        //emit一個登出事件到server
+        if(user_socket){
+            user_socket.emit("user_log_out"); 
+        }else{
+            nutri_socket.emit("nutri_log_out")
+        }
+    });
+    navmenu.appendChild(logout_div);
+}
+
+
+
+
+
 //產生side bar
 function render_sidebar(user_data){
     console.log('sidebar');
-    if(5>6){   // 如果有xxx就不用在產生
-
-
-
-
-    }else{ 
-        let navmenu = document.querySelector(".navmenu");
-        render_user_profile(navmenu,user_data);
-        render_my_food(navmenu);
-        render_my_plan(navmenu);
-        render_my_weight(navmenu);
-        render_my_record(navmenu);
-        render_health_helper(navmenu);
-
-
-
-    }
-    
-
+    let navmenu = document.querySelector(".navmenu");
+    render_user_profile(navmenu,user_data);
+    render_my_food(navmenu);
+    render_my_plan(navmenu);
+    render_my_weight(navmenu);
+    render_my_record(navmenu);
+    render_health_helper(navmenu);
+    render_log_out(navmenu);
 }

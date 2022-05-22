@@ -1,5 +1,9 @@
+chart.html
+table.html
+test.html
 nginx_for_ssl
 test-redis.py
+test-mongo.py
 .dockerignore
 docker-compose.yml
 .DS_Store
