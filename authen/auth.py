@@ -39,8 +39,9 @@ def jwt_required_for_user():
 #驗證註冊帳密格式function
 def verify_signup_info(email,password):
     emailRegex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
-    passwordRegex = re.compile(r'^(?=\w{8,16}$)(?=(?:[^A-Z]*[A-Z]){3})(?=[^a-z]*[a-z])(?=[^\d]*\d).*')
-    if not re.fullmatch(emailRegex, email) or not re.fullmatch(passwordRegex,password):
+    #passwordRegex = re.compile(r'^(?=\w{8,16}$)(?=(?:[^A-Z]*[A-Z]){3})(?=[^a-z]*[a-z])(?=[^\d]*\d).*')
+    #if not re.fullmatch(emailRegex, email) or not re.fullmatch(passwordRegex,password):
+    if not re.fullmatch(emailRegex, email) :
         return False
     else:
         return True    
@@ -152,7 +153,7 @@ def handle_signup(request):
             elif result == True: #如果檢查回傳結果是true代表已經有一樣的email了
                 response_msg={
                             "error":True,
-                            "message":"此email已經被註冊,請重新輸入"}
+                            "message":"This email has been signed up. Please use another one."}
                 return jsonify(response_msg), 400 #api test ok
             else: #如果檢查回傳結果是false代表可以註冊
                 #先對密碼做hash
@@ -244,12 +245,12 @@ def handle_signin(request):
                 else:
                     response_msg={
                             "error":True,
-                            "message":"登入失敗，密碼輸入錯誤"}
+                            "message":"Password is not correct."}
                     return jsonify(response_msg), 400 #api test ok
             else:  #表示沒有這個會員
                 response_msg={
                             "error":True,
-                            "message":"無此會員，請輸入正確的信箱"}
+                            "message":"Member not found. Please confirm."}
                 return jsonify(response_msg), 400 #api test ok
         elif connection == "error": #如果沒有順利取得連線
             response_msg={
@@ -380,6 +381,9 @@ def signin():
 
 @auth.route('/api/users/signout',methods=["DELETE"])
 def signout():
-    del session["id"]
+    try:
+        del session["id"]
+    except:
+        print('no session id')    
     return jsonify({"ok":True}), 200 #api test ok    
         

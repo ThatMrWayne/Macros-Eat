@@ -12,7 +12,7 @@ div{
     position: fixed;
     top: 0px;
     bottom:0px;
-    width:220px;
+    width:280px;
     background-color: #2D303C;
 }
 
@@ -46,7 +46,7 @@ div{
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: 1.5fr 8.5fr;
-    margin-left: 220px;
+    margin-left: 280px;
     min-height: 100vh;
 }
 
@@ -237,6 +237,8 @@ div.plan{
 
 
 
+
+
 .intake-record{
     display: flex;
     justify-content: center;
@@ -259,15 +261,20 @@ div.plan{
     padding-bottom: 15px;
     border-bottom: 3px lightgray solid;
 }
+
+
+
 #food_name{
     flex: none;
-    width:50%;
+    width:45%;
     height:34px;
     font-size: 16px;
     padding-left: 5px;
     background-color: rgb(240,240,240);
     border-style: none;
     border-bottom: 2px solid lightgray;
+    background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' class='bi bi-search' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'%3E%3C/path%3E%3C/svg%3E") no-repeat 13px center;
+    padding: 0px 0px 0px 40px;
 }
 #food_portion{
     flex: none;
@@ -278,6 +285,7 @@ div.plan{
     border-style: none;
     border-bottom: 2px solid lightgray;
     margin-left: 50px;
+    padding: 0px 0px 0px 3px;
 }
 
 
@@ -541,7 +549,7 @@ td {
 .show-date{
     position: relative;
     flex:none;
-    width:200px;
+    width:250px;
     left:200px;
     font-family:'Gill Sans', 'Gill Sans MT', 'Trebuchet MS', sans-serif;
     font-size: 35px;
@@ -587,7 +595,6 @@ td {
 .username{
     vertical-align: middle;
     font-size: 23px;
-    font-style: italic;
     color: aliceblue;
 }
 .username:hover{
@@ -878,7 +885,8 @@ td {
 .load-plan{
     border-radius: 10px;
     padding-top: 10px;
-    padding-bottom: 50px;
+    padding-bottom: 60px;
+    padding-right: 5px;
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start;

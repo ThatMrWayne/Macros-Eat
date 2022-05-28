@@ -1,3 +1,5 @@
+import time
+from flask import current_app
 import mysql.connector
 from mysql.connector import errorcode
 from mysql.connector import pooling
@@ -11,6 +13,7 @@ from model.connection import Plan_connection
 from model.connection import Record_connection
 from model.connection import Diet_connection
 from model.connection import Weight_connection
+from model.connection import Notify_connection
 from pymongo import MongoClient
 
 import redis
@@ -117,6 +120,29 @@ TABLES['weight'] = (
     "  FOREIGN KEY(`member_id`) REFERENCES members(`member_id`) ON DELETE CASCADE ON UPDATE CASCADE"
     ")")  
 
+TABLES["service_user"] = (
+    "CREATE TABLE IF NOT EXISTS `service_user` ("
+    "  `auth` varchar(255) NOT NULL,"
+    "  `member_id` bigint NOT NULL,"
+    "  `p256dh` varchar(255) NOT NULL,"
+    "  `endpoint` varchar(255) NOT NULL,"
+    "  `expirationTime` varchar(255) ," #kg
+    "  PRIMARY KEY (`auth`),"
+    "  FOREIGN KEY(`member_id`) REFERENCES members(`member_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+    ")")
+
+TABLES["service_nutri"] = (
+    "CREATE TABLE IF NOT EXISTS `service_nutri` ("
+    "  `auth` varchar(255) NOT NULL,"
+    "  `nutri_id` bigint NOT NULL,"
+    "  `p256dh` varchar(255) NOT NULL,"
+    "  `endpoint` varchar(255) NOT NULL,"
+    "  `expirationTime` varchar(255) ," #kg
+    "  PRIMARY KEY (`auth`),"
+    "  FOREIGN KEY(`nutri_id`) REFERENCES nutris(`nutri_id`) ON DELETE CASCADE ON UPDATE CASCADE"
+    ")")
+
+
 
 
 class DataBase():
@@ -125,8 +151,8 @@ class DataBase():
             config = {
                 'user': MYSQL_USER,
                 'password': MYSQL_PASSWORD,
-                'host':"localhost",
-                #'host': "database-macroseat.cvtkgqdz8ivt.us-east-1.rds.amazonaws.com",
+                #'host':"localhost",
+                'host': "database-macroseat.cvtkgqdz8ivt.us-east-1.rds.amazonaws.com",
                 'raise_on_warnings': True,
                 'port': 3306
                 }
@@ -161,7 +187,7 @@ class DataBase():
                 exit(1)
 
           
-        tables=['nutris','members','food','records','intakes','plans','weight']
+        tables=['nutris','members','food','records','intakes','plans','weight','service_user','service_nutri']
         for table in tables:
         #建立資料表
             cnx = self.cnxpool.get_connection()
@@ -192,57 +218,130 @@ class DataBase():
 
     #取得驗證登入註冊相關操作的自定義connection物件
     def get_auth_cnx(self):
-        try:
-            cnx = self.cnxpool.get_connection()
-            return Auth_connection(cnx)
-        except mysql.connector.Error as err: 
-            print(err)
-            return "error"      
+        n = 0
+        cnx = None
+        while n < 500: 
+            try:
+                cnx = self.cnxpool.get_connection()
+                break
+            except mysql.connector.Error as err: 
+                current_app.logger.info('get_auth_cnx => cannot get mysql connection from connection pool.')
+                n+=1
+                time.sleep(0.1)   
+        if cnx:
+            return Auth_connection(cnx)     
+        else:
+            return "error" 
+
+
 
     #取得食物倉庫操作的自定義connection物件
     def get_food_cnx(self):
-        try:
-            cnx = self.cnxpool.get_connection()
+        n = 0
+        cnx = None
+        while n < 500:
+            try:
+                cnx = self.cnxpool.get_connection()
+                break
+            except mysql.connector.Error as err: 
+                current_app.logger.info('get_food_cnx => cannot get mysql connection from connection pool.')
+                n+=1
+                time.sleep(0.1)   
+        if cnx:
             return Food_connection(cnx)
-        except mysql.connector.Error as err: 
-            print(err)
-            return "error"   
+        else:
+            return "error"      
 
     #取得飲食計畫操作的自定義connection物件
     def get_diet_plan_cnx(self):
-        try:
-            cnx = self.cnxpool.get_connection()
+        n = 0
+        cnx = None
+        while n < 500:
+            try:
+                cnx = self.cnxpool.get_connection()
+                break   
+            except mysql.connector.Error as err: 
+                current_app.logger.info('get_diet_plan_cnx => cannot get mysql connection from connection pool.')
+                n+=1
+                time.sleep(0.1) 
+        if cnx:
             return Plan_connection(cnx)
-        except mysql.connector.Error as err: 
-            print(err)
-            return "error"
+        else:
+            return "error"        
 
     #取得每日紀錄操作的自定義connection物件
     def get_daily_record_cnx(self):
-        try:
-            cnx = self.cnxpool.get_connection()
+        n = 0
+        cnx = None
+        while n < 500:
+            try:
+                cnx = self.cnxpool.get_connection()
+                break
+            except mysql.connector.Error as err: 
+                current_app.logger.info('get_daily_record_cnx => cannot get mysql connection from connection pool.')
+                n+=1
+                time.sleep(0.1)  
+        if cnx:
             return Record_connection(cnx)
-        except mysql.connector.Error as err: 
-            print(err)
-            return "error"     
+        else:
+            return "error" 
+
 
     #取得飲食操作的自定義connection物件
     def get_daily_diet_cnx(self):
-        try:
-            cnx = self.cnxpool.get_connection()
+        n = 0
+        cnx = None
+        while n < 500:
+            try:
+                cnx = self.cnxpool.get_connection()
+                break
+            except mysql.connector.Error as err: 
+                current_app.logger.info('get_daily_diet_cnx => cannot get mysql connection from connection pool.')
+                n+=1
+                time.sleep(0.1)  
+        if cnx:
             return Diet_connection(cnx)
-        except mysql.connector.Error as err: 
-            print(err)
-            return "error"   
+        else:
+            return "error" 
+
+
 
     #取得體重操作的自定義connection物件
     def get_weight_cnx(self):
-        try:
-            cnx = self.cnxpool.get_connection()
+        n = 0
+        cnx = None
+        while n < 500:
+            try:
+                cnx = self.cnxpool.get_connection()
+                break
+            except mysql.connector.Error as err: 
+                current_app.logger.info('get_weight_cnx => cannot get mysql connection from connection pool.')
+                n+=1
+                time.sleep(0.1)   
+        if cnx:
             return Weight_connection(cnx)
-        except mysql.connector.Error as err: 
-            print(err)
-            return "error"                  
+        else:
+            return "error" 
+
+    #取得通知操作的connection物件
+    def get_notify_cnx(self):
+        n = 0
+        cnx = None
+        while n < 500:
+            try:
+                cnx = self.cnxpool.get_connection()
+                break
+            except mysql.connector.Error as err: 
+                current_app.logger.info('get_notify_cnx => cannot get mysql connection from connection pool.')
+                n+=1
+                time.sleep(0.1)   
+        if cnx:
+            return Notify_connection(cnx)
+        else:
+            return "error" 
+
+
+
 
              
 db = DataBase()
@@ -260,7 +359,7 @@ redis_db = RedisWrapper()
 class MongoWrapper:
     def __init__(self):
         self.client = MongoClient(
-            f"mongodb+srv://{MONGODB_URL_}/myFirstDatabase?retryWrites=true&w=majority")
+            f"mongodb+srv://{MONGODB_URL_}/?retryWrites=true&w=majority")
         self.db = self.client.macroseat
 
 mongo_db = MongoWrapper()

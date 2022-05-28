@@ -54,7 +54,6 @@ async function get_my_food(food_page,purpose){ //get_my_food成功後才render_m
                                                 });
         let result = await response.json();                                
         if(response.ok){  //200情況下 
-            console.log(result);
             //插到myfood顯示匡tbody內
             let tbody = document.querySelector(".my-food-body");
             let food = result["data"];
@@ -441,7 +440,6 @@ function render_my_food_window(background){
         let validate = validate_new_food();
         if(validate){
             can_get_my_food = false; //按下去的時候要先變false
-            console.log("ok");
             let jwt = localStorage.getItem("JWT");
             let json_data = organize_new_food();
             add_food(json_data,jwt);
@@ -1034,7 +1032,7 @@ function render_my_plan_window(background){
     let add_plan_calories = document.createElement("div");
     add_plan_calories.classList.add("add-plan_calories");
     let div_calories = document.createElement("div");
-    div_calories.innerHTML = "Calories(%)";
+    div_calories.innerHTML = "Calories(kcal)";
     let input_calories = document.createElement("input");
     input_calories.classList.add("add-plan_input");
     input_calories.classList.add("new-input-calories");
@@ -1078,7 +1076,6 @@ function render_my_plan_window(background){
         let validate = validate_new_plan();
         if(validate){
             can_get_my_plan = false; //按下去的時候要先變false
-            console.log("ok");
             let jwt = localStorage.getItem("JWT");
             let json_data = organize_new_plan();
             add_diet_plan(json_data,jwt);
@@ -1188,13 +1185,11 @@ async function get_weight(sdate,edate){
             //
             let final_data = [];
             let how_many_days = ((edate - sdate)/86400000)+1;
-            console.log("幾多天:"+how_many_days);
             let select_date = [sdate];
             for(let i=0;i<how_many_days-1;i++){
                 sdate += 86400000;
                 select_date.push(sdate);
             };
-            console.log(select_date);
             //重畫一次,把長條圖的data更新,
             if(result["weight_record"]){ //表示有體重紀錄
                 let weight = result["weight_record"];
@@ -1208,7 +1203,7 @@ async function get_weight(sdate,edate){
                     if(weight_data[select_date[i]]){
                         final_data.push({
                             x : select_date[i],
-                            y : weight_data[select_date[i]]
+                            y : weight_data[select_date[i]],
                         });
                         
                            
@@ -1574,7 +1569,7 @@ function render_health_helper(navmenu){
     span.appendChild(document.createTextNode("Health Helper"));
     span.addEventListener("click",function(){ //按下後跑到聊天分頁
         //window.alert('歹勢,還沒開發好')
-        window.open('http://127.0.0.1:3100/helper', '_blank'); //按下後開啟新分頁
+        window.open('https://www.macroseat.xyz/helper', '_blank'); //按下後開啟新分頁
     });
     health_helper.appendChild(span);
     navmenu.appendChild(health_helper);
@@ -1585,7 +1580,7 @@ function render_health_helper(navmenu){
 /* log out */
 async function log_out(){
     try{
-        let response = await fetch('/api/users/signout',{method: 'delete'});
+        let response = await fetch('/api/users/signout',{method: 'DELETE'});
         let result = await response.json();    
         console.log(result);                            
         if(response.ok){ //200情況下 

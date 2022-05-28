@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+#load_dotenv()
 #由.env檔匯入mysql資料庫使用者與密碼
 MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
 MYSQL_USER = os.getenv('MYSQL_USER')
@@ -13,6 +13,9 @@ CACHE_REDIS_PORT_=os.getenv("CACHE_REDIS_PORT")
 CELERY_BROKER_URL_ = os.getenv("CELERY_BROKER_URL")
 CELERY_RESULT_BACKEND_ = os.getenv("CELERY_RESULT_BACKEND")
 MONGODB_URL_ =os.getenv("MONGODB_URL")
+VAPID_PUBLIC_KEY_=os.getenv("VAPID_PUBLIC_KEY")
+VAPID_PRIVATE_KEY_=os.getenv("VAPID_PRIVATE_KEY")
+VAPID_CLAIM_EMAIL_=os.getenv("VAPID_CLAIM_EMAIL")
 
 
 
@@ -38,6 +41,9 @@ class DevelopmentConfig(Config):
     CACHE_REDIS_PORT =CACHE_REDIS_PORT_
     CELERY_BROKER_URL = CELERY_BROKER_URL_
     CELERY_RESULT_BACKEND = CELERY_RESULT_BACKEND_
+    VAPID_PUBLIC_KEY = VAPID_PUBLIC_KEY_
+    VAPID_PRIVATE_KEY = VAPID_PRIVATE_KEY_
+    VAPID_CLAIM_EMAIL = VAPID_CLAIM_EMAIL_
     
 
 

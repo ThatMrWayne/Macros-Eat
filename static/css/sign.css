@@ -5,6 +5,9 @@
     border-radius: 6px;
     width: 500px;
     flex: none;
+    position: relative;
+    right: 20px;
+    top: 120px;
 
 
 
@@ -23,7 +26,6 @@
 /*登入匡主內容*/
 .content{
     width:100%;
-    background: lightgrey;
     font-family:"Caveat Brush,Noto Sans TC", sans-serif;
     border-bottom-left-radius: 6px;
     border-bottom-right-radius: 6px;
@@ -137,7 +139,10 @@ select{
 }
 
 
-
+.content > input:focus, select:focus{
+    outline: none;
+    border: 2px solid rgb(240, 117, 79)
+}
 
 
 /*登入,註冊鈕*/

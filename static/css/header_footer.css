@@ -16,6 +16,7 @@ body{
     align-items: center;
     width:100%;
     background: #2D303C; /*要設定白色要不然往下滑時,下面的內容會透過去選單列*/
+    height: 10vh;
     
 }
 /*選單列外容器*/
@@ -67,9 +68,9 @@ body{
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 104px;
+    height: 80px;
     position:absolute;
-    bottom:-104px;
+    bottom:-80px;
     width:100%;   
     border-top:1px lightgray solid;
 }

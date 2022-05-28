@@ -1,0 +1,59 @@
+#allow-push-notification-bar{
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    width: 350px;
+    height: 180px;
+    box-shadow: 3px 4px 5px 4px rgb(0 0 0 / 40%);
+    border-radius: 10px;
+    z-index: 3;
+}
+
+.allow-content{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    background: whitesmoke;
+    border-radius: 10px;
+}
+
+
+.ask-permission-text{
+    flex: none;
+    width: 100%;
+    text-align: center;
+    font-size: 18px;
+}
+
+
+.buttons-more{
+    flex: none;
+    width: 90%;
+    display: flex;
+    justify-content: space-around;
+}
+
+#allow-push-notification,#close-push-notification{
+    width: 60px;
+    height: 30px;
+    border-radius: 5px;
+    border: none;
+    background: lightslategrey;
+    font-size: 16px;
+    box-shadow: 1px 1px 2px 1px rgb(0 0 0 / 40%);
+    color: azure;
+}
+
+
+#close-push-notification{
+    width: 85px;
+}
+
+
+
+#allow-push-notification:hover,#close-push-notification:hover{
+    cursor: pointer;
+}

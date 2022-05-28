@@ -18,9 +18,10 @@ from message import message_blueprint
 import config
 from model import db
 from model import redis_db
+from model import Connection
 from cache import cache
 from celery_factory.make_celery import make_celery
-#import celery_factory.celery_tasks
+from webpush_handler import trigger_push_notifications_for_subscriptions
 
 
 
@@ -45,7 +46,9 @@ app.register_blueprint(weight_blueprint)
 app.register_blueprint(message_blueprint)
 
 jwt = JWTManager(app)
-socketio = SocketIO(app)
+socketio = SocketIO(app,cors_allowed_origins='*')
+
+
 
 
 """
@@ -112,6 +115,37 @@ def record():
 def helper():
 	return render_template("helper.html")
 
+@app.route("/again")
+def again():
+	return render_template("openagain.html")
+
+
+
+@app.route("/api/push-subscriptions", methods=["POST"])
+def create_push_subscription():
+    json_data = request.get_json()
+    jwt = json_data["token"]
+    decode_JWT = decode_token(jwt)
+    data=json.loads(decode_JWT["sub"]) 
+    id_ = data["id"] #從jwt取得id
+    identity = data["identity"]
+    subcsription = json.loads(json_data['subscription_json'])
+    cnx = db.get_notify_cnx()
+    if isinstance(cnx,Connection): #如果有順利取得連線	
+        result = cnx.check_if_subscribe(identity,subcsription,id_)
+        if result == "error":
+            response_msg={
+                            "error":True,
+                            "message":"不好意思,資料庫暫時有問題,維修中"}
+            return jsonify(response_msg), 500
+        else:
+            return jsonify(result), 200
+    elif cnx == "error":  #如果沒有順利取得連線
+        response_msg={
+                "error":True,
+                "message":"不好意思,資料庫暫時有問題維修中"}          
+        return jsonify(response_msg), 500 
+
 
 
 
@@ -125,9 +159,10 @@ def helper():
 
 #-----------------使用者-----------------#
 
-#使用者登出
-@socketio.on('user_log_out',namespace='/user')
+#使用者登出下線
+@socketio.on("user_log_out",namespace="/user")
 def user_close():
+	print('使用者登出')
 	user_id = session["id"]
 	raw_user_data = redis_db.redis_instance.hget("user",str(user_id))
 	process_user_data = json.loads(raw_user_data)
@@ -148,10 +183,50 @@ def user_close():
 	socketio.emit('update_user_status',{"user_id":str(user_id)},namespace="/nutri")
 	
 
+#使用者關掉tab下線
+@socketio.on("disconnect",namespace="/user")
+def user_close_tab():
+	print('使用者關掉分頁下線')
+	#因為登出下線頁面reload的時候一樣會觸發disconnect,先不管這種情況
+	user_id = session["id"]
+	raw_user_data = redis_db.redis_instance.hget("user",str(user_id))
+	process_user_data = json.loads(raw_user_data)
+	if request.sid in process_user_data["record_socketid"]:  #代表是關掉主紀錄頁面
+		if len(process_user_data["record_socketid"])==1: 
+			process_user_data["record_socketid"] = [0]
+			if process_user_data["socket_id"] == [0]: #代表沒有打開helper頁面,全部頁面都關掉了
+				process_user_data["status"] = 0
+				process_user_data["room_id"] = 0
+				#所以要通知所有在nutri namepace的營養師使用者下線
+				socketio.emit('update_user_status',{"user_id":str(user_id)},namespace="/nutri")
+			redis_db.redis_instance.hset("user",str(user_id),json.dumps(process_user_data))
+		else:
+			process_user_data["record_socketid"].remove(request.sid)
+			redis_db.redis_instance.hset("user",str(user_id),json.dumps(process_user_data))
+	elif request.sid in process_user_data["socket_id"]:  #代表是關掉helper頁面
+		if len(process_user_data["socket_id"])==1: 
+			process_user_data["socket_id"] = [0]
+			if process_user_data["record_socketid"] == [0]: #代表沒有打開主紀錄頁面,全部頁面都關掉了
+				process_user_data["status"] = 0
+				process_user_data["room_id"] = 0
+				#所以要通知所有在nutri namepace的營養師使用者下線
+				socketio.emit('update_user_status',{"user_id":str(user_id)},namespace="/nutri")
+			redis_db.redis_instance.hset("user",str(user_id),json.dumps(process_user_data))
+		else:
+			process_user_data["socket_id"].remove(request.sid)
+			redis_db.redis_instance.hset("user",str(user_id),json.dumps(process_user_data))
+	else:
+		print("已經是登出下線X")
+
+
+
+
+
 
 #user connect驗證
-@socketio.on('connect',namespace='/user')
+@socketio.on("connect",namespace="/user")
 def auth_connect_(auth):
+	send_pass=False
 	try:
 		from_record = auth["record"]
 		print("開始囉")
@@ -168,14 +243,18 @@ def auth_connect_(auth):
 			if from_record == 1: #如果是從主紀錄頁面連線
 				old_record_socketid = process_user_data["record_socketid"]
 				old_record_socketid.append(request.sid)
+				join_room(room_id)
+				redis_db.redis_instance.hset("user",str(current_user_id),json.dumps(process_user_data))
 			else:	
 				old_socket_id = process_user_data["socket_id"]
-				if old_socket_id != [0]:
-					old_socket_id.append(request.sid)
+				if old_socket_id != [0]: #代表已經有開著諮詢頁面了,不給再開
+					emit("open_again")
+					#old_socket_id.append(request.sid)
 				else:
 					process_user_data["socket_id"] = [request.sid]	
-			join_room(room_id)
-			redis_db.redis_instance.hset("user",str(current_user_id),json.dumps(process_user_data))
+					join_room(room_id)
+					redis_db.redis_instance.hset("user",str(current_user_id),json.dumps(process_user_data))
+					send_pass = True
 		else : #代表正常上線
 			room_id = request.sid
 			process_user_data["room_id"] = room_id
@@ -183,21 +262,20 @@ def auth_connect_(auth):
 				process_user_data["record_socketid"] = [room_id]
 			else:
 				process_user_data["socket_id"] = [room_id]
+				send_pass = True
 			process_user_data["status"] = 1
 			redis_db.redis_instance.hset("user",str(current_user_id),json.dumps(process_user_data))
+			#通知所有在nutri namepace的營養師使用者上線
+			socketio.emit('update_user_status',{"user_id":str(current_user_id)},namespace="/nutri")
 		#先試看看去redis的user_history拿資料(是set)
 		user_history = redis_db.redis_instance.smembers("u"+str(current_user_id))
-		print(user_history)
-		print(type(user_history))
 		#拿營養師在redis資料
 		nutri  =  redis_db.redis_instance.hgetall("nutri") #return value is dictionary,but pay attention
 		if user_history: #代表使用者有跟贏養師對話過
 			user_history_list = list(i for i in user_history)
-			print(user_history_list)
 			data_for_user = {}
 			for nutri_id in nutri.keys():
 				if nutri_id in user_history_list:
-					print(json.loads(nutri[str(nutri_id)]))
 					message_status = json.loads(redis_db.redis_instance.hget("message_status",str(current_user_id)+"a"+str(nutri_id)))
 					data_for_user[str(nutri_id)] = {
 						"name" : json.loads(nutri[str(nutri_id)])["name"],
@@ -226,10 +304,9 @@ def auth_connect_(auth):
 					"user_unread" : -1,
 				}
 			print("嘿嘿")	
-		#認證通過，傳回去給使用者顯示		
-		socketio.emit('authentication_pass',{"user_data":user_data,"nutri_for_user":data_for_user},namespace='/user',to=request.sid) 
-		#通知所有在nutri namepace的營養師使用者上線
-		socketio.emit('update_user_status',{"user_id":str(current_user_id)},namespace="/nutri")
+		#認證通過，傳回去給使用者顯示
+		if send_pass:		
+			socketio.emit('authentication_pass',{"user_data":user_data,"nutri_for_user":data_for_user},namespace='/user',to=request.sid) 
 	except:
 		emit("authencation_fail")	
 				
@@ -253,52 +330,69 @@ def msg_to_nutri_(payload): #payload={"message":message,"receiver":receiver,"tok
 					"by":"u"+str(user_id),
 					"to":"n"+str(nutri_id)}
 		current_app.celery.send_task('task.push_message',args=[key,message_obj]) #1
-		#訊息存入redis list	
-		redis_db.redis_instance.rpush(key,json.dumps(message_obj))	 #6
-		if redis_db.redis_instance.llen(key) > 50: #如果大於100筆					 
-			redis_db.redis_instance.lpop(key) #從左邊pop掉一個	
 		#不管怎麼樣馬上回傳給傳訊息者
-		user_room_id = 	json.loads(redis_db.redis_instance.hget("user",str(user_id)))["room_id"] #馬上回傳給傳訊者,需要room_id
-		socketio.emit('show_self_message',{"message":message,"time":message_time},namespace='/user',to=user_room_id) #2
+		socketio.emit('show_self_message',{"message":message,"time":message_time},namespace='/user',to=request.sid) #2
+		#訊息存入redis list	
 		#首先去redis看營養師是否在線
-		print('再線否')
-		nutri_data = json.loads(redis_db.redis_instance.hget("nutri",nutri_id))
-		status = redis_db.redis_instance.hget("message_status", key)
-		print(type(status))
-		print("status:",status)
+		pipe = redis_db.redis_instance.pipeline()
+		pipe.rpush(key,json.dumps(message_obj))
+		pipe.hget("nutri",nutri_id)
+		pipe.hget("message_status", key)
+		print('123')
+		res = pipe.execute()
+		nutri_data = json.loads(res[1])
+		status = res[2]
 		if nutri_data["status"] == 1: #如果營養師在線,傳出去
 			socketio.emit('show_user_message',{"message":message,"time":message_time,"name":user_name,"user_id":user_id},namespace='/nutri',to=nutri_data["room_id"]) #3
 			if status: #如果redis有對話紀錄狀態,更新使用者的已讀時間
-				print('123')
 				status = json.loads(status)
 				status["user_read"] = message_time
 				redis_db.redis_instance.hset("message_status", key, json.dumps(status))
-				#redis一更新完,馬上send_task給mongodb
-				current_app.celery.send_task('task.update_user_read',args=[key,message_time]) #4
-				print('jjj')
-			else: #更新使用者的已讀時間
 				print('456')
-				redis_db.redis_instance.hset("message_status", key, json.dumps({"user_read" : message_time}))
 				#redis一更新完,馬上send_task給mongodb
 				current_app.celery.send_task('task.update_user_read',args=[key,message_time]) #4
-				print('kkk')
+				print('789')
+			else: #更新使用者的已讀時間
+				redis_db.redis_instance.hset("message_status", key, json.dumps({"user_read" : message_time}))
+				print('777')
+				#redis一更新完,馬上send_task給mongodb
+				current_app.celery.send_task('task.update_user_read',args=[key,message_time]) #4
 		else: #營養師不在線,馬上更新redis
 			if status: #如果redis有對話紀錄狀態
 				status = json.loads(status)
 				status["nutri_unread"] = message_time
 				status["user_read"] = message_time
 				redis_db.redis_instance.hset("message_status", key, json.dumps(status))
+				print('666')
 				#redis一更新完,馬上send_task給mongodb
 				current_app.celery.send_task('task.update_read_unread',args=[key,message_time]) #5
 			else:
 				redis_db.redis_instance.hset("message_status", key,json.dumps({"nutri_unread" : message_time,"user_read" : message_time}) )
+				print('kkk')
 				#redis一更新完,馬上send_task給mongodb
-				current_app.celery.send_task('task.update_read_unread',args=[key,message_time]) #5
+				current_app.celery.send_task('task.update_read_unread',args=[key,message_time]) #5		
 		#最後user和nutri的history in redis (是set in redis)
 		redis_db.redis_instance.sadd("u"+str(user_id),nutri_id) #7
 		redis_db.redis_instance.sadd("n"+str(nutri_id),user_id) #8
 		#和user和nutri的history存到mongodb
 		current_app.celery.send_task('task.update_history_list',args=[int(user_id),int(nutri_id)]) #9
+		if redis_db.redis_instance.llen(key) > 50: #如果大於100筆					 
+			redis_db.redis_instance.lpop(key) #從左邊pop掉一個
+		#web notification
+		cnx = db.get_notify_cnx()
+		if isinstance(cnx,Connection): #如果有順利取得連線	
+			result = cnx.get_subscription_info(int(nutri_id),2)
+			if result == "error":
+				current_app.logger.info('從資料庫取得subscription資料時出錯')
+			else:
+				res = trigger_push_notifications_for_subscriptions(
+					result,
+					"Message received~",
+					f"Got a new message from {user_name}."
+				)
+				current_app.logger.info(res)
+		elif cnx == "error":  #如果沒有順利取得連線
+			current_app.logger.info('沒有取得web通知連線物件')
 	except:
 		emit("authencation_fail")	
 	
@@ -374,12 +468,34 @@ def nutri_close():
 	socketio.emit('update_nutri_status',{"nutri_id":str(nutri_id)},namespace="/user")
 
 
+#營養師關掉tab下線
+@socketio.on("disconnect",namespace="/nutri")
+def nutri_close_tab():
+	print('營養師關掉分頁下線')
+	#因為登出下線頁面reload的時候一樣會觸發disconnect,先不管這種情況
+	nutri_id = session["id"]
+	raw_nutri_data = redis_db.redis_instance.hget("nutri",str(nutri_id))
+	process_nutri_data = json.loads(raw_nutri_data)
+	if request.sid not in  process_nutri_data["socket_id"]:
+		print("已經是登出下線Y")
+	else:		
+		if len(process_nutri_data["socket_id"])==1: 
+				process_nutri_data["socket_id"] = [0]
+				process_nutri_data["status"] = 0
+				process_nutri_data["room_id"] = 0
+				#所以要通知所有在user namepace的營養師使用者下線
+				socketio.emit('update_nutri_status',{"nutri_id":str(nutri_id)},namespace="/user")
+				redis_db.redis_instance.hset("nutri",str(nutri_id),json.dumps(process_nutri_data))
+		elif len(process_nutri_data["socket_id"])>1:
+			process_nutri_data["socket_id"].remove(request.sid)
+			redis_db.redis_instance.hset("nutri",str(nutri_id),json.dumps(process_nutri_data))
 
 
 
 
 @socketio.on('connect',namespace='/nutri')
 def auth_connect_nutri(auth):
+	send_pass = False
 	try:
 		decode_JWT = decode_token(auth["token"])
 		data=json.loads(decode_JWT["sub"]) 
@@ -390,17 +506,21 @@ def auth_connect_nutri(auth):
 		#要看的是status
 		process_nutri_data = json.loads(raw_nutri_data)
 		if process_nutri_data["status"] == 1: #代表已經有開著諮詢頁面了
-			room_id = process_nutri_data["room_id"]
-			old_socket_id = process_nutri_data["socket_id"]
-			old_socket_id.append(request.sid)
-			join_room(room_id)
-			redis_db.redis_instance.hset("nutri",str(current_nutri_id),json.dumps(process_nutri_data))
+			emit('open_again')
+			#room_id = process_nutri_data["room_id"]
+			#old_socket_id = process_nutri_data["socket_id"]
+			#old_socket_id.append(request.sid)
+			#join_room(room_id)
+			#redis_db.redis_instance.hset("nutri",str(current_nutri_id),json.dumps(process_nutri_data))
 		else: #代表正常上線開啟諮詢頁面
 			room_id = request.sid
 			process_nutri_data["room_id"] = room_id 
 			process_nutri_data["socket_id"] = [room_id]
 			process_nutri_data["status"] = 1
 			redis_db.redis_instance.hset("nutri",str(current_nutri_id),json.dumps(process_nutri_data))
+			#通知所有在user namepace的營養師使用者上線
+			socketio.emit('update_nutri_status',{"nutri_id":str(current_nutri_id),"name":current_nutri_name},namespace="/user")
+			send_pass = True
 		#先試看看去redis的nutri_history拿資料(是set)
 		nutri_history = redis_db.redis_instance.smembers("n"+str(current_nutri_id))
 		#拿使用者在redis資料
@@ -412,7 +532,6 @@ def auth_connect_nutri(auth):
 				data_for_nutri[str(user_id)] = {
 					"name" : json.loads(user[str(user_id)])["name"],
 					"status" : json.loads(user[str(user_id)])["status"],
-					"nutri_read" : message_status["nutri_read"],
 					"nutri_unread" : message_status["nutri_unread"],
 				}
 				try:
@@ -422,10 +541,9 @@ def auth_connect_nutri(auth):
 					data_for_nutri[str(user_id)]["nutri_read"]=  -1	
 		else: #代表營養師還沒有跟使用者對話過
 			data_for_nutri = {}
-		#認證通過，傳回去給營養師顯示		
-		socketio.emit('authentication_pass',{"nutri_data":nutri_data,"user_for_nutri":data_for_nutri},namespace='/nutri',to=request.sid) 
-		#通知所有在user namepace的營養師使用者上線
-		socketio.emit('update_nutri_status',{"nutri_id":str(current_nutri_id),"name":current_nutri_name},namespace="/user")
+		#認證通過，傳回去給營養師顯示	
+		if send_pass: 	
+			socketio.emit('authentication_pass',{"nutri_data":nutri_data,"user_for_nutri":data_for_nutri},namespace='/nutri',to=request.sid) 
 	except:
 		emit("authencation_fail")
 
@@ -479,16 +597,15 @@ def msg_to_user_(payload): #payload={"message":message,"receiver":receiver,"toke
 					"by":"n"+str(nutri_id),
 					"to":"u"+str(user_id)}
 		current_app.celery.send_task('task.push_message',args=[key,message_obj]) #1
-		#訊息存入redis list	
-		redis_db.redis_instance.rpush(key,json.dumps(message_obj))	 #6 (先存最新的100條)
-		if redis_db.redis_instance.llen(key) > 50: #如果大於100筆					 
-			redis_db.redis_instance.lpop(key) #從左邊pop掉一個
 		#不管怎麼樣馬上回傳給傳訊息者
-		nutri_room_id = json.loads(redis_db.redis_instance.hget("nutri",str(nutri_id)))["room_id"] #馬上回傳給傳訊者,需要room_id
-		socketio.emit('show_self_message',{"message":message,"time":message_time},namespace='/nutri',to=nutri_room_id) #2
-		#首先去redis看使用者是否在線
-		user_data = json.loads(redis_db.redis_instance.hget("user",user_id))
-		status = redis_db.redis_instance.hget("message_status", key)
+		socketio.emit('show_self_message',{"message":message,"time":message_time},namespace='/nutri',to=request.sid)
+		pipe = redis_db.redis_instance.pipeline()
+		pipe.rpush(key,json.dumps(message_obj)) #訊息存入redis list	 (先存最新的50條)
+		pipe.hget("user",user_id)
+		pipe.hget("message_status", key)
+		res = pipe.execute()
+		user_data = json.loads(res[1])
+		status = res[2]
 		if user_data["status"] == 1: #如果使用者在線,傳出去(要再看socket_id裡有沒有,有才傳)
 			if user_data["socket_id"] != [0]:
 				socketio.emit('show_nutri_message',{"message":message,"time":message_time,"name":nutri_name,"nutri_id":nutri_id},namespace='/user',to=user_data["room_id"]) #3
@@ -516,6 +633,23 @@ def msg_to_user_(payload): #payload={"message":message,"receiver":receiver,"toke
 			current_app.celery.send_task('task.update_unread_read',args=[key,message_time]) #5
 		#最後user和nutri的history in redis (是set in redis)和user和nutri的history存到mongodb
 		#這邊不用再存一次,因為使用者一傳就已經新增紀錄了
+		if redis_db.redis_instance.llen(key) > 50: #如果大於100筆					 
+			redis_db.redis_instance.lpop(key) #從左邊pop掉一個
+		#web notification
+		cnx = db.get_notify_cnx()
+		if isinstance(cnx,Connection): #如果有順利取得連線	
+			result = cnx.get_subscription_info(int(user_id),1)
+			if result == "error":
+				current_app.logger.info('從資料庫取得subscription資料時出錯')
+			else:
+				res = trigger_push_notifications_for_subscriptions(
+					result,
+					"Message received~",
+					f"Got a new message from {nutri_name}."
+				)
+				current_app.logger.info(res)
+		elif cnx == "error":  #如果沒有順利取得連線
+			current_app.logger.info('沒有取得web通知連線物件')	
 	except:
 		emit("authencation_fail")
 
@@ -534,6 +668,45 @@ def update_nutri_read_unread_(payload):
 	redis_db.redis_instance.hset("message_status",key,json.dumps(status))
 	#再send_task給mongodb做message_history的user_unread更新
 	current_app.celery.send_task('task.update_nutri_read_unread',args=[key,payload["nutri_read"],-1])
+
+
+
+
+#------- 觸發顯示typing效果 -------#
+@socketio.on("trigger_typing",namespace="/user")
+def show_typing_user(payload):
+	try:
+		decode_JWT = decode_token(payload["token"])
+		data=json.loads(decode_JWT["sub"]) 
+		user_id = data["id"]
+		nutri_id = payload["nutri_id"]
+		user_name = data["name"]
+		nutri_data = redis_db.redis_instance.hget("nutri",str(nutri_id))
+		nutri_data = json.loads(nutri_data)
+		if nutri_data["status"] == 1: #如果在線才傳
+			socketio.emit("show_typing",{"user_name":user_name,"user_id":user_id },namespace="/nutri",to=nutri_data["room_id"])
+	except:
+		emit("authencation_fail")
+
+#------- 觸發顯示typing效果 -------#
+@socketio.on("trigger_typing",namespace="/nutri")
+def show_typing_nutri(payload):
+	try:
+		decode_JWT = decode_token(payload["token"])
+		data=json.loads(decode_JWT["sub"]) 
+		nutri_id = data["id"]
+		user_id = payload["user_id"]
+		nutri_name = data["name"]
+		user_data = redis_db.redis_instance.hget("user",str(user_id))
+		user_data = json.loads(user_data)
+		if user_data["status"] == 1: #如果在線才傳
+			socketio.emit("show_typing",{"nutri_name":nutri_name,"nutri_id":nutri_id },namespace="/user",to=user_data["room_id"])
+	except:
+		emit("authencation_fail")
+
+
+
+
 
 
 

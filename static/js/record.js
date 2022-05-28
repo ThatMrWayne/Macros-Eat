@@ -237,6 +237,7 @@ function pop_search_food(background){
     //
     let input_area = document.createElement("div");
     input_area.setAttribute("id","input-area");
+    let search_icon = document.createElement("i");
     let input_food = document.createElement("input");
     input_food.setAttribute("type","text");
     input_food.setAttribute("id","food_name");
@@ -1653,7 +1654,7 @@ function create_blank_content(){ //used in show_empty
     contain.classList.add("contain"); 
     let start_title = document.createElement("div"); //
     start_title.setAttribute("id","start-title");
-    start_title.appendChild(document.createTextNode("There is no plan for this day yet."));
+    start_title.appendChild(document.createTextNode("No plan on this day yet."));
     let from_plan = document.createElement("div"); //
     from_plan.setAttribute("id","from-plan");
     from_plan.appendChild(document.createTextNode("Load from your diet plan"));
@@ -1723,7 +1724,6 @@ async function get_record(timestamp,show_date_format){
                                                 });
         let result = await response.json();                                
         if(response.ok){  //200情況下 
-            console.log(result);
             //1.移除loading動畫
             let main_container = document.querySelector(".main-container");
             let loading = document.getElementById("loading");

@@ -246,12 +246,10 @@ class Food_connection(Connection):
         cursor= self.cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         try:
-            current_app.logger.info(keyword)
             keyword_query = ("SELECT food_id, food_name, protein, fat, carbs from "
             "food WHERE MATCH(`food_name`) AGAINST( %(food)s IN NATURAL LANGUAGE MODE )") 
             cursor.execute(keyword_query,{"food":keyword})
-            food_data = cursor.fetchall() #可能是空的[]
-            current_app.logger.info(json.dumps(food_data))    
+            food_data = cursor.fetchall() #可能是空的[]  
             result={
                     "data":food_data
                     }  
@@ -618,4 +616,79 @@ class Weight_connection(Connection):
             if msg:
                 return "error"
             else:
-                return record                  
+                return record    
+
+
+class Notify_connection(Connection):
+    def check_if_subscribe(self,identity,subcsription,id_):
+        msg,result = None, None
+        cursor= self.cnx.cursor(dictionary=True)
+        cursor.execute("USE {}".format('macroseat'))
+        try:
+            if identity == 1:
+                cursor.execute("SELECT auth,p256dh,endpoint,expirationTime from service_user WHERE auth = %(auth)s",{"auth":subcsription["keys"]["auth"]})
+            else:
+                cursor.execute("SELECT auth,p256dh,endpoint,expirationTime from service_nutri WHERE auth = %(auth)s",{"auth":subcsription["keys"]["auth"]})    
+            data = cursor.fetchone()
+            if data:
+                if data["p256dh"] == subcsription["keys"]["p256dh"] and data["endpoint"] == subcsription["endpoint"] and data["expirationTime"] == subcsription["expirationTime"]:
+                    current_app.logger.info('User already subscribed!')
+                    result = {
+						"status": "success"
+					}			
+            else:
+                insert_data = {
+                    "id": id_,
+					"auth" : subcsription["keys"]["auth"],
+					"p256dh" : subcsription["keys"]["p256dh"],
+					"endpoint" : subcsription["endpoint"],
+					"expirationTime" : subcsription["expirationTime"]
+				}
+                if identity == 1:
+                    cursor.execute("INSERT INTO service_user VALUES(%(auth)s,%(id)s,%(p256dh)s,%(endpoint)s,%(expirationTime)s)",insert_data)	
+                    self.cnx.commit()
+                else:
+                    cursor.execute("INSERT INTO service_nutri VALUES(%(auth)s,%(id)s,%(p256dh)s,%(endpoint)s,%(expirationTime)s)",insert_data)	
+                    self.cnx.commit()
+                current_app.logger.info('User newly subscribed!')    
+                result = {
+						"status": "success"
+					    }
+        except mysql.connector.Error as err:
+            print(err)
+            msg = err.msg
+            self.cnx.rollback()
+        finally:
+            cursor.close()
+            self.cnx.close()
+            if msg:  
+                return "error"
+            elif result:
+                return result 
+
+    def get_subscription_info(self,id_,identity):
+        msg,result = None, None
+        cursor= self.cnx.cursor(dictionary=True)
+        cursor.execute("USE {}".format('macroseat'))
+        try:
+            if identity == 1:
+                cursor.execute("SELECT auth,p256dh,endpoint,expirationTime from service_user WHERE member_id= %(id)s",{"id":id_})
+            else:
+                cursor.execute("SELECT auth,p256dh,endpoint,expirationTime from service_nutri WHERE nutri_id = %(id)s",{"id":id_})    
+            data = cursor.fetchall()
+            if data:
+                result = data		
+        except mysql.connector.Error as err:
+            print(err)
+            msg = err.msg
+            self.cnx.rollback()
+        finally:
+            cursor.close()
+            self.cnx.close()
+            if msg: 
+                return "error"
+            elif result:
+                return result
+        
+
+

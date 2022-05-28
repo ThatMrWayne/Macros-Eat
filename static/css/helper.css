@@ -87,7 +87,7 @@
 .status >span{
     vertical-align: middle;
     display: inline-block;
-    width: 100px;
+    width: 130px;
     box-sizing: border-box;
 }
 
@@ -103,6 +103,7 @@
     vertical-align: bottom;
     text-overflow: ellipsis;
     overflow: hidden;
+    white-space: nowrap;
 }
 
 
@@ -122,7 +123,7 @@
     height: 100%;
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: 8fr 1fr;
+    grid-template-rows: 1fr 75px;
 }
 
 .display-message-section{
@@ -143,7 +144,7 @@
 #input-message-section{
     position: relative;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     background-color: white;
 }
@@ -156,7 +157,82 @@
     border-radius: 8px;
     border: 1px rgba(180,180,180) solid;
     font-size: 16px;
+    position: relative;
+    left: 25px;
+    bottom: 5px;
 }
+
+
+/* dot區 */
+@keyframes dotFlashing {
+    0% {
+        background-color: lightgray;
+    }
+    50%,
+    100% {
+        background-color: #f0754f;
+    }
+}
+
+
+.dot-box{
+    position: absolute;
+    bottom: 3px;
+    left: 25px;
+}
+
+.dot-flashing{
+    position: relative;
+    left:20px;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: #f0754f;
+    color: #f0754f;
+    animation: dotFlashing 1s infinite linear alternate;
+    animation-delay: .3s;
+}
+
+.dot-flashing::before, .dot-flashing::after {
+    content: '';
+    display: inline-block;
+    position: absolute;
+    top: 0;
+}
+
+.dot-flashing::before {
+    left: -15px;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: #f0754f;
+    color: #f0754f;
+    animation: dotFlashing 1s infinite alternate;
+    animation-delay: 0.1s;
+}
+
+.dot-flashing::after {
+    left: 15px;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: #f0754f;
+    color: #f0754f;
+    animation: dotFlashing 1s infinite alternate;
+    animation-delay: 0.5s;
+}
+
+
+.typing-content,.dot-flashing{
+    display: inline-block;
+}
+
+.typing-content > span{
+    color: lightgray;
+}
+
+
+
 #message::-webkit-input-placeholder{
     font-size: 16px;
     color:#707070;
@@ -168,21 +244,32 @@
 
 #send_message{
     flex: none;
-    width:35px;
-    height: 35px;
+    width: 40px;
+    height: 40px;
     margin-left: 5px;
-    border-radius: 20%;
+    border-radius: 50%;
+    border: 1px solid lightgray;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    left: 25px;
+    bottom:5px;
 }
 
 #send_message:hover{
     cursor: pointer;
-    
+    background: lightgray;
 }
 
 
 #arrow{
-    width: 100%;
-    /**transition: 1s ease-in-out;**/
+    display: block;
+    color: gray;
+}
+
+#arrow:hover{
+    color: white;
 }
 
 .log{
@@ -205,9 +292,9 @@ opacity: 1; /* Firefox */
     font-family:sans-serif;
 }
 
-.msg-box>span{
-    color:#52C0BC;
-    font-size: 20px;
+.msg-box>span:nth-child(1){
+    color:lightslategrey;
+    font-size: 18px;
     font-weight: bold;
 }
 
@@ -221,6 +308,6 @@ opacity: 1; /* Firefox */
 
 .message-time{
     margin-left: 20px;
-    font-size: 12px;
+    font-size: 15px;
     color:rgba(150,150,150);
 }

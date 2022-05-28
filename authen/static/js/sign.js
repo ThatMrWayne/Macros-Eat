@@ -5,7 +5,7 @@ let sign = {
         "mail_txt":"email",
         "btn_txt":"Log in",
         "destination":"tosignup",
-        "msg":"Not a member? Sign up."
+        "msg":"Not a member ? Sign up."
     },
     'signUp':{
         "box":"signupbox",
@@ -13,7 +13,7 @@ let sign = {
         "mail_txt":"email",
         "btn_txt":"Create account",
         "destination":"tosignin",
-        "msg":"Already a member? Sign in."
+        "msg":"Already a member ? Sign in."
     }
 };
 
@@ -169,7 +169,7 @@ function render_fillin(){
     level3_input.setAttribute("value","3");
     let label_level3 = document.createElement("label");
     label_level3.setAttribute("for","level3");
-    label_level3.appendChild(document.createTextNode("(exercise 3~4 times/week)"));
+    label_level3.appendChild(document.createTextNode("moderate activity (exercise 3~4 times/week)"));
     moderate.appendChild(level3_input);
     moderate.appendChild(label_level3);
     //<div id="heavy">
@@ -408,13 +408,14 @@ function handleSignUp(){
     let name = document.querySelector('.name').value;
     let identity = document.getElementsByName('identity')[0].value;
     //先在前端驗證看看有沒有確實輸入或輸入正不正確
-    if ((!name||!email) || (!password) || (!identity)){
+    if ((!name||!email) || (!password) || (identity==="0")){
         showMessage('Please fill in valid information',false,false);
     }else{
         let emailRegex = /^(?!\.{1,2})(?![^\.]*\.{2})(?!.*\.{2}@)(?=[a-zA-Z0-9\.!#\$%&\'\*\+\/=?\^_{\|}~-]+@{1}(?:[A-Za-z\d]+\.{1})+[a-zA-Z]+$)(?!.*@{2,}).*/g;
         let passwordRegex = /^(?=\w{8,16}$)(?=(?:[^A-Z]*[A-Z]){3})(?=[^a-z]*[a-z])(?=[^\d]*\d).*/g;
         //檢查看格式正不正確
-        if(emailRegex.test(email)&&passwordRegex.test(password)){
+        //if(emailRegex.test(email)&&passwordRegex.test(password)){
+        if(emailRegex.test(email)){    
             if(Number(identity)===1){
                 let signup_date = new Date();
                 let year = signup_date.getFullYear();
@@ -450,25 +451,26 @@ function handleSignUp(){
             };
             let fail_div  = document.createElement("div");
             let span = document.createElement("span");
-            span.appendChild(document.createTextNode("信箱或密碼輸入有誤。您的密碼必須包含:"));
-            conditions=["八至十六個字元(僅限英文字母/數字)","至少三個大寫英文字母","至少一個小寫英文字母","至少一個阿拉伯數字"]
-            condition_ul_tag = document.createElement("ul");
-            condition_ul_tag.classList.add("condition");
-            for(let i = 0;i<conditions.length;i++){
-                let li = document.createElement("li");
-                li.appendChild(document.createTextNode(conditions[i]));
-                condition_ul_tag.appendChild(li);
-            }; 
+            //span.appendChild(document.createTextNode("信箱或密碼輸入有誤。您的密碼必須包含:"));
+            span.appendChild(document.createTextNode("Email is not correct."));
+            //conditions=["八至十六個字元(僅限英文字母/數字)","至少三個大寫英文字母","至少一個小寫英文字母","至少一個阿拉伯數字"]
+            //condition_ul_tag = document.createElement("ul");
+            //condition_ul_tag.classList.add("condition");
+            //for(let i = 0;i<conditions.length;i++){
+            //    let li = document.createElement("li");
+            //    li.appendChild(document.createTextNode(conditions[i]));
+            //    condition_ul_tag.appendChild(li);
+            //}; 
             fail_div.appendChild(span);
-            fail_div.appendChild(condition_ul_tag);
+            //fail_div.appendChild(condition_ul_tag);
             fail_div.classList.add('message');
             signup_content.style.height = "410px";
             button.after(fail_div);       
             //清空信箱和密碼輸入框
             let mail_input = document.querySelector('.email');
-            let pass_input = document.querySelector('.pass');
+            //let pass_input = document.querySelector('.pass');
             mail_input.value='';
-            pass_input.value=''; 
+            //pass_input.value=''; 
         };
     };
 }
@@ -621,12 +623,13 @@ async function sendJWT(jwt){
                     //  4/24 這邊要動態render出records頁面
                     //window.setTimeout(function(){render_record()},5000);
                     render_record(result.data);
-                    user_socket = io('http://127.0.0.1:3100/user',{auth: {token: jwt, record: 1}}); //record:1代表從主紀錄頁面連線
+                    user_socket = io('/user',{auth: {token: jwt, record: 1}}); //record:1代表從主紀錄頁面連線
                     //接收來自其他分頁登出的事件,也要一併登出(刪除jwt)
                     user_socket.on("sync_user_out",function(){
                                         localStorage.removeItem("JWT");
                                         window.location.reload();  
                                     });
+                    handle_notification();                               
                 }else if(window.location.pathname==='/helper'){
                     connect_socket(1);
                 }
@@ -639,6 +642,7 @@ async function sendJWT(jwt){
         }else if(response.ok && result.data["identity"]===2){ //代表是營養師,直接導到諮詢頁面
             if(window.location.pathname==='/helper'){
                 connect_socket(2);
+                handle_notification(); 
             }else{
                 window.location.href="/helper";
             }

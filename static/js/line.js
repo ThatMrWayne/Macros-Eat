@@ -4,10 +4,12 @@ let dataLI = {
         data: [
 
         ],
-        fill: true,
+        fill: false,
         borderColor: 'rgb(75, 192, 192)',
-        //tension: 0.1,
-        //xAxisID: 'xAxis'
+        borderWidth: 1,
+        pointRadius: 5,
+        pointBorderColor: 'rgb(75, 192, 192)',
+        backgroundColor: 'rgb(75, 192, 192)'
     }],
 };
 
@@ -48,7 +50,10 @@ let weight_config = {
             },
             plugins : {
                 legend  : {
-                    display : false
+                    display : false,
+                    labels: {
+                        usePointStyle: true,
+                    }
                 }
             }
 

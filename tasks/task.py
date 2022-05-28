@@ -12,6 +12,9 @@ class RedisWrapper:
     def __init__(self):
         self.redis_instance = redis.Redis(host=CACHE_REDIS_HOST,port=6379,decode_responses=True)
 
+
+
+
 redis_db = RedisWrapper()
 
 
@@ -19,7 +22,7 @@ redis_db = RedisWrapper()
 class MongoWrapper:
     def __init__(self):
         self.client = MongoClient(
-            f"mongodb+srv://{MONGODB_URL}/myFirstDatabase?retryWrites=true&w=majority")
+            f"mongodb+srv://{MONGODB_URL}/?retryWrites=true&w=majority")
         self.db = self.client.macroseat
 
 mongo_db = MongoWrapper()

@@ -1,11 +1,14 @@
 /*section2的部分*/
 .section-2{
     display:flex;
-    justify-content: center;
+    justify-content: flex-end;
     align-items: center;
-    overflow: hidden;
-    height: 100vh;      
+    overflow: hidden;    
     background-color: lightgray;
+    background-image: url('/picture/back.jpg');
+    background-size: cover;
+    height: 90vh;
+
 }
 
 

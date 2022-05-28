@@ -1,4 +1,6 @@
+import time
 import json
+from datetime import datetime
 from flask import request
 from flask import Blueprint
 from flask import make_response
@@ -258,30 +260,32 @@ def records():
         else:
             user_id = Utils_obj.get_member_id_from_jwt(request)                    
             redis_key = f'get_my_record{user_id}' # e.g => get_my_record18
-            try:
-                r = redis_db.redis_instance.hget(redis_key,str(datetimestamp))
-                if r: #如果redis有資料
-                    print("cache hits!")
-                    data = json.loads(r)
-                    result = jsonify(data), 200  
-                else:  #如果redis沒資料,就要去mysql拿,再存入redis,要send一個background task 半天內後刪除
-                    print("cache miss!")
-                    result = handle_get_record(datetimestamp,user_id)
-                    if result[0].status_code == 200: #如果result成功,才存入redis
-                        data = {str(datetimestamp) : result[0].get_data()} #result[0].get_data()已是byte string
-                        redis_db.redis_instance.hset(redis_key, mapping = data)
-                        print("task sended!")
-                        current_app.celery.send_task('task.delmyrecordCache',args=[redis_key,datetimestamp],countdown=120)                             
-            except: #如果redis掛掉,就要去mysql拿
-                result = handle_get_record(datetimestamp,user_id) 
+            high = datetime.now().timestamp()
+            low = int(high - (86400*7))
+            if low <= int(datetimestamp)/1000 <= high: #包括當日往前七天才做快取
+                try:
+                    start = time.perf_counter()
+                    r = redis_db.redis_instance.hget(redis_key,str(datetimestamp))
+                    if r: #如果redis有資料
+                        data = json.loads(r)
+                        result = jsonify(data), 200  
+                        end_a = time.perf_counter()
+                        current_app.logger.info(f"record cache hits!=>time consuming:{end_a-start} s")
+                    else:  #如果redis沒資料,就要去mysql拿,再存入redis,要send一個background task 半天內後刪除
+                        result = handle_get_record(datetimestamp,user_id)
+                        if result[0].status_code == 200: #如果result成功,才存入redis
+                            data = {str(datetimestamp) : result[0].get_data()} #result[0].get_data()已是byte string
+                            redis_db.redis_instance.hset(redis_key, mapping = data)
+                            current_app.logger.info("task sended!")
+                            current_app.celery.send_task('task.delmyrecordCache',args=[redis_key,datetimestamp],countdown=600) 
+                            end_b = time.perf_counter()
+                            current_app.logger.info(f"record cache miss!=>time consuming:{end_b-start} s")                            
+                except: #如果redis掛掉,就要去mysql拿
+                    result = handle_get_record(datetimestamp,user_id) 
+            else:
+                current_app.logger.info(f"get record without cache.")       
+                result = handle_get_record(datetimestamp,user_id)
             return result
         
         
         
-        
-        
-        
-        
-        
-        get_record_result = handle_get_record(request)
-        return get_record_result
