@@ -70,13 +70,14 @@ def update_user_read(key,message_time):
     #一定已經有這個document因為前面就已經先存訊息了
     collection.update_one({"history_id" : key}, {"$set":{"user_read":message_time}})
 
+'''
 #更新使用者"已讀時間"和營養師的"未讀時間"
 @app.task()
 def update_read_unread(key,message_time):
     collection = mongo_db.db.message_history 
     #一定已經有這個document因為前面就已經先存訊息了
     collection.update_one({"history_id" : key}, {"$set":{"user_read":message_time, "nutri_unread":message_time}})        
-
+'''
 
 #更新使用者和營養師的"對話者列表"
 @app.task()
@@ -87,7 +88,7 @@ def update_history_list(user_key,nutri_key):
                                 {"chat_list":
                                 [nutri_key]}
                             },upsert=True)
-    if result1.matched_count == 0: #如果是零,代表已經有這個document
+    if result1.matched_count == 1: #如果是1,代表已經有這個document
         collection.update_one({"user_id" : user_key}, {"$addToSet":{"chat_list":nutri_key}})    
     collection = mongo_db.db.nutri_history
     result2 = collection.update_one({"nutri_id" : nutri_key},
@@ -95,7 +96,7 @@ def update_history_list(user_key,nutri_key):
                                 {"chat_list":
                                 [user_key]}
                             },upsert=True)
-    if result2.matched_count == 0: #如果是零,代表已經有這個document
+    if result2.matched_count == 1: #如果是1,代表已經有這個document
         collection.update_one({"nutri_id" : nutri_key}, {"$addToSet":{"chat_list":user_key}})      
 
 
@@ -116,13 +117,14 @@ def update_nutri_unread(key,message_time):
 
 #----- 營養師傳訊息給使用者 ----#
 
+'''
 #更新使用者"未讀時間"和營養師的"已讀時間"
 @app.task()
 def update_unread_read(key,message_time):
     collection = mongo_db.db.message_history 
     #一定已經有這個document因為前面就已經先存訊息了
     collection.update_one({"history_id" : key}, {"$set":{"user_unread":message_time, "nutri_read":message_time}})
-
+'''
 
 #更新使用者的"未讀時間"
 @app.task()
@@ -144,3 +146,27 @@ def update_nutri_read_unread(key,nutri_read,nutri_unread):
     collection = mongo_db.db.message_history 
     #一定已經有這個document因為前面就已經先存訊息了
     collection.update_one({"history_id" : key}, {"$set":{"nutri_read":nutri_read,"nutri_unread":nutri_unread}})
+
+
+
+#------- 更新營養師的未讀數量 ------#
+@app.task()
+def update_nutri_unread_count(key,count):
+    collection = mongo_db.db.message_history 
+    collection.update_one({"history_id" : key}, {"$set":{"nutri_unread_count":count}})    
+
+@app.task()
+def incr_nutri_unread_count(key):
+    collection = mongo_db.db.message_history 
+    collection.update_one({"history_id" : key}, {"$inc":{"nutri_unread_count":1}})    
+
+#------- 更新使用者的未讀數量 ------#
+@app.task()
+def update_user_unread_count(key,count):
+    collection = mongo_db.db.message_history 
+    collection.update_one({"history_id" : key}, {"$set":{"user_unread_count":count}})    
+
+@app.task()
+def incr_user_unread_count(key):
+    collection = mongo_db.db.message_history 
+    collection.update_one({"history_id" : key}, {"$inc":{"user_unread_count":1}})    

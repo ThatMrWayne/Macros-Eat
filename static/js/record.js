@@ -12,8 +12,7 @@ let select_diet_plan_id;
 //紀錄取得飲食計畫的頁數
 let my_plan_page = 0;
 let can_get_my_plan = true;
-//進入主紀錄頁面後的socket連線物件
-let user_socket;
+
 
 
 

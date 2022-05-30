@@ -1,5 +1,20 @@
 /*右上標題區塊*/
 
+/* 和誰對話*/
+.talking-to{
+    border: 1px solid gray; 
+    border-radius: 5px;
+    flex: none;
+    width: 150px;
+    font-size: 22px;
+    position: relative;
+    left: 15px;
+    top: 30px;
+    color: grey;
+}
+
+
+
 .helper-title-container{
     border-bottom: 3px rgb(211,211,211,0.5) solid;
     background-color: rgb(225,225,225);
@@ -18,9 +33,21 @@
 
 /*side bar*/
 
+.small-title{
+    margin-left: 30px;
+    margin-bottom: 10px;
+    font-size: 19px;
+    color: aliceblue;
+}
+
+
+
+
+
 .status-container{
     height: 350px;
     overflow-y: auto;
+    padding-top:20px;
 }
 
 .status {
@@ -46,7 +73,7 @@
 .status > .status-photo-container{
     display: inline-block;
     position: relative;
-    margin-right: 10px;
+    margin-right: 25px;
 }
 
 .status-photo-container > img{
@@ -111,11 +138,40 @@
 .unread{
     display: inline-block;
     position: absolute;
-    width: 20px;
-    top: -10px;
-    right: -25px;
+    width: 30px;
+    height: 30px;
+    top: -16px;
+    right: 133px;
     color:white;
+    stroke: indianred;
+    stroke-width: 1px;
 }
+
+.unread-cnt{
+    position: absolute;
+    top: -10px;
+    color: indianred;
+    font-size: 14px;
+}
+
+
+.unread-cnt-little{
+    right: 144px;
+}
+
+.unread-cnt-medium{
+    right: 141px;
+}
+
+.unread-cnt-large{
+    right: 143px;
+}
+
+
+
+
+
+
 
 /*message panel 區塊*/
 
@@ -184,8 +240,8 @@
 .dot-flashing{
     position: relative;
     left:20px;
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     border-radius: 5px;
     background-color: #f0754f;
     color: #f0754f;
@@ -202,8 +258,8 @@
 
 .dot-flashing::before {
     left: -15px;
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     border-radius: 5px;
     background-color: #f0754f;
     color: #f0754f;
@@ -213,8 +269,8 @@
 
 .dot-flashing::after {
     left: 15px;
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     border-radius: 5px;
     background-color: #f0754f;
     color: #f0754f;

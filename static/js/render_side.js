@@ -1604,7 +1604,7 @@ function render_log_out(navmenu){
         //emit一個登出事件到server
         if(user_socket){
             user_socket.emit("user_log_out"); 
-        }else{
+        }else if(nutri_socket){
             nutri_socket.emit("nutri_log_out")
         }
     });

@@ -66,7 +66,8 @@ def read_message():
             key = str(session["id"]) +"a"+id   
         #先從redis拿
         try:
-            messages = redis_db.redis_instance.lrange(key,0,-1)
+            #messages = redis_db.redis_instance.lrange(key,0,-1)
+            messages =  redis_db.redis_instance.zrange(key,0,-1) #回傳list,member還是string type
             messages = list(json.loads(i) for i in messages)
             print(messages)
             #一次拿11筆,是不是用binary search比較快
@@ -154,11 +155,8 @@ def unread_message():
             key = str(session["id"]) +"a"+id   
         #先從redis拿
         try: #是list不是hash
-            messages = redis_db.redis_instance.lrange(key,0,-1)
-            print(messages)
-            print(type(messages))
-            print(type(messages[0]))
-            print(messages[0])
+            #messages = redis_db.redis_instance.lrange(key,0,-1)
+            messages =  redis_db.redis_instance.zrange(key,0,-1) #回傳list,member還是string type
             messages = list(json.loads(i) for i in messages)
             print(messages)
             #是不是用binary search比較快
