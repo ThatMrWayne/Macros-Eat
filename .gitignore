@@ -2,6 +2,10 @@ templates/chart.html
 templates/table.html
 templates/test.html
 templates/dot.html
+chart.html
+table.html
+test.html
+dot.html
 tasks/.env
 nginx_for_ssl
 test-redis.py
