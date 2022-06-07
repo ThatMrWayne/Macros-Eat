@@ -12,20 +12,24 @@ let select_diet_plan_id;
 //紀錄取得飲食計畫的頁數
 let my_plan_page = 0;
 let can_get_my_plan = true;
+//搜尋公共食物的頁數＆lock(有兩個)
+let public_food_page = 0;
+let search_times = 0;
+let can_get_public_food_scroll = true;
 
 
 
 
 
 //刪除飲食紀錄
-async function delete_intake(intake_id_token,datetime){
+async function delete_intake(intake_id_token,datetime,record_id_){
     let jwt = localStorage.getItem("JWT");
     let intake_id = intake_id_token.split('-')[1];
     try{
-        let response = await fetch(`/api/intakes?intake_id=${intake_id}&datetime=${datetime}`,{
+        let response = await fetch(`/api/intakes?intake_id=${intake_id}&datetime=${datetime}&record_id=${record_id_}`,{
                                                     method: 'delete',
                                                     headers: {"Authorization" : `Bearer ${jwt}`}
-                                                });                               
+                                                });                                                                     
         if(response.status===204){  //204 
             //一併更新currrent status
             let tr = document.getElementById(intake_id_token).parentElement;
@@ -63,6 +67,8 @@ async function delete_intake(intake_id_token,datetime){
             group.amount[2] = percentage_f;
             let PieChart = new Chart(pie,{type:'pie',data:DataEC, options: {plugins:optionsEC}});
         }else if(response.status === 400){ //刪除失敗,該飲食紀錄不存在或該飲食紀錄不屬於此會員
+            let result = await response.json();  
+            console.log(result);
             console.log("刪除失敗");
         }else if(response.status === 403){ //
             console.log("JWT失效,拒絕存取");
@@ -179,7 +185,7 @@ function create_tr(food){
     let delete_icon = document.createElement("i");
     delete_icon.setAttribute("data-feather","trash");
     td_delete.addEventListener("click",function(){ //註冊刪除飲食紀錄
-        delete_intake(this.id,on_date_utc);
+        delete_intake(this.id,on_date_utc,record_id);
     });
     td_delete.appendChild(delete_icon);
     tr.appendChild(th);
@@ -244,7 +250,7 @@ function pop_search_food(background){
     input_food.setAttribute("autocomplete","off");
     input_food.addEventListener("input",function(){ //註冊搜尋食物事件
         let value = this.value;
-        if(value === ""){
+        if(value.length === 0){
             let input_area = document.getElementById("input-area");
             if(document.querySelector(".search-result")){
                 input_area.removeChild(document.querySelector(".search-result"))
@@ -261,14 +267,23 @@ function pop_search_food(background){
                 let td = document.querySelector(l[i]);
                 td.innerHTML="0";
             };        
+            search_times = 0;
+            can_get_public_food_scroll = true;
+            public_food_page = 0;
         }else{
             if(search_times <= 10){
-                search_times += 1;
+                search_times+=1;
+                can_get_public_food_scroll = true;
+                public_food_page = 0;
                 let jwt = localStorage.getItem("JWT");
-                let search_promise = get_food(value,jwt);
+                let search_promise = get_food(value,jwt,public_food_page);
                 search_promise.then((result)=>{
-                    search_times -= 1;
-                    render_data(result.data);
+                    search_times-=1;
+                    if(document.getElementById("food_name").value.length!==0){
+                        let next_page = result["nextPage"];
+                        public_food_page = next_page;
+                        render_data(result.data);
+                    };    
                 });
             }    
         }    
@@ -1741,6 +1756,7 @@ async function get_record(timestamp,show_date_format){
                 let record_container = document.querySelector(".record-container");
                 show_right_section(record_container,day_record,food_record);
             }else{ //3.表示該日無紀錄
+                record_id = null;
                 show_empty()
             };    
         }else if(response.status === 400){ //

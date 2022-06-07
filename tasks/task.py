@@ -68,7 +68,7 @@ def push_message(key,message_obj):
 def update_user_read(key,message_time):
     collection = mongo_db.db.message_history 
     #一定已經有這個document因為前面就已經先存訊息了
-    collection.update_one({"history_id" : key}, {"$set":{"user_read":message_time}})
+    collection.update_one({"history_id" : key}, {"$max":{"user_read":message_time}})
 
 '''
 #更新使用者"已讀時間"和營養師的"未讀時間"
@@ -105,14 +105,14 @@ def update_history_list(user_key,nutri_key):
 def update_nutri_read(key,message_time):
     collection = mongo_db.db.message_history 
     #一定已經有這個document因為是使用者先傳訊息給營養師
-    collection.update_one({"history_id" : key}, {"$set":{"nutri_read":message_time}})  
+    collection.update_one({"history_id" : key}, {"$max":{"nutri_read":message_time}})  
 
 #更新營養師的"未讀時間"
 @app.task()
 def update_nutri_unread(key,message_time):
     collection = mongo_db.db.message_history 
     #一定已經有這個document因為是使用者先傳訊息給營養師
-    collection.update_one({"history_id" : key}, {"$set":{"nutri_unread":message_time}}) 
+    collection.update_one({"history_id" : key}, {"$max":{"nutri_unread":message_time}}) 
 
 
 #----- 營養師傳訊息給使用者 ----#
@@ -131,7 +131,7 @@ def update_unread_read(key,message_time):
 def update_user_unread(key,message_time):
     collection = mongo_db.db.message_history 
     #一定已經有這個document因為前面就已經先存訊息了
-    collection.update_one({"history_id" : key}, {"$set":{"user_unread":message_time}})   
+    collection.update_one({"history_id" : key}, {"$max":{"user_unread":message_time}})   
 
 #------- 使用者取完已讀對話紀錄 ------#
 @app.task()

@@ -14,13 +14,14 @@ div{
     bottom:0px;
     width:280px;
     background-color: #2D303C;
+    z-index: 3;
 }
 
 .navmenu-brand{
     width: 100%;
     height:200px;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     position: relative;
 }
@@ -33,7 +34,7 @@ div{
     font-size: 38px;
     flex: none;
     position: relative;
-    right:15px;
+    left: 30px;
 }
 .logo{
     width:50px;
@@ -478,6 +479,11 @@ thead{
     height:40px
 }
 
+.food-name{
+    width: 100px;
+    padding-left: 5px;
+}
+
 td, th {
     border-bottom: 1px solid rgb(190,190,190);
     padding-top: 10px;
@@ -609,10 +615,12 @@ td {
     margin-top: 20px;
     font-family:'Gill Sans', 'Gill Sans MT', 'Trebuchet MS', sans-serif
 }
-.nav-page:hover{
+
+#myfood:hover,#dietplan:hover,#weightrecord:hover,#dailyrecord:hover,#healthhelper:hover{
     color:#F0754F;
     cursor:pointer
 }
+
 
 .health-helper::after{
     content: "";
@@ -977,10 +985,10 @@ table.plan-table {
 
 .reminder-select{
     display: inline-block;
-    border: 1px solid lightgray;
     padding-right: 5px;
     padding-left: 5px;
     border-radius: 5px;
+    color: #F0754F;
 }
 
 .tip::after{
@@ -1232,4 +1240,62 @@ table.plan-table {
 .close-load:hover{
     cursor: pointer;
     color: #F0754F;
+}
+
+
+
+.remind{
+    position: absolute;
+    right: -250px;
+    color: black;
+    width: 350px;
+    font-size: 19px;
+    top: 320px;
+    background-color: rgba(241,245,241,1);
+    padding: 5px;
+    border-radius: 5px;
+    display: flex;
+    align-items: flex-start;
+    box-shadow: 3px 3px 2px 3px rgb(0 0 0 / 20%)
+}
+
+.close-remind:hover{
+    cursor: pointer;
+}
+
+
+.remind::after{
+    content: '';
+    height: 0;
+    display: block;
+    position: absolute;
+    top: 52px;
+    left: -15px;
+    border-bottom: 8px solid transparent;
+    border-top: 8px solid transparent;
+    border-right: 18px solid whitesmoke;
+}
+
+
+@media(max-width:1200px){
+    .left-record,.right-record{
+        width: 500px;
+    }
+}
+
+
+
+
+@media(max-height:650px){
+    .logout{
+        position: relative;
+    }
+    .navmenu{
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+    .remind{
+        position: fixed;
+        left: 200px;
+    }
 }

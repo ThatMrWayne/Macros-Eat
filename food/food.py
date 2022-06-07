@@ -1,3 +1,4 @@
+from pydoc import pager
 import time
 import json
 from flask import request
@@ -10,7 +11,7 @@ from model import db
 from model import redis_db
 from model.connection import Connection
 from utils import Utils_obj
-from cache import cache
+#from cache import cache
 from flask import current_app
 #from celery_factory.celery_tasks import del_myfood_cache
 
@@ -146,11 +147,12 @@ def handle_get_my_food_data(page,user_id):
 def handle_get_public_food_data(request):
     connection = db.get_food_cnx() #取得景點相關操作的自定義connection物件
     if isinstance(connection,Connection): #如果有順利取得連線
+        page = request.args.get('page')
         keyword = request.args.get('keyword')  
-        if not keyword:
-            current_app.logger.info("沒有keyword")
-            return jsonify({"data":[]}), 200         
-        data = connection.get_public_food_info(keyword)
+        if not keyword or not page:
+            current_app.logger.info("沒有keyword or 沒有給頁數")
+            return jsonify({"data":[],"nextPage":None}), 200         
+        data = connection.get_public_food_info(keyword,page)
         if data == "error":
             response_msg={
                     "error":True,
@@ -180,6 +182,10 @@ def foods():
         delete_food_result = handle_delete_food(request)
         return delete_food_result
     elif request.method == "GET": #如果是GET,代表要取得食物分頁資料
+        current_app.logger.info(request.headers.get("origin"))
+        current_app.logger.info(request.headers.get("host"))
+        current_app.logger.info(request.headers.get("remote_addr"))
+        current_app.logger.info(request.headers.get("url"))
         page = request.args.get('page')
         #如果沒有給page或是page給的不是是數字形式，gg
         if not page or not page.isdigit():
@@ -218,7 +224,7 @@ def foods():
 #這個是用來在新增食物紀錄時,在search bar 搜尋時on the fly search
 @food.route('/api/public-food', methods=["GET"])
 @jwt_required_for_food()
-@cache.cached(timeout=30, query_string=True)
+#@cache.cached(timeout=15, query_string=True)
 def public_food():
     get_food_result = handle_get_public_food_data(request)
     return get_food_result

@@ -2,13 +2,19 @@
 .section-2{
     display:flex;
     justify-content: flex-end;
-    align-items: center;
-    overflow: hidden;    
+    align-items: center;  
     background-color: lightgray;
     background-image: url('/picture/back.jpg');
     background-size: cover;
     height: 90vh;
+    flex-wrap: wrap;
+}
 
+
+@media(max-height:510px){
+    .section-2{
+        height: 460px;
+    }
 }
 
 

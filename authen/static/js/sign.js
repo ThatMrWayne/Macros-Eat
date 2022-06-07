@@ -182,7 +182,7 @@ function render_fillin(){
     level4_input.setAttribute("value","4");
     let label_level4 = document.createElement("label");
     label_level4.setAttribute("for","level4");
-    label_level4.appendChild(document.createTextNode("very activate (exercise >5 times/week)"));
+    label_level4.appendChild(document.createTextNode("very active (exercise >5 times/week)"));
     heavy.appendChild(level4_input);
     heavy.appendChild(label_level4);
 
@@ -342,7 +342,7 @@ async function sendAuthSignUp(data){
                                         });
         let result = await response.json();                                
         if(response.status === 201){ //201情況下
-                showMessage("註冊成功，請登入",false,true);           
+                showMessage("Sign up completed. Please sign in.",false,true);           
         }else if(response.status === 400){ //如果是400,有可能是1.email重複 2.註冊信箱或密碼格式錯誤
             showMessage(result.message,false,false);
             //清空信箱和密碼輸入框
@@ -522,7 +522,7 @@ async function handleSignOut(){
 
 //show出登入/註冊框
 function showBox(obj,flag){//flag true代表有帳戶,false沒有帳戶
-    let section2 = document.querySelector(".section-2")
+    let section2 = document.querySelector(".section-2");
     //主要框框
     let sign_box = document.createElement("div");
     sign_box.className=obj.box //"signinbox signupbox";
@@ -602,7 +602,27 @@ function showBox(obj,flag){//flag true代表有帳戶,false沒有帳戶
     sign_content.appendChild(goto);
     //將主內容放入框框裡
     sign_box.append(sign_content);
-    section2.appendChild(sign_box)
+    //如果是true,要多一個login with google
+    if(flag){
+        let google_signbox = document.createElement("div");
+        google_signbox.classList.add("google-signbox");
+        let google_btn = document.createElement("div");
+        google_btn.classList.add("google-btn");
+        let a = document.createElement("a");
+        a.setAttribute("href","/login/google");
+        let img = new Image();
+        img.src = "/picture/google.png";
+        img.id = "google";
+        let btn_text = document.createElement("div");
+        btn_text.classList.add("google-btn-text");
+        btn_text.appendChild(document.createTextNode("Continue with google"));
+        a.appendChild(img);
+        a.appendChild(btn_text);
+        google_btn.appendChild(a);
+        google_signbox.appendChild(google_btn);
+        sign_box.append(google_signbox);
+    }; 
+    section2.appendChild(sign_box);                   
 }
 
 
@@ -665,6 +685,13 @@ function init_sign(){
         });    
         let signin_button = document.getElementById("signbtn");
         signin_button.addEventListener("click",function(){handleSignIn()});
+        //for interview test account
+        let identity = document.getElementsByName("identity")[0];
+        identity.value="1";
+        let email = document.querySelector(".email");
+        email.value="test@gmail.com";
+        let pwd = document.querySelector(".pass");
+        pwd.value = "wayne123WAYNE";
     }else{
        window.location.replace('/');
     }

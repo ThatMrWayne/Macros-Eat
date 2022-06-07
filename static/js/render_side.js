@@ -31,7 +31,7 @@ function render_user_profile(navmenu,user_data){
     let span = document.createElement("span");
     span.classList.add("username");
     span.setAttribute("memberid",user_data["member_id"]);
-    span.setAttribute("identity",user_data["identity"]);
+    span.setAttribute("identity",1);
     span.appendChild(document.createTextNode(user_data["name"]));
     span.addEventListener("click",function(){ //按下後跑去會員頁面
         render_member_page(); //
@@ -40,6 +40,28 @@ function render_user_profile(navmenu,user_data){
     user_profile.appendChild(span);
     navmenu.appendChild(user_profile);
 };
+
+
+function render_nutri_profile(navmenu,nutri_data){
+    let user_profile = document.createElement("div");
+    user_profile.classList.add("user-profile");
+    let img = new Image();
+    img.src = "/picture/doctor.png";
+    img.classList.add("profile_picture");
+    let span = document.createElement("span");
+    span.classList.add("username");
+    span.setAttribute("memberid",nutri_data["nutri_id"]);
+    span.setAttribute("identity",2);
+    span.appendChild(document.createTextNode(nutri_data["name"]));
+    span.addEventListener("click",function(){ //按下後跑去會員頁面
+        render_member_page(); //
+    });
+    user_profile.appendChild(img);
+    user_profile.appendChild(span);
+    navmenu.appendChild(user_profile);
+};
+
+
 
 
 /* 我的食物部分 */
@@ -1108,6 +1130,10 @@ function render_my_plan(navmenu){
     span.addEventListener("click",function(){ //按下後產生我的飲食計畫
         let bg = render_my_plan_window(createBack());
         document.body.appendChild(bg);
+        let remind = document.querySelector(".remind");
+        if(remind){
+            remind.remove();
+        };
     });
     personal_plan.appendChild(span);
     navmenu.appendChild(personal_plan);
@@ -1568,7 +1594,6 @@ function render_health_helper(navmenu){
     span.setAttribute("id","healthhelper");
     span.appendChild(document.createTextNode("Health Helper"));
     span.addEventListener("click",function(){ //按下後跑到聊天分頁
-        //window.alert('歹勢,還沒開發好')
         window.open('https://www.macroseat.xyz/helper', '_blank'); //按下後開啟新分頁
     });
     health_helper.appendChild(span);
@@ -1617,7 +1642,6 @@ function render_log_out(navmenu){
 
 //產生side bar
 function render_sidebar(user_data){
-    console.log('sidebar');
     let navmenu = document.querySelector(".navmenu");
     render_user_profile(navmenu,user_data);
     render_my_food(navmenu);
@@ -1626,4 +1650,28 @@ function render_sidebar(user_data){
     render_my_record(navmenu);
     render_health_helper(navmenu);
     render_log_out(navmenu);
+    let remind = document.getElementById("remind").textContent;
+    if(remind === "yes"){ //要顯示提示訊息
+        let my_plan = document.querySelector(".personal-plan");
+        let remind_div = document.createElement('div');
+        remind_div.classList.add("remind");
+        let span = document.createElement("span");
+        span.appendChild(document.createTextNode("Check this out ! Your first recommended diet plan has been created by system based on your information."));
+        let close = document.createElement("div");
+        close.classList.add("close-remind");
+        close.innerHTML = "X";
+        close.addEventListener("click",function(){
+            let div = document.querySelector(".remind");
+            div.remove();
+        });
+        remind_div.appendChild(span);
+        remind_div.appendChild(close);
+        my_plan.appendChild(remind_div);
+        window.setTimeout(function(){
+            let div = document.querySelector(".remind");
+            if(div){
+                div.remove();
+            };
+        }, 60000);
+    }
 }

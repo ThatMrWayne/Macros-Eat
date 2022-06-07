@@ -10,10 +10,10 @@
     list-style-type: none;
     border: 1px solid lightgray;
     box-sizing: border-box;
-    width: 200px;
+    width: 230px;
     margin: 0px;
     padding: 0px;
-    height:200px;
+    height:250px;
     overflow:auto;
     border-radius: 6px
 }
@@ -25,8 +25,37 @@
     padding-bottom: 3px;
 }
 
-li.food-item:hover{
+li.food-item-li:hover{
     color : #F0754F ;
     cursor: pointer;
     opacity: 1;
+}
+
+
+.info-box{
+    width: 120px;
+    position: absolute;
+    right: 230px;
+    top: 0px;
+    background: lightslategray;
+    color: ghostwhite;
+    border-radius: 5px;
+}
+
+.info-box > ul{
+    list-style-type: none;
+    font-size: 14px;
+    padding: 0px;
+    display: block;
+    padding-left: 20px;
+}
+
+.info{
+    width: 16px;
+    display: inline-block;
+}
+
+.info-number{
+    width: 50px;
+    display: inline-block;
 }

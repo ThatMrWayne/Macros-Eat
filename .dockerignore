@@ -1,0 +1,14 @@
+.env
+__pycache__
+venv
+.gitignore
+README.md
+docker-compose.yml
+tasks/
+test-redis.py
+test-mongo.py
+__pycache__
+templates/chart.html
+templates/table.html
+templates/test.html
+food_crawler/

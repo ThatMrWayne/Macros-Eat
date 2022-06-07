@@ -207,7 +207,6 @@ def handle_signin(request):
                         data = json.dumps(
                                 {"room_id" : 0,
                                 "name" : result["name"],
-                                "record_socketid": [0],
                                 "socket_id" : [0],
                                 "status" : 0	
                                 })
@@ -218,7 +217,6 @@ def handle_signin(request):
                         data =json.dumps(
                                 {"room_id" : 0,
                                 "name" : result["name"],
-                                "record_socketid": [0],
                                 "socket_id" : [0],
                                 "status" : 0	
                                 })

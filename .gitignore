@@ -1,11 +1,11 @@
-chart.html
-table.html
-test.html
-dot.html
+templates/chart.html
+templates/table.html
+templates/test.html
+templates/dot.html
+tasks/.env
 nginx_for_ssl
 test-redis.py
 test-mongo.py
-.dockerignore
 docker-compose.yml
 food_crawler/
 .DS_Store

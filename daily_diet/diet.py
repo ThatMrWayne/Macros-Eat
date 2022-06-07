@@ -156,16 +156,17 @@ def handle_add_diet(resuest):
 
 def handle_delete_diet(request):
         intake_id = request.args.get("intake_id")
+        record_id = request.args.get("record_id")
         timestamp = request.args.get("datetime")
-        if not intake_id or not timestamp:
+        if not intake_id or not timestamp or not record_id:
             response_msg={
                           "error":True,
-                          "message":"刪除失敗,沒有給intake_id or datetime"}
+                          "message":"刪除失敗,沒有給intake_id or datetime or record_id"}
             return jsonify(response_msg), 400 
         connection = db.get_daily_diet_cnx()   #取得飲食紀錄相關操作的自定義connection物件
         if isinstance(connection,Connection): #如果有順利取得連線
             user_id = Utils_obj.get_member_id_from_jwt(request)
-            result = connection.delete_diet(intake_id,user_id) 
+            result = connection.delete_diet(intake_id,user_id,record_id) 
             if result == "error": #代表刪除飲食資料失敗
                 response_msg={
                             "error":True,
@@ -195,13 +196,6 @@ def handle_delete_diet(request):
 @jwt_required_for_intake()
 def intakes():
     if request.method == "POST": #如果是POST,代表要新增吃的紀錄
-
-
-
-
-
-
-
         add_record_result = handle_add_diet(request)
         return add_record_result
     elif request.method == "DELETE": #如果是delete,代表要刪除吃的紀錄

@@ -240,18 +240,25 @@ class Food_connection(Connection):
             else:
                 return result        
                 
-    def get_public_food_info(self,keyword):
+    def get_public_food_info(self,keyword,page):
         current_app.logger.info("get public fodd")
-        msg,food_data = None,None
+        msg,food_data, nextPage = None,None,None
         cursor= self.cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         try:
             keyword_query = ("SELECT food_id, food_name, protein, fat, carbs from "
-            "food WHERE MATCH(`food_name`) AGAINST( %(food)s IN NATURAL LANGUAGE MODE )") 
-            cursor.execute(keyword_query,{"food":keyword})
+            "food WHERE MATCH(`food_name`) AGAINST( %(food)s IN NATURAL LANGUAGE MODE ) LIMIT %(st)s, 21 ") 
+            cursor.execute(keyword_query,{"food":keyword,'st':int(page)*20})
             food_data = cursor.fetchall() #可能是空的[]  
+            #查看有沒有下一頁
+            try:
+                next_item = food_data[20]
+                nextPage = int(page)+1
+            except:
+                nextPage = None  
             result={
-                    "data":food_data
+                    "nextPage":nextPage,
+                    "data":food_data[:20],#回傳前20筆就好
                     }  
         except mysql.connector.Error as err:
             print(err)
@@ -455,7 +462,7 @@ class Diet_connection(Connection):
         cursor = self.cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         query1 = "SELECT member_id FROM records WHERE record_id = %(record_id)s"
-        query2 = "INSERT INTO intakes VALUES (DEFAULT,%(record_id)s,%(food_name)s,%(protein)s,%(fat)s,%(carbs)s,%(amount)s,%(member_id)s)"
+        query2 = "INSERT INTO intakes VALUES (DEFAULT,%(record_id)s,%(food_name)s,%(protein)s,%(fat)s,%(carbs)s,%(amount)s)"
         query3 = "SELECT intake_id FROM intakes WHERE record_id = %(record_id)s ORDER BY intake_id DESC LIMIT 0,1"
         input_data = {'record_id': request_data["record_id"], 
                       'food_name' : request_data["food_name"] , 
@@ -463,7 +470,6 @@ class Diet_connection(Connection):
                       'fat':request_data["fat"], 
                       'carbs':request_data["carbs"], 
                       'amount':request_data["amount"],
-                      'member_id': user_id
                       }
         try:
             cursor.execute(query1, {"record_id": request_data["record_id"]})
@@ -490,21 +496,26 @@ class Diet_connection(Connection):
             else:
                 return False    
 
-    def delete_diet(self,intake_id,user_id): 
+    def delete_diet(self,intake_id,user_id,record_id): 
         result, msg = None, None
-        cursor = self.cnx.cursor()
+        cursor = self.cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
-        query = "DELETE FROM intakes WHERE intake_id = %(intake_id)s AND member_id = %(member_id)s" 
-        input_data = {'intake_id':intake_id, 'member_id':user_id}
+        query1 = "SELECT member_id FROM records WHERE record_id = %(record_id)s"
+        query2 = "DELETE FROM intakes WHERE intake_id = %(intake_id)s AND record_id = %(record_id)s" 
+        input_data = {'intake_id':intake_id, 'record_id':record_id}
         try:
-            cursor.execute(query, input_data)
-            result = cursor.rowcount
-            print(result)
-            self.cnx.commit()
-            if result!=1: #飲食紀錄不存在或飲食紀錄不屬於該會員
-                result = False 
-            else: #可以刪除
-                result = True
+            cursor.execute(query1, {"record_id":record_id})
+            confirm_id = cursor.fetchone()
+            if not confirm_id or confirm_id["member_id"] != user_id: #表示該紀錄代號不存在或該紀錄代號不屬於此會員
+                result = False
+            else:
+                cursor.execute(query2, input_data)
+                self.cnx.commit()
+                result = cursor.rowcount
+                if result!=1: #飲食紀錄不存在或飲食紀錄不屬於該會員
+                    result = False 
+                else: #可以刪除
+                    result = True
         except mysql.connector.Error as err:
             print(err)
             msg = err.msg

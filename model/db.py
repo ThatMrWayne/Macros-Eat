@@ -89,7 +89,6 @@ TABLES['intakes'] = (
     "  `fat` float(5,1) NOT NULL," #g
     "  `carbs` float(5,1) NOT NULL," #g
     "  `amount` float(5,1) NOT NULL," #g
-    "  `member_id` bigint NOT NULL," 
     "  PRIMARY KEY (`intake_id`),"
     "  FOREIGN KEY(`record_id`) REFERENCES records(`record_id`) ON DELETE CASCADE ON UPDATE CASCADE"
     ")")  
@@ -104,7 +103,7 @@ TABLES['plans'] = (
     "  `fat` int NOT NULL," #%
     "  `carbs` int NOT NULL," #%
     "  `plan_calories` int NOT NULL," 
-    "  `plan_name` varchar(50),"
+    "  `plan_name` varchar(50) NOT NULL,"
     "  PRIMARY KEY (`plan_id`),"
     "  FOREIGN KEY(`member_id`) REFERENCES members(`member_id`) ON DELETE CASCADE ON UPDATE CASCADE"
     ")")  
@@ -157,7 +156,7 @@ class DataBase():
                 'port': 3306
                 }
             # create connection
-            self.cnxpool = pooling.MySQLConnectionPool(pool_name="tinipool", pool_size=32, **config)
+            self.cnxpool = pooling.MySQLConnectionPool(pool_name="tinipool", pool_size=10, **config)
         except mysql.connector.Error as err:
             if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
                 print("Something is wrong with your user name or password")
@@ -227,7 +226,7 @@ class DataBase():
             except mysql.connector.Error as err: 
                 current_app.logger.info('get_auth_cnx => cannot get mysql connection from connection pool.')
                 n+=1
-                time.sleep(0.1)   
+                time.sleep(0.05)   
         if cnx:
             return Auth_connection(cnx)     
         else:
@@ -246,7 +245,7 @@ class DataBase():
             except mysql.connector.Error as err: 
                 current_app.logger.info('get_food_cnx => cannot get mysql connection from connection pool.')
                 n+=1
-                time.sleep(0.1)   
+                time.sleep(0.05)   
         if cnx:
             return Food_connection(cnx)
         else:
@@ -263,7 +262,7 @@ class DataBase():
             except mysql.connector.Error as err: 
                 current_app.logger.info('get_diet_plan_cnx => cannot get mysql connection from connection pool.')
                 n+=1
-                time.sleep(0.1) 
+                time.sleep(0.05) 
         if cnx:
             return Plan_connection(cnx)
         else:
@@ -280,7 +279,7 @@ class DataBase():
             except mysql.connector.Error as err: 
                 current_app.logger.info('get_daily_record_cnx => cannot get mysql connection from connection pool.')
                 n+=1
-                time.sleep(0.1)  
+                time.sleep(0.05)  
         if cnx:
             return Record_connection(cnx)
         else:
@@ -298,7 +297,7 @@ class DataBase():
             except mysql.connector.Error as err: 
                 current_app.logger.info('get_daily_diet_cnx => cannot get mysql connection from connection pool.')
                 n+=1
-                time.sleep(0.1)  
+                time.sleep(0.05)  
         if cnx:
             return Diet_connection(cnx)
         else:
@@ -317,7 +316,7 @@ class DataBase():
             except mysql.connector.Error as err: 
                 current_app.logger.info('get_weight_cnx => cannot get mysql connection from connection pool.')
                 n+=1
-                time.sleep(0.1)   
+                time.sleep(0.05)   
         if cnx:
             return Weight_connection(cnx)
         else:
@@ -334,7 +333,7 @@ class DataBase():
             except mysql.connector.Error as err: 
                 current_app.logger.info('get_notify_cnx => cannot get mysql connection from connection pool.')
                 n+=1
-                time.sleep(0.1)   
+                time.sleep(0.05)   
         if cnx:
             return Notify_connection(cnx)
         else:
