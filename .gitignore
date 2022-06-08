@@ -2,6 +2,7 @@ templates/chart.html
 templates/table.html
 templates/test.html
 templates/dot.html
+templates/error.html
 chart.html
 table.html
 test.html
