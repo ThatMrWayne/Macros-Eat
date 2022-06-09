@@ -301,14 +301,6 @@ def auth_connect_(auth):
 		current_user_name = data["name"]
 		user_data = {"member_id":current_user_id,"name":current_user_name}
 		raw_user_data = redis_db.redis_instance.hget("user",str(current_user_id))
-		if not raw_user_data:
-			raw_user_data = json.dumps(
-							{"room_id" : 0,
-							"name" : current_user_name,
-							"socket_id" : [0],
-							"status" : 0	
-							})
-			redis_db.redis_instance.hsetnx("user",str(current_user_id),raw_user_data)
 		#要看的是status
 		process_user_data = json.loads(raw_user_data)
 		if process_user_data["status"] == 1 :  #代表已經上線了
@@ -547,14 +539,6 @@ def auth_connect_nutri(auth):
 		current_nutri_name = data["name"]
 		nutri_data = {"nutri_id":current_nutri_id,"name":current_nutri_name}
 		raw_nutri_data = redis_db.redis_instance.hget("nutri",str(current_nutri_id)) #一定會有營養師在redis的資料,因為在登入的時候就先存好了
-		if not raw_nutri_data:
-			raw_nutri_data = json.dumps(
-								{"room_id" : 0,
-								"name" : current_nutri_name,
-								"socket_id" : [0],
-								"status" : 0	
-							})
-			redis_db.redis_instance.hsetnx("nutri",str(current_nutri_id),raw_nutri_data)
 		#要看的是status
 		process_nutri_data = json.loads(raw_nutri_data)
 		if process_nutri_data["status"] == 1: #代表已經有開著諮詢頁面了
