@@ -32,9 +32,6 @@ let lock=false;
 let buffer_message_list=[];
 //another lock for scrolling
 let scroll_lock=false;
-//emoji-list
-emoji_list=["/picture/emoji1.svg","/picture/emoji2.svg","/picture/emoji3.svg","/picture/emoji4.svg","/picture/emoji5.svg"
-,"/picture/emoji10.svg","/picture/emoji9.svg","/picture/emoji8.svg","/picture/emoji7.svg","/picture/emoji6.svg"]
 
 
 
@@ -614,6 +611,7 @@ function connect_socket(identity){
                     logout.remove();
                 };
                 document.querySelector(".user-profile").remove();
+                on_which_nutri=null;
                 console.log("already have it");
             }
             let navmenu = document.querySelector(".navmenu");
@@ -1008,6 +1006,7 @@ function connect_socket(identity){
                     logout.remove();
                 };
                 document.querySelector(".user-profile").remove();
+                on_which_user=null;
                 console.log("already have it");
             };
             let navmenu = document.querySelector(".navmenu");    
