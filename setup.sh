@@ -1,3 +1,3 @@
 #!/bin/bash
 cd /home/ubuntu/test
-touch test2.txt
+touch test3.txt
