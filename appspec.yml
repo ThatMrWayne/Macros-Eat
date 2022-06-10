@@ -1,7 +1,7 @@
 version: 0.0
 os: linux
 files:
-  - source: ./requirements.txt
+  - source: ./test.txt
     destination: /home/ubuntu/test/
 hooks:
   AfterInstall:
