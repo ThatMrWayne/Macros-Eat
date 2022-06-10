@@ -235,7 +235,7 @@ function create_plan_tr_load(plan){
 
 
 
-//not done yet
+
 function pop_search_food(background){
     let search_food_box = document.createElement("div");
     search_food_box.classList.add("search-food-box");

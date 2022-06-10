@@ -277,14 +277,14 @@ class Plan_connection(Connection):
         cursor = self.cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         query1 = "INSERT INTO plans VALUES (DEFAULT,%(create_at)s,%(member_id)s,%(protein)s,%(fat)s,%(carbs)s,%(plan_calories)s,%(plan_name)s)"
-        query2 = "SELECT plan_id, plan_name FROM plans WHERE member_id = %(member_id)s ORDER BY plan_id DESC LIMIT 0,1"
+        #query2 = "SELECT plan_id, plan_name FROM plans WHERE member_id = %(member_id)s ORDER BY plan_id DESC LIMIT 0,1"
         input_data = {'member_id': user_id, 'create_at' : request_data["create_at"] ,'plan_name': request_data.get("plan_name") ,'plan_calories': request_data["plan_calories"], 'protein': request_data["protein"], 'fat':request_data["fat"], 'carbs':request_data["carbs"]}
         try:
             cursor.execute(query1, input_data)
             self.cnx.commit()
-            cursor.execute(query2, {"member_id":user_id})
-            plan = cursor.fetchone()
-            result = plan
+            #cursor.execute(query2, {"member_id":user_id})
+            #plan = cursor.fetchone()
+            result = True
         except mysql.connector.Error as err:
             print(err)
             msg = err.msg

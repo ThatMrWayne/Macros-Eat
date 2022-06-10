@@ -6,8 +6,7 @@ on:
 
 jobs:
 
-  deploy:
-    name: Build image
+  continuous-integration:
     runs-on: ubuntu-latest
 
     steps:
@@ -35,3 +34,4 @@ jobs:
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
         docker push -a $ECR_REGISTRY/$ECR_REPOSITORY
+    

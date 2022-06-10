@@ -114,7 +114,7 @@ def handle_add_diet_plan(request):
             elif result: #更新成功,要把cache清空
                 redis_key = f'get_my_plan{user_id}'
                 redis_db.redis_instance.delete(redis_key)
-                response_msg={"ok": True, "plan_id": result["plan_id"], "plan_name": result["plan_name"]}
+                response_msg={"ok": True} #"plan_id": result["plan_id"], "plan_name": result["plan_name"]}
                 return jsonify(response_msg), 201 
         elif connection == "error":  #如果沒有順利取得連線
             response_msg={
@@ -227,15 +227,12 @@ def handle_get_diet_plans(page,user_id):
 
 
 #要驗證JWT
-@plan.route('/api/plans', methods=["GET","POST","PATCH","DELETE"])
+@plan.route('/api/plans', methods=["GET","POST","DELETE"])
 @jwt_required_for_plan()
 def plans():
     if request.method == "POST": #如果是POST,代表要新增飲食計畫
         add_diet_plan_result = handle_add_diet_plan(request)
         return add_diet_plan_result
-    elif request.method == "PATCH": #如果是PATCH,代表要更新飲食計畫 
-        update_diet_plans = handle_update_diet_plan(request)
-        return update_diet_plans
     elif request.method == "DELETE": #如果是delete,代表要刪除飲食計畫
         delete_diet_result = handle_delete_diet_plan(request)
         return delete_diet_result
