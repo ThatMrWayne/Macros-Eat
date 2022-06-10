@@ -54,6 +54,5 @@ jobs:
         aws deploy create-deployment \
           --application-name macroseat_application \
           --deployment-group-name development_group \
-          --revision GitHub \
           --deployment-config-name CodeDeployDefault.OneAtATime \
           --github-location repository=${{ github.repository }},commitId=${{ github.sha }}
