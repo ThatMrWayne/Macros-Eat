@@ -4,11 +4,15 @@ files:
   - source: ./test.txt
     destination: /home/ubuntu/test
 hooks:
+  ApplicationStop:
+   - location: ./scripts/stop.sh
+     timeout: 300
+     runas: root
   AfterInstall:
    - location: ./scripts/setup.sh
      timeout: 300
      runas: root
   ApplicationStart:
   - location: ./scripts/run.sh
-    timeout: 400
+    timeout: 300
     runas: root   

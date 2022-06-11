@@ -1,7 +1,6 @@
 #!/bin/bash
 cd /home/ubuntu
 pip3 install redis==4.2.2
-sudo docker container stop flask-macroseat
 sudo docker container rm flask-macroseat
 sudo docker image rmi 298325099374.dkr.ecr.us-east-1.amazonaws.com/macroseat:latest
 sudo python3 test-redis.py 
