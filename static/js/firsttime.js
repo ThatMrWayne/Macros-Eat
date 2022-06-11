@@ -1,4 +1,4 @@
-//送出更新資料
+//send updated data
 async function submit_information(payload,jwt){
     try{
         let response = await fetch('/api/users',{
@@ -7,9 +7,8 @@ async function submit_information(payload,jwt){
                                      headers: {"Authorization" : `Bearer ${jwt}`,'Content-Type': 'application/json'}
                                     });
         let result = await response.json();                            
-        if(response.ok){ //更新會員資料完成
-            console.log(result); 
-            //要查看header裡有沒有新的JWT,如果有就把舊的刪掉換成新的
+        if(response.ok){ 
+            //check if new JWT in header(switch old one if existed)
             let test = [];
             for(let key of response.headers.keys()) {
                 if(key === "access_token"){
@@ -18,14 +17,14 @@ async function submit_information(payload,jwt){
                     localStorage.setItem('JWT',test[0]);
                 }
             }
-            //這時候也得到新的cookie(remind=yes)
-            window.location.replace('/record') //轉到紀錄主畫面
+            //get new cookie at this moment (remind=yes)
+            window.location.replace('/record')
         }else if (response.status === 403){
             console.log('JWT已失效,請重新登入');
             localStorage.removeItem("JWT");
             window.location.href = '/';
         }else if (response.status === 400){
-            console.log(result)
+            console.log(result);
         }else{
             console.log(result);
         }
@@ -35,22 +34,22 @@ async function submit_information(payload,jwt){
     }    
 }
 
-//產生提示訊息
+//show reminder tip
 function show_tip(message,attr){
     const tip = document.querySelector('.tip');
     if(tip){
         document.documentElement.style.setProperty('--color',"none");
         tip.remove();
-    }
+    };
     let div = document.createElement("div");
     div.appendChild(document.createTextNode(message));
     div.classList.add("tip");
     let span = document.querySelector(attr);
     span.after(div);
     document.documentElement.style.setProperty('--color',"#F0754F");
-}
+};
 
-//檢查表單的資料
+//check data in form
 function validate_form(){
     let age = document.getElementById("age");
     let height = document.getElementById("height");
@@ -72,12 +71,12 @@ function validate_form(){
         show_tip('Enter a valid weight','.weight');
         result = false;
         return result;
-    }
-    return result
-}
+    };
+    return result;
+};
 
 
-//組織表單資料成json檔
+//organize data from form to json file
 function organize_form(){
     let formdata = new FormData(document.querySelector('.form'));
     let data={}
@@ -92,6 +91,5 @@ function organize_form(){
             data[pair[0]]=Number(pair[1]);
         };
     };
-    console.log(data);
-    return JSON.stringify(data)
-}
+    return JSON.stringify(data);
+};

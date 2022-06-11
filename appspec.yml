@@ -1,7 +1,7 @@
 version: 0.0
 os: linux
 files:
-  - source: ./test.txt
+  - source: ./deploy.txt
     destination: /home/ubuntu/test
 hooks:
   ApplicationStop:

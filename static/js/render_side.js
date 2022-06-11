@@ -1,40 +1,33 @@
 let my_food_page = 0;
 let my_food_page_load = 0;
 let can_get_my_food = true; 
-//
 let weight_action = true;
-//查看有沒有已經在體重紀錄頁面
-let already_on_weight_page = false;
-//查看有沒有已經在飲食紀錄頁面
-let already_on_record_page = true;
+let already_on_weight_page = false; //check if on weight record page
+let already_on_record_page = true; // check if on record page
 
 
-
-/* 會員頁部分 (not done yet)*/
-
-async function get_member_data(){  
-
+async function get_member_data(){ 
+    /* memebr page */
 };
 
 function render_member_page(){
-
+     /* render memebr page */
 };
 
-/* whph60308*/ 
 
 function render_user_profile(navmenu,user_data){
     let user_profile = document.createElement("div");
     user_profile.classList.add("user-profile");
     let img = new Image();
-    img.src = "/picture/face.png";
+    img.src = "https://d2fbjpv4bzz3d2.cloudfront.net/face.png";
     img.classList.add("profile_picture");
     let span = document.createElement("span");
     span.classList.add("username");
     span.setAttribute("memberid",user_data["member_id"]);
     span.setAttribute("identity",1);
     span.appendChild(document.createTextNode(user_data["name"]));
-    span.addEventListener("click",function(){ //按下後跑去會員頁面
-        render_member_page(); //
+    span.addEventListener("click",function(){ 
+        render_member_page(); 
     });
     user_profile.appendChild(img);
     user_profile.appendChild(span);
@@ -53,8 +46,8 @@ function render_nutri_profile(navmenu,nutri_data){
     span.setAttribute("memberid",nutri_data["nutri_id"]);
     span.setAttribute("identity",2);
     span.appendChild(document.createTextNode(nutri_data["name"]));
-    span.addEventListener("click",function(){ //按下後跑去會員頁面
-        render_member_page(); //
+    span.addEventListener("click",function(){ 
+        render_member_page(); 
     });
     user_profile.appendChild(img);
     user_profile.appendChild(span);
@@ -62,21 +55,16 @@ function render_nutri_profile(navmenu,nutri_data){
 };
 
 
-
-
-/* 我的食物部分 */
-
-
-async function get_my_food(food_page,purpose){ //get_my_food成功後才render_my_food
+/* my food part  */
+async function get_my_food(food_page,purpose){ //after get_my_food then render_my_food
     let jwt = localStorage.getItem("JWT");
     try{
-        let response = await fetch('/api/my-food?page='+food_page,{ //初始page是0
+        let response = await fetch('/api/my-food?page='+food_page,{ //origin page is 0
                                                     method: 'get',
                                                     headers: {"Authorization" : `Bearer ${jwt}`}
                                                 });
         let result = await response.json();                                
-        if(response.ok){  //200情況下 
-            //插到myfood顯示匡tbody內
+        if(response.ok){  
             let tbody = document.querySelector(".my-food-body");
             let food = result["data"];
             if(food.length!==0){
@@ -96,7 +84,7 @@ async function get_my_food(food_page,purpose){ //get_my_food成功後才render_m
                 my_food_page = next_page;
             }else{
                 my_food_page_load =next_page;
-            }  
+            };  
             can_get_my_food = true;      
         }else if(response.status === 403){ //
             console.log("JWT失效,拒絕存取");
@@ -109,11 +97,10 @@ async function get_my_food(food_page,purpose){ //get_my_food成功後才render_m
         console.log(`${message}`)
         throw Error('Fetching was not ok!!.')
     }; 
-
 };
 
 
-//刪除我的食物
+
 async function delete_my_food(food_id){
     let jwt = localStorage.getItem("JWT");
     try{
@@ -121,21 +108,21 @@ async function delete_my_food(food_id){
                                                     method: 'delete',
                                                     headers: {"Authorization" : `Bearer ${jwt}`}
                                                 });                               
-        if(response.status===204){  //204 刪除我的食物成功
-            //新增我的食物成功,直接重新打一次get_my_food,把my_food_page歸0,先把tbody清空
+        if(response.status===204){  //204 
+            //cal  get_my_food,set my_food_page = 0,clear out tbody
             let tbody = document.querySelector(".my-food-body");
             while(tbody.firstChild){
                 tbody.firstChild.remove(); 
             };
             my_food_page = 0;
             get_my_food(my_food_page,"foredit");      
-        }else if(response.status === 400){ //刪除失敗,該食物不存在或不屬於此會員
+        }else if(response.status === 400){ 
             console.log("刪除失敗");
-        }else if(response.status === 403){ //
+        }else if(response.status === 403){ 
             console.log("JWT失效,拒絕存取");
             localStorage.removeItem("JWT");
-            window.location.replace("/"); //導回首頁,重新登入;
-        }else if(response.status === 500){ //如果是500,代表伺服器(資料庫)內部錯誤
+            window.location.replace("/"); 
+        }else if(response.status === 500){ 
             console.log("伺服器錯誤");
         };
     }catch(message){
@@ -147,7 +134,7 @@ async function delete_my_food(food_id){
 
 
 
-//我的食物tr(編輯) 
+//my food tr(edit) 
 function create_my_tr_edit(food){
     let tr = document.createElement("tr");
     tr.classList.add("food-item");
@@ -165,11 +152,11 @@ function create_my_tr_edit(food){
     td_c.appendChild(document.createTextNode(String(food["carbs"])));
     let td_delete = document.createElement("td");
     td_delete.classList.add("delete");
-    td_delete.setAttribute("id",food["food_id"]); //把food_id直接放在垃圾桶
+    td_delete.setAttribute("id",food["food_id"]); //put food_id inside garbage can
     let delete_icon = document.createElement("i");
     delete_icon.setAttribute("data-feather","trash");    
-    td_delete.addEventListener("click",function(){ //註冊刪除飲食紀錄
-        can_get_my_food = false; //按下去的時候要先變false
+    td_delete.addEventListener("click",function(){ 
+        can_get_my_food = false; 
         delete_my_food(this.id);
     });
     td_delete.appendChild(delete_icon);
@@ -178,18 +165,17 @@ function create_my_tr_edit(food){
     tr.appendChild(td_f);
     tr.appendChild(td_c);
     tr.appendChild(td_delete);
-    return tr
+    return tr;
 };
 
 
-
-//我的食物tr(load from my food) 
+//my food tr(load from my food) 
 function create_my_tr_load(food){
     let tr = document.createElement("tr");
     tr.classList.add("food-item-load");
-    tr.addEventListener("click",function(){ //按下計畫後會assign給全域變數select_food,然後變色
+    tr.addEventListener("click",function(){ //assign to global variable select_food,change color
         const tip = document.querySelector('.tip');
-        if(tip){ //如果有tip先拿掉
+        if(tip){ //if tip
             document.documentElement.style.setProperty('--color',"none");
             tip.remove();
         };
@@ -219,16 +205,13 @@ function create_my_tr_load(food){
     tr.appendChild(td_p);
     tr.appendChild(td_f);
     tr.appendChild(td_c);
-    return tr
+    return tr;
 };
 
 
 
 
-
-
-
-async function add_food(payload,jwt){ //新增食物API
+async function add_food(payload,jwt){ 
     try{
         let response = await fetch('/api/my-food',{
                                      method: 'post',
@@ -236,17 +219,15 @@ async function add_food(payload,jwt){ //新增食物API
                                      headers: {"Authorization" : `Bearer ${jwt}`,'Content-Type': 'application/json'}
                                     });
         let result = await response.json();                            
-        if(response.status === 201){ //新增我的食物完成
-            //新增完成,插到我的食物table
-            let payload_obj = JSON.parse(payload);
-            //新增我的食物成功,直接重新打一次get_my_food,把my_food_page歸0,先把tbody清空
+        if(response.status === 201){ 
+            //call get_my_food,set my_food_page = 0,clear out tbody
             let tbody = document.querySelector(".my-food-body");
             while(tbody.firstChild){
                 tbody.firstChild.remove(); 
             };
             my_food_page = 0;
             get_my_food(my_food_page,"foredit");
-            //把新增食物匡清空,提示訊息清空
+            //clear out add food box and reminder
             let food_name = document.getElementById("new-food-name");
             let protein = document.getElementById("new-food-protein");
             let fat = document.getElementById("new-food-fat");
@@ -276,7 +257,7 @@ async function add_food(payload,jwt){ //新增食物API
 
 
 
-//驗證新增食物資料
+//verify add new food data 
 function validate_new_food(){
     let food_name = document.getElementById("new-food-name");
     let protein = document.getElementById("new-food-protein");
@@ -299,13 +280,12 @@ function validate_new_food(){
         show_tip('Enter a valid value','.carb-title');
         result = false;
         return result;
-    }
-    return result    
+    };
+    return result;    
 };
 
 
-
-//組織新增食物資料  打/my-food POST
+//organize new food data  call /my-food POST
 function organize_new_food(){
     let formdata = new FormData(document.querySelector('.add-food-form'));
     let data={}
@@ -322,19 +302,19 @@ function organize_new_food(){
         }else if(pair[0]==='input-food-c'){
             let n  = Number(Number(pair[1]).toFixed(1));
             data["carbs"]=n;
-        }
+        };
     };
-    return JSON.stringify(data)
-}
+    return JSON.stringify(data);
+};
 
 
 
 
-//pop out出食物顯示匡(編輯)
+//pop out food window(for edit)
 function render_my_food_window(background){
     let my_food_box = document.createElement("div");
     my_food_box.classList.add("my-food-box");
-    //先裝left的我的食物清單
+    //my food list 
     let show_my_food = document.createElement("div");
     show_my_food.classList.add("show-my-food");
     let table = document.createElement("table");
@@ -352,8 +332,8 @@ function render_my_food_window(background){
     table.appendChild(thead);
     let tbody = document.createElement("tbody");
     tbody.classList.add("my-food-body");
-    get_my_food(my_food_page,"foredit") //取得食物資料
-    show_my_food.addEventListener("scroll",function(){ //my-food table註冊滑動載入my-food事件
+    get_my_food(my_food_page,"foredit") 
+    show_my_food.addEventListener("scroll",function(){ //my-food table register scroll loading event 
         if(this.scrollHeight-this.scrollTop <= this.clientHeight){
             if(can_get_my_food && my_food_page){
                 can_get_my_food = false;
@@ -364,16 +344,15 @@ function render_my_food_window(background){
     table.appendChild(tbody);
     show_my_food.appendChild(table);
     my_food_box.appendChild(show_my_food);
-    //在裝right的新增我的食物
+    //right adding new food section
     let add_food_div = document.createElement("div");
     add_food_div.classList.add("add-food");
     let add_food_form = document.createElement("form");
     add_food_form.classList.add("add-food-form");
-    //小title
     let title_div = document.createElement("div");
     title_div.classList.add("add-food-title");
     title_div.innerHTML = "Add self-defined food";
-    //填入食物名稱(必填)
+    //fill in food name (must)
     let fill_food_name = document.createElement("div");
     fill_food_name.classList.add("fill-food-name");
     fill_food_name.classList.add("fill");
@@ -387,14 +366,14 @@ function render_my_food_window(background){
     input_food_name.setAttribute("name","input-food-name");
     fill_food_name.appendChild(span1);
     fill_food_name.appendChild(input_food_name);
-    //分隔線
+    //seperate line
     let break_div = document.createElement("div");
     break_div.classList.add("break");
-    //提示語
+    //reminder
     let remider_div = document.createElement("div");
     remider_div.classList.add("add-remind");
     remider_div.innerHTML = "Food macros (per 100g food)";
-    //填入蛋白質
+    //fill in protein
     let fill_protein = document.createElement("div");
     fill_protein.classList.add("fill-protein");
     fill_protein.classList.add("fill");
@@ -413,7 +392,7 @@ function render_my_food_window(background){
     fill_protein.appendChild(span2);
     fill_protein.appendChild(input_p);
     fill_protein.appendChild(span2_1);
-    //填入脂肪
+    //fill in fat
     let fill_fat = document.createElement("div");
     fill_fat.classList.add("fill-fat");
     fill_fat.classList.add("fill");
@@ -432,7 +411,7 @@ function render_my_food_window(background){
     fill_fat.appendChild(span3);
     fill_fat.appendChild(input_f);
     fill_fat.appendChild(span3_1);
-    //填入碳水
+    //fill in carbs
     let fill_carbs = document.createElement("div");
     fill_carbs.classList.add("fill-carbs");
     fill_carbs.classList.add("fill");
@@ -451,17 +430,16 @@ function render_my_food_window(background){
     fill_carbs.appendChild(span4);
     fill_carbs.appendChild(input_c);
     fill_carbs.appendChild(span4_1);
-    //按鈕
+    //button
     let btn_div = document.createElement("div");
     btn_div.classList.add("add-food-btn");
     let submit_btn = document.createElement("span");
     submit_btn.classList.add("submit-add-food");
     submit_btn.innerHTML = "Save change";
-    submit_btn.addEventListener("click",function(){ //註冊新增我的食物事件
-        //送出新增的食物資料前先檢查有沒有都填了＆資料正不正確
+    submit_btn.addEventListener("click",function(){ //register add my food event event
         let validate = validate_new_food();
         if(validate){
-            can_get_my_food = false; //按下去的時候要先變false
+            can_get_my_food = false; //set to false when click
             let jwt = localStorage.getItem("JWT");
             let json_data = organize_new_food();
             add_food(json_data,jwt);
@@ -470,17 +448,15 @@ function render_my_food_window(background){
     let close_btn = document.createElement("span");
     close_btn.classList.add("close-add");
     close_btn.innerHTML = "Close";
-    close_btn.addEventListener("click",function(){ //關掉更新window
-        //關掉框框
+    close_btn.addEventListener("click",function(){ 
         document.body.classList.toggle("stop-scrolling");
         let bg = document.getElementsByClassName('bg');
         document.body.removeChild(bg[0]);
-        my_food_page = 0; //頁面歸零
+        my_food_page = 0; 
         can_get_my_food = true;
     });
     btn_div.appendChild(close_btn);
     btn_div.appendChild(submit_btn);
-    //最後
     add_food_form.appendChild(title_div);
     add_food_form.appendChild(fill_food_name);
     add_food_form.appendChild(break_div)
@@ -498,11 +474,11 @@ function render_my_food_window(background){
 
 
 
-//pop out出食物顯示框(load from my food)
+//pop out food window (load from my food)
 function render_my_food_window_load(background){
     let my_food_box = document.createElement("div");
     my_food_box.classList.add("my-food-box");
-    //先裝left的我的食物清單
+    //left: my food section
     let show_my_food = document.createElement("div");
     show_my_food.classList.add("show-my-food");
     let table = document.createElement("table");
@@ -520,28 +496,27 @@ function render_my_food_window_load(background){
     table.appendChild(thead);
     let tbody = document.createElement("tbody");
     tbody.classList.add("my-food-body");
-    get_my_food(my_food_page_load,"forload"); //取得食物資料
-    show_my_food.addEventListener("scroll",function(){ //my-food table註冊滑動載入my-food事件
+    get_my_food(my_food_page_load,"forload"); 
+    show_my_food.addEventListener("scroll",function(){ 
         if(this.scrollHeight-this.scrollTop <= this.clientHeight){
             if(can_get_my_food && my_food_page_load){
                 can_get_my_food = false;
                 get_my_food(my_food_page_load,"forload");
-            }
+            };
         };
     });
     table.appendChild(tbody);
     show_my_food.appendChild(table);
     my_food_box.appendChild(show_my_food);
-    //在裝right的輸入食物的量
+    //right : input amount
     let load_amount_div = document.createElement("div");
     load_amount_div.classList.add("load-food");
     let load_food_form = document.createElement("form");
     load_food_form.classList.add("load-food-form");
-    //小title
     let title_div = document.createElement("div");
     title_div.classList.add("load-food-title");
     title_div.innerHTML = "Select one food and input amount";
-    //填入食物amount(必填)
+    //fill in food amount(must)
     let load_food_amount = document.createElement("div");
     load_food_amount.classList.add("load-food-amount");
     load_food_amount.classList.add("fill");
@@ -559,13 +534,13 @@ function render_my_food_window_load(background){
     input_food_amount.setAttribute("min","0");
     input_food_amount.setAttribute("step","0.1");
     load_food_amount.appendChild(span1);
-    input_food_amount.addEventListener("input",function(){ //如果沒有選食物就不能填量一律取消
+    input_food_amount.addEventListener("input",function(){ //if no choose food then can't fill in amount
         if(!select_food["food_name"]){
             this.value="";
             show_tip('Please select food first','.load-title_amount');            
-        }else if(Number(this.value)){ //如果輸入的是數字才動態計算pfc
+        }else if(Number(this.value)){ //if number then calculate pfc
             const tip = document.querySelector('.tip');
-            if(tip){ //如果有tip先拿掉
+            if(tip){ //take off tip if existed
                 document.documentElement.style.setProperty('--color',"none");
                 tip.remove();
             };
@@ -578,9 +553,9 @@ function render_my_food_window_load(background){
             document.querySelector(".load-food-fat-amt").innerHTML = fat.toFixed(1);
             document.querySelector(".load-food-carbs-amt").innerHTML = carbs.toFixed(1);
             document.querySelector(".load-food-calo-amt").innerHTML = String(calo);
-        }else if(!this.value){ //如果取消amount,pfc和calo歸零
+        }else if(!this.value){ //if no amount,pfc and calo set to 0
             const tip = document.querySelector('.tip');
-            if(tip){ //如果有tip先拿掉
+            if(tip){ 
                 document.documentElement.style.setProperty('--color',"none");
                 tip.remove();
             };
@@ -588,11 +563,11 @@ function render_my_food_window_load(background){
             document.querySelector(".load-food-fat-amt").innerHTML="0";
             document.querySelector(".load-food-carbs-amt").innerHTML="0";
             document.querySelector(".load-food-calo-amt").innerHTML="0";
-        }
+        };
     });
     load_food_amount.appendChild(input_food_amount);
     load_food_amount.appendChild(span1_1);
-    //蛋白質的量
+    //protein amount
     let load_food_protein = document.createElement("div");
     load_food_protein.classList.add("load-food-protein");
     load_food_protein.classList.add("fill");
@@ -608,7 +583,7 @@ function render_my_food_window_load(background){
     load_food_protein.appendChild(span2);
     load_food_protein.appendChild(span2_1);
     load_food_protein.appendChild(span2_2);    
-    //脂肪的量
+    //fat amount
     let load_food_fat = document.createElement("div");
     load_food_fat.classList.add("load-food-fat");
     load_food_fat.classList.add("fill");
@@ -624,7 +599,7 @@ function render_my_food_window_load(background){
     load_food_fat.appendChild(span3);
     load_food_fat.appendChild(span3_1);
     load_food_fat.appendChild(span3_2); 
-    //碳水的量
+    //carb amount
     let load_food_carbs = document.createElement("div");
     load_food_carbs.classList.add("load-food-carbs");
     load_food_carbs.classList.add("fill");
@@ -640,7 +615,7 @@ function render_my_food_window_load(background){
     load_food_carbs.appendChild(span4);
     load_food_carbs.appendChild(span4_1);
     load_food_carbs.appendChild(span4_2); 
-    //攝取的熱量
+    //consuming calories
     let load_food_calo = document.createElement("div");
     load_food_calo.classList.add("load-food-calo");
     load_food_calo.classList.add("fill");
@@ -656,24 +631,23 @@ function render_my_food_window_load(background){
     load_food_calo.appendChild(span5);
     load_food_calo.appendChild(span5_1);
     load_food_calo.appendChild(span5_2);   
-    //按鈕
+    //button
     let btn_div = document.createElement("div");
     btn_div.classList.add("load-food-btn");
     let submit_btn = document.createElement("span");
     submit_btn.classList.add("submit-load-food");
     submit_btn.innerHTML = "Add";
-    submit_btn.addEventListener("click",function(){ //註冊新增飲食事件
-        //送出資料前先檢查有沒有都填了＆資料正不正確
+    submit_btn.addEventListener("click",function(){ 
         let amount = document.getElementById("load-my-food-amount");
-        if(select_food["food_name"]===null){ //如果沒有選食物
+        if(select_food["food_name"]===null){ 
             show_tip('Please select food first','.load-title_amount');
-        }else if(!amount.value){ //如果沒有填量
+        }else if(!amount.value){ 
             show_tip('Enter consuming amount','.load-title_amount');
-        }else if(!Number(amount.value)){ //如果沒有填入數字的量
+        }else if(!Number(amount.value)){ 
             show_tip('Enter valid amount','.load-title_amount');
-        }else if(Number(amount.value)<=0){ //如果量<=0
+        }else if(Number(amount.value)<=0){ //if amount <=0
             show_tip('Amount needs to be > 0','.load-title_amount');
-        }else{ //才要送出
+        }else{ 
             let consume_calo = Number(document.querySelector(".load-food-calo-amt").textContent);
             let consume_protein = Number(document.querySelector(".load-food-protein-amt").textContent);
             let consume_fat = Number(document.querySelector(".load-food-fat-amt").textContent);
@@ -692,7 +666,6 @@ function render_my_food_window_load(background){
             selected.classList.toggle("selected");            
             let promise = add_intake(JSON.stringify(payload),"load");
             promise.then((result)=>{
-                //清空
                 let amount = document.getElementById("load-my-food-amount");
                 amount.value="";
                 let l = [".load-food-protein-amt",".load-food-fat-amt",".load-food-carbs-amt",".load-food-calo-amt"];
@@ -708,14 +681,13 @@ function render_my_food_window_load(background){
     let close_btn = document.createElement("span");
     close_btn.classList.add("close-load");
     close_btn.innerHTML = "Close";
-    close_btn.addEventListener("click",function(){ //關掉更新window
-        //關掉框框
+    close_btn.addEventListener("click",function(){
         document.body.classList.toggle("stop-scrolling");
         let bg = document.getElementsByClassName('bg');
         document.body.removeChild(bg[0]);
-        my_food_page_load = 0; //頁面歸零
+        my_food_page_load = 0; 
         can_get_my_food = true;
-        //select_food 變回來
+        //select_food set back to null
         select_food={"food_name":null,
                  "food_id":null, 
                  "protein":null,
@@ -725,7 +697,6 @@ function render_my_food_window_load(background){
     });
     btn_div.appendChild(close_btn);
     btn_div.appendChild(submit_btn);    
-    //最後
     load_food_form.appendChild(title_div);
     load_food_form.appendChild(load_food_amount);
     load_food_form.appendChild(load_food_protein);
@@ -737,10 +708,7 @@ function render_my_food_window_load(background){
     my_food_box.appendChild(load_amount_div);
     background.appendChild(my_food_box);
     return background;      
-}
-
-
-
+};
 
 
 
@@ -753,19 +721,18 @@ function render_my_food(navmenu){
     let span = document.createElement("span");
     span.setAttribute("id","myfood");
     span.appendChild(document.createTextNode("My Food"));
-    span.addEventListener("click",function(){ //按下後產生我的食物
+    span.addEventListener("click",function(){ //click to show my food
         let bg = render_my_food_window(createBack());
         document.body.appendChild(bg);
     });
     personal_food.appendChild(span);
     navmenu.appendChild(personal_food);
-}
+};
 
 
-/* 我的飲食計畫部分 */
+/* my diet plan */
 
 
-//刪除飲食計畫
 async function delete_plan(plan_id_token){
     let jwt = localStorage.getItem("JWT");
     try{
@@ -774,21 +741,21 @@ async function delete_plan(plan_id_token){
                                                     method: 'delete',
                                                     headers: {"Authorization" : `Bearer ${jwt}`}
                                                 });                               
-        if(response.status===204){  //204 刪除我的計畫成功
-            //從我的飲食計畫table移除 ,也是一樣要重新get_diet_plan
+        if(response.status===204){  
+            //re get_diet_plan
             let tbody = document.querySelector(".plan-body");
             while(tbody.firstChild){
                 tbody.firstChild.remove(); 
             };    
             my_plan_page = 0;
             get_diet_plan(my_plan_page,"foredit");
-        }else if(response.status === 400){ //刪除失敗,日飲食計畫不存在或該日飲食計畫不屬於此會員
+        }else if(response.status === 400){ 
             console.log("刪除失敗");
-        }else if(response.status === 403){ //
+        }else if(response.status === 403){ 
             console.log("JWT失效,拒絕存取");
             localStorage.removeItem("JWT");
-            window.location.replace("/"); //導回首頁,重新登入;
-        }else if(response.status === 500){ //如果是500,代表伺服器(資料庫)內部錯誤
+            window.location.replace("/"); 
+        }else if(response.status === 500){ 
                 console.log("伺服器錯誤");
         };
     }catch(message){
@@ -799,7 +766,6 @@ async function delete_plan(plan_id_token){
 
 
 
-//新增飲食計畫
 async function add_diet_plan(payload,jwt){
     try{
         let response = await fetch('/api/plans',{
@@ -808,17 +774,14 @@ async function add_diet_plan(payload,jwt){
                                      headers: {"Authorization" : `Bearer ${jwt}`,'Content-Type': 'application/json'}
                                     });
         let result = await response.json();                            
-        if(response.status === 201){ //新增我計畫完成
-            //新增完成,插到我的計畫table
-            let payload_obj = JSON.parse(payload);
-            //新增我計畫成功,直接重新打一次get_diet_plan,把my_plan_page歸0,先把tbody清空
+        if(response.status === 201){ 
+            //call get_diet_plan,set my_plan_page = 0,clear out tbody
             let tbody = document.querySelector(".plan-body");
             while(tbody.firstChild){
                 tbody.firstChild.remove(); 
             };    
             my_plan_page = 0;
             get_diet_plan(my_plan_page,"foredit");    
-            //把新增計畫匡清空,提示訊息清空
             let protein = document.getElementsByName("new-plan_protein")[0];
             let fat = document.getElementsByName("new-plan_fat")[0];
             let carbs = document.getElementsByName("new-plan_carbs")[0];
@@ -839,7 +802,7 @@ async function add_diet_plan(payload,jwt){
             console.log(result);
         }else{
             console.log('伺服器錯誤');
-        }
+        };
     }catch(message){
         console.log(`${message}`)
         throw Error('Fetching was not ok!!.')
@@ -847,8 +810,7 @@ async function add_diet_plan(payload,jwt){
 }; 
 
 
-
-//驗證新增飲食計畫資料
+//verify add new diet plan data 
 function validate_new_plan(){
     let protein = document.getElementsByName("new-plan_protein")[0];
     let fat = document.getElementsByName("new-plan_fat")[0];
@@ -879,13 +841,13 @@ function validate_new_plan(){
         }
         result = false;
         return result;
-    }
-    return result     
+    };
+    return result;     
 };
 
 
 
-//組織新增飲食計畫資料
+//organize adding new diet plan data 
 function organize_new_plan(){
     let protein = document.getElementsByName("new-plan_protein")[0].value;
     let fat = document.getElementsByName("new-plan_fat")[0].value;
@@ -900,12 +862,12 @@ function organize_new_plan(){
     let timestamp = Math.floor(current_date.getTime()/1000);
     data["create_at"] = timestamp;
     return JSON.stringify(data)
-}
+};
 
 
 
 
-//製造編輯飲食計畫的tr
+//create tr for editing diet plan
 function create_plan_tr_edit(plan){
     let tr = document.createElement("tr");
     tr.classList.add("edit-plan-item");
@@ -926,48 +888,42 @@ function create_plan_tr_edit(plan){
     td_calories.appendChild(document.createTextNode(String(plan["plan_calories"])));
     let td_delete = document.createElement("td");
     td_delete.classList.add("delete");
-    td_delete.setAttribute("id",'del-'+plan["plan_id"]); //把plan_id直接放在垃圾桶
+    td_delete.setAttribute("id",'del-'+plan["plan_id"]); //put plan_id in garbage can
     let delete_icon = document.createElement("i");
     delete_icon.setAttribute("data-feather","trash");
-    td_delete.addEventListener("click",function(){ //註冊刪除飲食計畫
-        can_get_my_plan = false; //按下去的時候要先變false
+    td_delete.addEventListener("click",function(){ 
+        can_get_my_plan = false; 
         delete_plan(this.id);
     });
     td_delete.appendChild(delete_icon);
-    //
     tr.appendChild(th);
     tr.appendChild(td_p);
     tr.appendChild(td_f);
     tr.appendChild(td_c);
     tr.appendChild(td_calories);
     tr.appendChild(td_delete);
-    return tr
+    return tr;
 }
 
 
 
 
-
-//pop out出飲食計畫顯示匡
 function render_my_plan_window(background){
     let load_plan_box = document.createElement("div");
     load_plan_box.classList.add("load-plan-box");
     let load_plan = document.createElement("div");
     load_plan.classList.add("load-plan");
-    //小title
     let title_div = document.createElement("div");
     title_div.classList.add("edit-title");
     let span1 = document.createElement("span");
     span1.classList.add("load-plan-title");
     span1.innerHTML="Edit your diet plan.";
     title_div.appendChild(span1);
-    //分隔線
     let break_line = document.createElement("div");
     break_line.classList.add("break");
-    //飲食計畫
     let diet_plan = document.createElement("div");
     diet_plan.classList.add("diet-plan");//
-    diet_plan.addEventListener("scroll",function(){ //plan table註冊滑動載入my-food事件
+    diet_plan.addEventListener("scroll",function(){ 
         if(this.scrollHeight-this.scrollTop <= this.clientHeight){
             if(can_get_my_plan && my_plan_page){
                 can_get_my_plan = false;
@@ -990,15 +946,12 @@ function render_my_plan_window(background){
     table.appendChild(thead);
     let tbody = document.createElement("tbody");
     tbody.classList.add("plan-body");
-    get_diet_plan(my_plan_page,"foredit"); //取得飲食計畫 ,先傳入預設0的my_plan_page
+    get_diet_plan(my_plan_page,"foredit"); //get diet plan 
     table.appendChild(tbody);
-    //
     diet_plan.appendChild(table);
-    //
     load_plan.appendChild(title_div);
     load_plan.appendChild(break_line);
     load_plan.appendChild(diet_plan);
-    //新增計畫區塊
     let add_plan = document.createElement("div");
     add_plan.classList.add("add-plan");
     //add your new plan
@@ -1008,7 +961,7 @@ function render_my_plan_window(background){
     span.classList.add("add-plan_span");
     span.innerHTML = "Add your new plan here.";
     add_plan_title.appendChild(span);
-    //新protein
+    //new protein
     let add_plan_protein = document.createElement("div");
     add_plan_protein.classList.add("add-plan_protein");
     let div_protein = document.createElement("div");
@@ -1022,7 +975,7 @@ function render_my_plan_window(background){
     input_protein.setAttribute("name","new-plan_protein");
     add_plan_protein.appendChild(div_protein);
     add_plan_protein.appendChild(input_protein);
-    //新fat
+    //new fat
     let add_plan_fat = document.createElement("div");
     add_plan_fat.classList.add("add-plan_fat");
     let div_fat = document.createElement("div");
@@ -1036,7 +989,7 @@ function render_my_plan_window(background){
     input_fat.setAttribute("name","new-plan_fat");
     add_plan_fat.appendChild(div_fat);
     add_plan_fat.appendChild(input_fat);
-    //新carb
+    //new carb
     let add_plan_carbs = document.createElement("div");
     add_plan_carbs.classList.add("add-plan_carbs");
     let div_carbs = document.createElement("div");
@@ -1050,7 +1003,7 @@ function render_my_plan_window(background){
     input_carbs.setAttribute("name","new-plan_carbs");
     add_plan_carbs.appendChild(div_carbs);
     add_plan_carbs.appendChild(input_carbs);
-    //新calories
+    //new calories
     let add_plan_calories = document.createElement("div");
     add_plan_calories.classList.add("add-plan_calories");
     let div_calories = document.createElement("div");
@@ -1068,7 +1021,6 @@ function render_my_plan_window(background){
     let remind = document.createElement("div");
     remind.classList.add("add-plan-reminder");
     remind.innerHTML="(Percentage must add to 100%)";
-    //最後
     add_plan.appendChild(add_plan_title);
     add_plan.appendChild(add_plan_protein);
     add_plan.appendChild(add_plan_fat);
@@ -1082,22 +1034,20 @@ function render_my_plan_window(background){
     let span_cancel = document.createElement("span");
     span_cancel.classList.add("cancel-select");
     span_cancel.innerHTML="Cancel";
-    span_cancel.addEventListener("click",function(){ //關掉更新window
-        //關掉框框
+    span_cancel.addEventListener("click",function(){ 
         document.body.classList.toggle("stop-scrolling");
         let bg = document.getElementsByClassName('bg');
         document.body.removeChild(bg[0]);
-        //也要把全域變數變回null
+        //set global variables to null
         my_plan_page = 0;
         can_get_my_plan = true;
     });
     let span_select = document.createElement("span");
     span_select.classList.add("submit-select");
-    span_select.addEventListener("click",function(){ //點擊新增飲食計畫
-        //送出新增的飲食計畫前先檢查有沒有都填了＆資料正不正確
+    span_select.addEventListener("click",function(){ //click on adding new diet plan
         let validate = validate_new_plan();
         if(validate){
-            can_get_my_plan = false; //按下去的時候要先變false
+            can_get_my_plan = false; 
             let jwt = localStorage.getItem("JWT");
             let json_data = organize_new_plan();
             add_diet_plan(json_data,jwt);
@@ -1106,15 +1056,11 @@ function render_my_plan_window(background){
     span_select.innerHTML="Save change";
     select_btn.appendChild(span_cancel);
     select_btn.appendChild(span_select);
-    //
     load_plan.appendChild(select_btn);
-    //
     load_plan_box.appendChild(load_plan);
     background.appendChild(load_plan_box);
     return background;
-}
-
-
+};
 
 
 
@@ -1127,7 +1073,7 @@ function render_my_plan(navmenu){
     let span = document.createElement("span");
     span.setAttribute("id","dietplan");
     span.appendChild(document.createTextNode("My Diet Plan"));
-    span.addEventListener("click",function(){ //按下後產生我的飲食計畫
+    span.addEventListener("click",function(){ 
         let bg = render_my_plan_window(createBack());
         document.body.appendChild(bg);
         let remind = document.querySelector(".remind");
@@ -1137,10 +1083,10 @@ function render_my_plan(navmenu){
     });
     personal_plan.appendChild(span);
     navmenu.appendChild(personal_plan);
-}
+};
 
 
-/* 我的體重紀錄部分 */
+/* my weight */
 
 function validate_weight(name_attr,class_attr){
     let weight_input = document.getElementsByName(name_attr)[0];
@@ -1153,8 +1099,8 @@ function validate_weight(name_attr,class_attr){
         show_tip('Weight should be between 20 and 200',"." + class_attr);
         result = false;
         return result;
-    }
-    return result
+    };
+    return result;
 };
 
 
@@ -1162,7 +1108,7 @@ function organize_weight_data(name_attr){
     let weight_input = document.getElementsByName(name_attr)[0];
     let weight = Number((Number(weight_input.value).toFixed(1)));
     let today = new Date();
-    let today_utc = date_to_stamp(today); // 今天的
+    let today_utc = date_to_stamp(today); //today
     let data;
     if(name_attr==="addweight"){
         data = {
@@ -1179,19 +1125,14 @@ function organize_weight_data(name_attr){
 };
 
 
-
-
-//轉換選擇日期成timstamp
 function date_to_stamp(d){
-    let year = d.getFullYear(); //2022
-    let month = d.getMonth(); //4
-    let date = d.getDate();   //28
+    let year = d.getFullYear(); 
+    let month = d.getMonth();
+    let date = d.getDate();   
     let new_date = new Date(year,month,date);
     let now_utc =  new_date.getTime();
     return now_utc;
 };
-
-
 
 
 async function get_weight(sdate,edate){
@@ -1202,13 +1143,12 @@ async function get_weight(sdate,edate){
                                                 headers: {"Authorization" : `Bearer ${jwt}`}
                                                 });
         let result = await response.json();                                
-        if(response.ok){  //200情況下  得到會員的體重資料插入長條圖
-            //先把舊的刪掉
+        if(response.ok){  
+            //remove old one
             let canvas = Chart.getChart("weight");
             if(canvas){
                 canvas.destroy(); 
             };
-            //
             let final_data = [];
             let how_many_days = ((edate - sdate)/86400000)+1;
             let select_date = [sdate];
@@ -1216,11 +1156,11 @@ async function get_weight(sdate,edate){
                 sdate += 86400000;
                 select_date.push(sdate);
             };
-            //重畫一次,把長條圖的data更新,
-            if(result["weight_record"]){ //表示有體重紀錄
+            //re-draw
+            if(result["weight_record"]){ 
                 let weight = result["weight_record"];
                 let weight_data = {}
-                let temp_weight = [] //為了計算最大最小公斤用
+                let temp_weight = [] //for calculate max and min weight
                 for(let i=0;i < weight.length;i++){
                     weight_data[weight[i]["create_at"]] = weight[i]["weight"];
                     temp_weight.push(weight[i]["weight"]);
@@ -1230,9 +1170,7 @@ async function get_weight(sdate,edate){
                         final_data.push({
                             x : select_date[i],
                             y : weight_data[select_date[i]],
-                        });
-                        
-                           
+                        });      
                     }else{
                         final_data.push({
                             x : select_date[i],
@@ -1240,11 +1178,11 @@ async function get_weight(sdate,edate){
                         })
                     };
                 };
-                //根據最大最小公斤調整長條圖y軸最大最小值
+                //adjust based on max and min weight
                 weight_config.options.scales.y.suggestedMin = Math.min.apply(null, temp_weight)-5;
                 weight_config.options.scales.y.suggestedMax = Math.max.apply(null, temp_weight)+5;
                 dataLI.datasets[0].data = final_data;
-            }else{ //表示沒有體重紀錄
+            }else{ //no weight record
                 for(let i=0;i<select_date.length;i++){
                     final_data.push({
                         x : select_date[i],
@@ -1261,18 +1199,17 @@ async function get_weight(sdate,edate){
             weight_action = true;
         }else if(response.status === 400){
             console.log(result);
-        }else if(response.status === 403){ //拒絕存取
+        }else if(response.status === 403){ 
             console.log('JWT已失效,請重新登入');
             localStorage.removeItem("JWT");
             window.location.href = '/';
-        }else if(response.status === 500){ //如果是500,代表伺服器(資料庫)內部錯誤
+        }else if(response.status === 500){ 
             console.log(result);
         };
     }catch(message){
         console.log(`${message}`)
         throw Error('Fetching was not ok!!.')
     }; 
-
 };            
 
 
@@ -1284,18 +1221,16 @@ async function add_today_weight(payload,jwt){
                                      headers: {"Authorization" : `Bearer ${jwt}`,'Content-Type': 'application/json'}
                                     });
         let result = await response.json();                            
-        if(response.status === 201){ //新增當天體重完成
-            //新增完成,更新長條圖,直接重新打get_weight一次
+        if(response.status === 201){ 
             let end_date = new Date();
-            let end_utc = date_to_stamp(end_date); // 今天是end date
+            let end_utc = date_to_stamp(end_date); // today is end date
             let start_utc = end_utc - (6*86400000);
             get_weight(start_utc,end_utc);
-            //把體重匡清空,提示訊息清空
             let weight_input = document.getElementsByName("addweight")[0];
             weight_input.value = "";
             let tip = document.querySelector(".tip");
             if(tip){
-                tip.remove()
+                tip.remove();
             };
         }else if (response.status === 403){
             console.log('JWT已失效,請重新登入');
@@ -1309,7 +1244,7 @@ async function add_today_weight(payload,jwt){
             weight_action = true;
         }else{
             console.log('伺服器錯誤');
-        }
+        };
     }catch(message){
         console.log(`${message}`)
         throw Error('Fetching was not ok!!.')
@@ -1325,18 +1260,16 @@ async function update_today_weight(payload,jwt){
                                      headers: {"Authorization" : `Bearer ${jwt}`,'Content-Type': 'application/json'}
                                     });                       
         let result = await response.json();                            
-        if(response.ok){ //更新紀錄target完成
-             //更新今日體重完成,更新長條圖,直接重新打get_weight一次
+        if(response.ok){ 
              let end_date = new Date();
-             let end_utc = date_to_stamp(end_date); // 今天是end date
+             let end_utc = date_to_stamp(end_date);e
              let start_utc = end_utc - (6*86400000);
              get_weight(start_utc,end_utc);
-             //把體重匡清空,提示訊息清空
              let weight_input = document.getElementsByName("updateweight")[0];
              weight_input.value = "";
              let tip = document.querySelector(".tip");
              if(tip){
-                 tip.remove()
+                 tip.remove();
              };
         }else if (response.status === 403){
             console.log(result);
@@ -1355,22 +1288,19 @@ async function update_today_weight(payload,jwt){
     }catch(message){
         console.log(`${message}`)
         throw Error('Fetching was not ok!!.')
-    }   
+    };   
 };
 
 
 
 
-//體重填寫reminder not done yet
 function show_weight_section(){
-    //先把原本的日曆和日期顯示拿掉
     let datepicker_toggle = document.querySelector(".datepicker-toggle");
     let show_date = document.querySelector(".show-date");
     let daily_title = document.querySelector(".daily-title");
     datepicker_toggle.remove();
     show_date.remove();
     daily_title.remove();
-    //再放上日期區間選擇和體重title
     let select_date_range = document.createElement("div");
     select_date_range.classList.add("select-date-range");
     let label = document.createElement("label");
@@ -1384,34 +1314,31 @@ function show_weight_section(){
     let title_div = document.createElement("div");
     title_div.classList.add("weight-title")
     title_div.innerHTML = "Weight Record";
-    //放到calender_container裡
     let calender_container = document.querySelector(".calender-container");
     calender_container.appendChild(select_date_range);
     calender_container.appendChild(title_div);
-    //再把left record 和right record拿掉(從有紀錄的頁面過來的話)
     let left_record = document.querySelector(".left-record");
     let right_record = document.querySelector(".right-record");
-    //把 start record拿掉(從沒有紀錄的頁面過來的話)
+    //take off start record(if not from record page)
     let start_record = document.querySelector(".start-record")
     if(left_record && right_record){
         left_record.remove();
         right_record.remove();
     }else if(start_record){
         start_record.remove();
-    }
-    //把record-container換成grid-template-column=1fr
+    };
+    //change "record-container" to "grid-template-column=1fr"
     let record_container = document.querySelector(".record-container");
     record_container.style.gridTemplateColumns="1fr";
-    ////放體重輸入匡,再把圖放進去
+    //put in weight input box
     let weight_record = document.createElement("div");
     weight_record.classList.add("weight-record-container");
-    //體重輸入匡塊
+    //weight input box
     let weight_input_container = document.createElement("div");
     weight_input_container.classList.add("weight-input-container");
-    //新增今日體重
+    //add today weight
     let add_weight = document.createElement("div");
     add_weight.classList.add("add-weight");
-     //新增體重輸入條
     let add_weight_title = document.createElement("span");
     add_weight_title.classList.add("add-weight-title");
     add_weight_title.innerHTML = "Record today's weight (kg) :";
@@ -1421,21 +1348,20 @@ function show_weight_section(){
     add_weight_bar.setAttribute('type',"number");
     add_weight_bar.setAttribute("step","0.1");
     add_weight_bar.setAttribute("min","0");
-    //新增體重提交鈕
     let add_weight_btn = document.createElement("div");
     add_weight_btn.classList.add("add-weight-btn");
     let span_cancel = document.createElement("span");
     span_cancel.classList.add("cancel-add-weight");
     span_cancel.innerHTML="Cancel";
-    span_cancel.addEventListener("click",function(){ //清空體重
+    span_cancel.addEventListener("click",function(){ 
         let weight_input = document.getElementsByName("addweight")[0];
         weight_input.value = "";
     });
     let span_submit = document.createElement("span");
     span_submit.classList.add("submit-add-weight");
     span_submit.innerHTML="Save";
-    span_submit.addEventListener("click",function(){ //新增體重
-        //先驗證是否有填入
+    span_submit.addEventListener("click",function(){ 
+        //verify if input
         if(weight_action){
             weight_action = false;
             let result = validate_weight("addweight","add-weight-title");
@@ -1445,21 +1371,17 @@ function show_weight_section(){
                 add_today_weight(data,jwt);
             }else{
                 weight_action = true;
-            }
-        }    
+            };
+        };    
     });
     add_weight_btn.appendChild(span_cancel);
     add_weight_btn.appendChild(span_submit);
-    //
     add_weight.appendChild(add_weight_title);
     add_weight.appendChild(add_weight_bar);
     add_weight.appendChild(add_weight_btn);
-    //
     weight_input_container.appendChild(add_weight);
-    //更新今日體重
     let update_weight = document.createElement("div");
     update_weight.classList.add("update-weight");
-    //更新體重輸入條
     let update_weight_title = document.createElement("span");
     update_weight_title.classList.add("update-weight-title");
     update_weight_title.innerHTML = "Update today's weight (kg) :";
@@ -1469,54 +1391,45 @@ function show_weight_section(){
     update_weight_bar.setAttribute('type',"number");
     update_weight_bar.setAttribute("step","0.1");
     update_weight_bar.setAttribute("min","0");
-    //更新體重提交鈕
     let update_weight_btn = document.createElement("div");
     update_weight_btn.classList.add("update-weight-btn");
     let update_span_cancel = document.createElement("span");
     update_span_cancel.classList.add("cancel-update-weight");
     update_span_cancel.innerHTML="Cancel";
-    update_span_cancel.addEventListener("click",function(){ //清空體重
+    update_span_cancel.addEventListener("click",function(){ 
         let weight_input = document.getElementsByName("updateweight")[0];
         weight_input.value = "";
     });
     let update_span_submit = document.createElement("span");
     update_span_submit.classList.add("submit-update-weight");
     update_span_submit.innerHTML="Update";
-    update_span_submit.addEventListener("click",function(){ //更新體重
-        //先驗證是否有填入
+    update_span_submit.addEventListener("click",function(){ 
         let result = validate_weight("updateweight","update-weight-title");
         if(result){
             let data = organize_weight_data("updateweight");
-            console.log(data);
-            console.log(typeof(data))
             let jwt = localStorage.getItem("JWT");
             update_today_weight(data,jwt);
         }else{
             weight_action = true;
-        }
+        };
     });
     update_weight_btn.appendChild(update_span_cancel);
     update_weight_btn.appendChild(update_span_submit);
-    //
     update_weight.appendChild(update_weight_title);
     update_weight.appendChild(update_weight_bar);
     update_weight.appendChild(update_weight_btn); 
-    //
     weight_input_container.appendChild(update_weight);
-    //
     weight_record.appendChild(weight_input_container);
-
-    //折線圖區
+    //line chart section
     let line_chart = document.createElement("div");
     line_chart.classList.add("line-chart");
     let canvas = document.createElement("canvas");
     canvas.setAttribute("id","weight");
     line_chart.appendChild(canvas);
-    //放到weight_record裡
+    //put in weight_record
     weight_record.appendChild(line_chart);
-    //再放到record_container裡
+    //then put in record_container
     record_container.appendChild(weight_record);
-    //註冊datepicker選擇後事件
     $('input[name="daterange"]').daterangepicker({
         opens: 'right'
     }, function(start, end, label) {
@@ -1526,11 +1439,11 @@ function show_weight_section(){
             let sutc = date_to_stamp(start._d);
             let eutc = date_to_stamp(end._d);
             get_weight(sutc,eutc);
-        }
+        };
     });
-    //一開始render完先顯示已今天為準過去七天的體重
+    //show 7 days record
     let end_date = new Date();
-    let end_utc = date_to_stamp(end_date); // 今天是end date
+    let end_utc = date_to_stamp(end_date); 
     let start_utc = end_utc - (6*86400000);
     get_weight(start_utc,end_utc);
 };
@@ -1545,13 +1458,12 @@ function render_my_weight(navmenu){
     let span = document.createElement("span");
     span.setAttribute("id","weightrecord");
     span.appendChild(document.createTextNode("Weight Record"));
-    span.addEventListener("click",function(){ //按下後產生體重紀錄頁面
-        //要看有沒有已經在體重紀錄頁面
+    span.addEventListener("click",function(){ 
         if(!already_on_weight_page){
             already_on_weight_page = true;
             already_on_record_page = false;
             show_weight_section();
-        }
+        };
     });
     weight_record.appendChild(span);
     navmenu.appendChild(weight_record);
@@ -1565,24 +1477,21 @@ function render_my_record(navmenu){
     let span = document.createElement("span");
     span.setAttribute("id","dailyrecord");
     span.appendChild(document.createTextNode("Daily Record"));
-    span.addEventListener("click",function(){ //按下後回到紀錄頁面
-        //要看有沒有已經在紀錄頁面
+    span.addEventListener("click",function(){ 
         if(!already_on_record_page){
             already_on_weight_page = false;
             already_on_record_page = true;
-            //把calender-container和record-container都移掉
             let calender_container = document.querySelector(".calender-container");
             let record_container = document.querySelector(".record-container");
             calender_container.remove();
             record_container.remove();
             get_record(on_date_utc,on_date_format);
             already_on_record_page = true;
-        }
+        };
     });
     diet_record.appendChild(span);
     navmenu.appendChild(diet_record);
-}
-
+};
 
 
 /* health helper */
@@ -1593,13 +1502,12 @@ function render_health_helper(navmenu){
     let span = document.createElement("span");
     span.setAttribute("id","healthhelper");
     span.appendChild(document.createTextNode("Health Helper"));
-    span.addEventListener("click",function(){ //按下後跑到聊天分頁
-        window.open('https://www.macroseat.xyz/helper', '_blank'); //按下後開啟新分頁
+    span.addEventListener("click",function(){ //to chat page
+        window.open('https://www.macroseat.xyz/helper', '_blank'); 
     });
     health_helper.appendChild(span);
     navmenu.appendChild(health_helper);
-}
-
+};
 
 
 /* log out */
@@ -1608,39 +1516,38 @@ async function log_out(){
         let response = await fetch('/api/users/signout',{method: 'DELETE'});
         let result = await response.json();    
         console.log(result);                            
-        if(response.ok){ //200情況下 
-               console.log('登出成功') ;
+        if(response.ok){ 
                localStorage.removeItem('JWT');
                window.location.reload();
         };
     }catch(message){
         console.log(`${message}`)
         throw Error('Fetching was not ok!!.')
-    }     
-}
+    };     
+};
 
 
 function render_log_out(navmenu){
     let logout_div = document.createElement("div");
     logout_div.classList.add("logout");
     logout_div.appendChild(document.createTextNode("Logout"));
-    logout_div.addEventListener("click",function(){ //按下後登出
+    logout_div.addEventListener("click",function(){ 
         log_out();
-        //emit一個登出事件到server
+        //emit one event to server
         if(user_socket){
             user_socket.emit("user_log_out"); 
         }else if(nutri_socket){
             nutri_socket.emit("nutri_log_out")
-        }
+        };
     });
     navmenu.appendChild(logout_div);
-}
+};
 
 
 
 
 
-//產生side bar
+//side bar
 function render_sidebar(user_data){
     let navmenu = document.querySelector(".navmenu");
     render_user_profile(navmenu,user_data);
@@ -1651,7 +1558,7 @@ function render_sidebar(user_data){
     render_health_helper(navmenu);
     render_log_out(navmenu);
     let remind = document.getElementById("remind").textContent;
-    if(remind === "yes"){ //要顯示提示訊息
+    if(remind === "yes"){ 
         let my_plan = document.querySelector(".personal-plan");
         let remind_div = document.createElement('div');
         remind_div.classList.add("remind");
@@ -1673,5 +1580,5 @@ function render_sidebar(user_data){
                 div.remove();
             };
         }, 60000);
-    }
-}
+    };
+};

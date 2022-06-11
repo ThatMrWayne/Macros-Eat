@@ -23,11 +23,8 @@ function render_fillin(){
     //先移掉登入註冊匡
     let section2 = document.querySelector(".section-2");
     document.body.removeChild(section2);
-
-    //<div class='basic-information'>
     let basic_information = document.createElement("div");
     basic_information.classList.add("basic-information");
-    //<div id="welcome">
     let welcome = document.createElement("div");
     welcome.setAttribute("id","welcome");
     const welcome_word1 = "Welcome！"
@@ -37,37 +34,30 @@ function render_fillin(){
     welcome.appendChild(mybr);
     welcome.appendChild(document.createTextNode(welcome_word2));
     basic_information.appendChild(welcome);
-    //<div class="form-box">
     let form_box = document.createElement("div");
     form_box.classList.add("form-box");
-    //<form class="form">
     let form = document.createElement("form");
     form.classList.add("form");
-    //<div class="choose-gender">
     let choose_gender = document.createElement("div");
     choose_gender.classList.add("choose-gender");
     let gender = document.createElement("span");
     gender.classList.add("describe");
     gender.classList.add("gender");
     gender.appendChild(document.createTextNode("Gender :"));
-    //<input id="male" type="radio" name="gender" value="1" checked>
     let male = document.createElement("input");
     male.setAttribute("id","male");
     male.setAttribute("type","radio");
     male.setAttribute("name","gender");
     male.setAttribute("value","1");
     male.checked=true;
-    //<label for="male">male</label>
     let label_male = document.createElement("label");
     label_male.setAttribute("for","male");
     label_male.appendChild(document.createTextNode("male"));
-    //<input id="female" type="radio" name="gender" value="0">
     let female = document.createElement("input");
     female.setAttribute("id","female");
     female.setAttribute("type","radio");
     female.setAttribute("name","gender");
     female.setAttribute("value","0");
-    //<label for="female">female</label>
     let label_female = document.createElement("label");
     label_female.setAttribute("for","female");
     label_female.appendChild(document.createTextNode("female"));
@@ -77,14 +67,12 @@ function render_fillin(){
     choose_gender.appendChild(female);
     choose_gender.appendChild(label_female);
     form.appendChild(choose_gender);
-    //<div class="choose-age">
     let choose_age = document.createElement("div");
     choose_age.classList.add("choose-age");
     let age = document.createElement("span");
     age.classList.add("describe");
     age.classList.add("age");
     age.appendChild(document.createTextNode("Age :"));
-    //<input id="age"  name="age" type="text" placeholder="Age" inputmode="decimal"></input>
     let age_input = document.createElement("input");
     age_input.setAttribute("id","age");
     age_input.setAttribute("type","text");
@@ -93,14 +81,12 @@ function render_fillin(){
     choose_age.appendChild(age);
     choose_age.appendChild(age_input);
     form.appendChild(choose_age);
-    //<div class="choose-height">
     let choose_height = document.createElement("div");
     choose_height.classList.add("choose-height");
     let height = document.createElement("span");
     height.classList.add("describe");
     height.classList.add("height");
     height.appendChild(document.createTextNode("Height :"));
-    //<input id="height"  name="height" type="text" placeholder="Height (cm)" inputmode="decimal">
     let height_input = document.createElement("input");
     height_input.setAttribute("id","height");
     height_input.setAttribute("type","text");
@@ -109,14 +95,12 @@ function render_fillin(){
     choose_height.appendChild(height);
     choose_height.appendChild(height_input);
     form.appendChild(choose_height);
-    //<div class="choose-weight">
     let choose_weight = document.createElement("div");
     choose_weight.classList.add("choose-weight");
     let weight = document.createElement("span");
     weight.classList.add("describe");
     weight.classList.add("weight");
     weight.appendChild(document.createTextNode("Weight :"));
-    //<input id="weight"  name="weight" type="text" placeholder="Weight (kg)" inputmode="decimal">
     let weight_input = document.createElement("input");
     weight_input.setAttribute("id","weight");
     weight_input.setAttribute("type","text");
@@ -125,14 +109,11 @@ function render_fillin(){
     choose_weight.appendChild(weight);
     choose_weight.appendChild(weight_input);
     form.appendChild(choose_weight);
-    //<div class="choose-activity">
     let choose_activity = document.createElement("div");
     choose_activity.classList.add("choose-activity");
-    //<h3 class="describe">Activity Level :</h3>
     let activity_level = document.createElement("h3");
     activity_level.classList.add("describe");
     activity_level.appendChild(document.createTextNode("Activity Level :"));
-    //<div id="zero">
     let zero = document.createElement("div");
     zero.setAttribute("id","zero");
     let level1_input = document.createElement("input");
@@ -146,7 +127,6 @@ function render_fillin(){
     label_level1.appendChild(document.createTextNode("sedentary (little/no exercise)"));
     zero.appendChild(level1_input);
     zero.appendChild(label_level1);
-    //<div id="light">
     let light = document.createElement("div");
     light.setAttribute("id","light");
     let level2_input = document.createElement("input");
@@ -159,7 +139,6 @@ function render_fillin(){
     label_level2.appendChild(document.createTextNode("light activity (exercise 1~2 times/week)"));
     light.appendChild(level2_input);
     light.appendChild(label_level2);
-    //<div id="moderate">
     let moderate = document.createElement("div");
     moderate.setAttribute("id","moderate");
     let level3_input = document.createElement("input");
@@ -172,7 +151,6 @@ function render_fillin(){
     label_level3.appendChild(document.createTextNode("moderate activity (exercise 3~4 times/week)"));
     moderate.appendChild(level3_input);
     moderate.appendChild(label_level3);
-    //<div id="heavy">
     let heavy = document.createElement("div");
     heavy.setAttribute("id","heavy");
     let level4_input = document.createElement("input");
@@ -185,14 +163,12 @@ function render_fillin(){
     label_level4.appendChild(document.createTextNode("very active (exercise >5 times/week)"));
     heavy.appendChild(level4_input);
     heavy.appendChild(label_level4);
-
     choose_activity.appendChild(activity_level);
     choose_activity.appendChild(zero);
     choose_activity.appendChild(light);
     choose_activity.appendChild(moderate);
     choose_activity.appendChild(heavy);
     form.appendChild(choose_activity);
-
     //<div class="choose-target">
     let choose_target = document.createElement("div");
     choose_target.classList.add("choose-target");
@@ -229,7 +205,6 @@ function render_fillin(){
     let label_gain = document.createElement("label");
     label_gain.setAttribute("for","gain");
     label_gain.appendChild(document.createTextNode("Gain weight"));
-
     choose_target.appendChild(target);
     choose_target.appendChild(lose_input);
     choose_target.appendChild(label_lose);
@@ -253,18 +228,12 @@ function render_fillin(){
         }        
     });
     form.appendChild(submit);
-    //
     form_box.appendChild(form);
     basic_information.appendChild(form_box);
     //最後把basci-inofrmation放在section1後面
     let section1 = document.querySelector(".section-1");
     section1.after(basic_information);
 }
-
-
-
-
-
 
 
 
@@ -307,16 +276,12 @@ function showMessage(msg,flag,signup_result){
             fail_div.classList.add('message');
             signup_content.style.height = "325px";
             button.after(fail_div);    
-        }      
-        
-    }    
-}
+        };          
+    };    
+};
 
 
 
-
-
-//框框互換
 function switchBox(flag){ 
     let section2 = document.querySelector(".section-2")
     while(section2.firstElementChild){
@@ -327,7 +292,7 @@ function switchBox(flag){
         showBox(sign.signIn,true);
     }else{
         showBox(sign.signUp,false);
-    }
+    };
 };
 
 
@@ -341,9 +306,9 @@ async function sendAuthSignUp(data){
                                      headers: { 'Content-Type': 'application/json'}
                                         });
         let result = await response.json();                                
-        if(response.status === 201){ //201情況下
+        if(response.status === 201){ 
                 showMessage("Sign up completed. Please sign in.",false,true);           
-        }else if(response.status === 400){ //如果是400,有可能是1.email重複 2.註冊信箱或密碼格式錯誤
+        }else if(response.status === 400){ //1.email重複 2.註冊信箱或密碼格式錯誤
             showMessage(result.message,false,false);
             //清空信箱和密碼輸入框
             let mail_input = document.querySelector('.email');
@@ -370,8 +335,6 @@ async function sendAuthSignIn(data){
                                         });
         let result = await response.json();                                
         if(response.ok){  //200情況下 
-                //把登入成功得到的JWT 存在local storage,這邊要注意的是,fetch回來的response headers object
-                //是iterable 物件,無法直接像plain object取得裡面的東西,要用迭代的方式取得
                 let test = [];
                 response.headers.forEach(function(o){test.push(o)});
                 localStorage.setItem('JWT',test[0]);
@@ -382,7 +345,6 @@ async function sendAuthSignIn(data){
                 }
         }else if(response.status === 400){ //代表1.密碼錯誤2.沒有此信箱會員
                 showMessage(result.message,true,null)
-                //清空輸入框
                 let mail_input = document.querySelector('.email');
                 let pass_input = document.querySelector('.pass');
                 mail_input.value='';
@@ -399,15 +361,13 @@ async function sendAuthSignIn(data){
 
 
 
-
-
 //處理註冊事件
 function handleSignUp(){
     let email = document.querySelector('.email').value;
     let password = document.querySelector('.pass').value;
     let name = document.querySelector('.name').value;
     let identity = document.getElementsByName('identity')[0].value;
-    //先在前端驗證看看有沒有確實輸入或輸入正不正確
+    //前端驗證確實輸入或輸入正不正確
     if ((!name||!email) || (!password) || (identity==="0")){
         showMessage('Please fill in valid information',false,false);
     }else{
@@ -451,26 +411,14 @@ function handleSignUp(){
             };
             let fail_div  = document.createElement("div");
             let span = document.createElement("span");
-            //span.appendChild(document.createTextNode("信箱或密碼輸入有誤。您的密碼必須包含:"));
             span.appendChild(document.createTextNode("Email is not correct."));
-            //conditions=["八至十六個字元(僅限英文字母/數字)","至少三個大寫英文字母","至少一個小寫英文字母","至少一個阿拉伯數字"]
-            //condition_ul_tag = document.createElement("ul");
-            //condition_ul_tag.classList.add("condition");
-            //for(let i = 0;i<conditions.length;i++){
-            //    let li = document.createElement("li");
-            //    li.appendChild(document.createTextNode(conditions[i]));
-            //    condition_ul_tag.appendChild(li);
-            //}; 
             fail_div.appendChild(span);
-            //fail_div.appendChild(condition_ul_tag);
             fail_div.classList.add('message');
             signup_content.style.height = "410px";
             button.after(fail_div);       
             //清空信箱和密碼輸入框
             let mail_input = document.querySelector('.email');
-            //let pass_input = document.querySelector('.pass');
             mail_input.value='';
-            //pass_input.value=''; 
         };
     };
 }
@@ -498,10 +446,8 @@ function handleSignIn(){
 //處理登出事件
 async function handleSignOut(){
     try{
-        let response = await fetch('/api/users/signout',{method: 'delete'});
-        let result = await response.json();                                
+        let response = await fetch('/api/users/signout',{method: 'delete'});                               
         if(response.ok){ //200情況下 
-               console.log('登出成功') ;
                localStorage.removeItem('JWT');
                let identity = document.getElementById('user-email').getAttribute("identity")
                if(identity==="2"){
@@ -523,25 +469,20 @@ async function handleSignOut(){
 //show出登入/註冊框
 function showBox(obj,flag){//flag true代表有帳戶,false沒有帳戶
     let section2 = document.querySelector(".section-2");
-    //主要框框
     let sign_box = document.createElement("div");
     sign_box.className=obj.box //"signinbox signupbox";
-    //主要內容
     let sign_content = document.createElement("div");
     sign_content.className = "content";
-      //看是登入還是註冊調整高度
     if(flag){
         sign_content.style.height="250px";
     }else{
         sign_content.style.height="307px";
     }
-    //登入,註冊會員帳號＆x圖案
     let head = document.createElement("div");
     head.className = "head";
-    let head_text = document.createTextNode(obj.head_txt);//"登入會員帳號"
+    let head_text = document.createTextNode(obj.head_txt);
     head.appendChild(head_text);
     sign_content.appendChild(head);
-
     //判斷是登入還是註冊(登入true,註冊false),如果是false要新增一欄"輸入姓名"
     if(!flag){
         let input_name = document.createElement("input");
@@ -611,7 +552,7 @@ function showBox(obj,flag){//flag true代表有帳戶,false沒有帳戶
         let a = document.createElement("a");
         a.setAttribute("href","/login/google");
         let img = new Image();
-        img.src = "/picture/google.png";
+        img.src = "https://d2fbjpv4bzz3d2.cloudfront.net/google.png";
         img.id = "google";
         let btn_text = document.createElement("div");
         btn_text.classList.add("google-btn-text");
@@ -640,16 +581,14 @@ async function sendJWT(jwt){
                 if(window.location.pathname==='/'){
                     window.location.href='/record';
                 }else if(window.location.pathname==='/record'){
-                    //  4/24 這邊要動態render出records頁面
-                    //window.setTimeout(function(){render_record()},5000);
                     render_record(result.data);
                     handle_notification();                               
                 }else if(window.location.pathname==='/helper'){
                     connect_socket(1);
                 }
-        }else if(response.ok && result.data["identity"]===1 && result.data["initial"]===1){ //代表登入後就跳跳掉沒有填表單
+        }else if(response.ok && result.data["identity"]===1 && result.data["initial"]===1){ //代表登入後跳掉沒有填表單
             if(window.location.pathname==='/'){
-                render_fillin() //顯示表單給他填;
+                render_fillin() //顯示表單;
             }else{
                 window.location.replace('/') //導回首頁
             };    

@@ -586,9 +586,7 @@ td {
 }
 
 
-.user-profile:hover{
-    cursor: pointer;
-}
+
 
 .profile_picture{
     display: inline-block;
@@ -603,9 +601,7 @@ td {
     font-size: 23px;
     color: aliceblue;
 }
-.username:hover{
-    color:#F0754F
-}
+
 
 .nav-page{
     color:aliceblue;

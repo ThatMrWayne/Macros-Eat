@@ -26,7 +26,6 @@ let weight_config = {
                     },
                     ticks: {
                         autoSkip: true,
-                        //maxTicksLimit: 8
                     },
                     title: {
                         display: true,
@@ -55,9 +54,7 @@ let weight_config = {
                         usePointStyle: true,
                     }
                 }
-            }
-
-            
+            }       
     }
 }
 

@@ -46,7 +46,7 @@ function subscribeUser(swRegistration, applicationServerPublicKey, apiEndpoint) 
   .then(function(response) {
     if (!response.ok) {
       throw new Error('Bad status code from server.');
-    }
+    };
     return response.json();
   })
   .then(function(responseData) {
@@ -59,21 +59,19 @@ function subscribeUser(swRegistration, applicationServerPublicKey, apiEndpoint) 
     console.log('Failed to subscribe the user: ', err);
     console.log(err.stack);
   });
-}
+};
 
 
 
 async function askPermission(){
   try{
     let res = await Notification.requestPermission();
-    return res
+    return res;
   }catch(message){
     console.log(`${message}`)
     throw Error('Fetching was not ok!!.')
   }; 
-}
-
-
+};
 
 
 
@@ -102,9 +100,7 @@ function registerServiceWorker(serviceWorkerUrl, applicationServerPublicKey, api
     console.warn('Push messaging is not supported');
   } 
   return swRegistration;
-}
-
-
+};
 
 
 
@@ -145,10 +141,7 @@ function prompt_asking(){
 	allow_content.appendChild(buttons_more);
 	allow_push_notification_bar.appendChild(allow_content);
 	document.body.appendChild(allow_push_notification_bar);
-}
-
-
-
+};
 
 
 

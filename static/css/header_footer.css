@@ -153,18 +153,6 @@ body{
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 @media(max-width:1200px){
     .nav{flex:auto};/*小於1200px時,選單列寬度要跟螢幕一樣*/
     .header-1{margin-left: 10px}

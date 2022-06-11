@@ -1,4 +1,4 @@
-/*----------------------for 營養師*/
+/* for nutritionist */
 let user;
  /*{"23":
     {
@@ -12,7 +12,7 @@ let user;
 }*/
 let nutri_socket;
 let on_which_user;
-/*--------------------for 使用者*/
+/* for user */
 let nutritionist;
  /*{"23":
     {
@@ -26,14 +26,11 @@ let nutritionist;
 }*/
 let user_socket;
 let on_which_nutri;
-
-//有一個鎖和buffer message list,用來處理塊未讀訊息時,同時有人傳訊息
+//one lock and buffer message list,used to handle when loading getting unread message someone also sending message
 let lock=false;
 let buffer_message_list=[];
 //another lock for scrolling
 let scroll_lock=false;
-
-
 
 
 
@@ -56,21 +53,18 @@ function cancel_typing(who,on_who){
 
 function generate_msg_time_format(time){
     let message_time = new Date(time);
-    let year = message_time.getFullYear(); //2022
-    let month = message_time.getMonth()  //4
-    let date = message_time.getDate();   //28
+    let year = message_time.getFullYear(); 
+    let month = message_time.getMonth(); 
+    let date = message_time.getDate();   
     let hour = message_time.getHours();
     let minute = message_time.getMinutes();
-    //要顯示的訊息時間格式
     let message_time_format = String(year)+"/"+ String(month+1) + "/" + String(date) + " " + String(hour) + ":" + String(minute)    
     return message_time_format
-}
+};
 
 
 
-
-
-//使用者要與營養師的已讀訊息
+//user get readed meaasge with nutritionist
 async function get_read_message_with_nutri(etime){
     let jwt = localStorage.getItem("JWT");
     try{
@@ -79,12 +73,11 @@ async function get_read_message_with_nutri(etime){
                                                 headers: {"Authorization" : `Bearer ${jwt}`}
                                                 });
         let result = await response.json();                                
-        if(response.ok){  //200情況下  
-            //顯示出來
+        if(response.ok){   
             let message_number;
-            if(result["data"].length===11){ //更新最早的訊息時間
+            if(result["data"].length===11){ //update the earliest message time 
                 message_number = result["data"].length-1;
-                nutritionist[on_which_nutri]["oldest_time"] = result["data"][10]["time"] 
+                nutritionist[on_which_nutri]["oldest_time"] = result["data"][10]["time"]; 
             }else if(result["data"].length>0 && result["data"].length<11){
                 message_number = result["data"].length;
                 nutritionist[on_which_nutri]["oldest_time"] = null;
@@ -111,7 +104,7 @@ async function get_read_message_with_nutri(etime){
                     display_message_section.scrollTop = display_message_section.scrollHeight/2;
                 };
             };    
-            //最後確認buffet list裡面有沒有訊息要顯示
+            //last confirm if there is any message in buffer list needs to be showed
             if(buffer_message_list.length>0){
                 for(let i=0;i<buffer_message_list.length;i++){
                     log_div.appendChild(buffer_message_list[i]) 
@@ -121,11 +114,11 @@ async function get_read_message_with_nutri(etime){
             };
             lock = false;
             scroll_lock = false;
-        }else if(response.status === 403){ //拒絕存取
+        }else if(response.status === 403){ 
             console.log('JWT已失效,請重新登入');
             localStorage.removeItem("JWT");
             window.location.href = '/';
-        }else if(response.status === 500){ //如果是500,代表伺服器(資料庫)內部錯誤
+        }else if(response.status === 500){ 
             console.log(result);
         };
     }catch(message){
@@ -136,7 +129,7 @@ async function get_read_message_with_nutri(etime){
 
 
 
-//使用者要與營養師的未讀訊息
+//user get unread message with nutritionist
 async function get_unread_message_with_nutri(stime,etime){
     let jwt = localStorage.getItem("JWT");
     try{
@@ -145,10 +138,9 @@ async function get_unread_message_with_nutri(stime,etime){
                                                 headers: {"Authorization" : `Bearer ${jwt}`}
                                                 });
         let result = await response.json();                                
-        if(response.ok){  //200情況下  
-            //馬上再打已讀訊息API
+        if(response.ok){   
+            //call get readed meaasge API 
             get_read_message_with_nutri(stime);
-            //顯示出來 
             let log_div = document.getElementById("log-"+on_which_nutri);
             let display_message_section =document.querySelector(".display-message-section");
             for(let i=0;i<result["data"].length;i++){
@@ -169,11 +161,11 @@ async function get_unread_message_with_nutri(stime,etime){
                     display_message_section.scrollTop = display_message_section.scrollHeight;
                 };
             };  
-        }else if(response.status === 403){ //拒絕存取
+        }else if(response.status === 403){ 
             console.log('JWT已失效,請重新登入');
             localStorage.removeItem("JWT");
             window.location.href = '/';
-        }else if(response.status === 500){ //如果是500,代表伺服器(資料庫)內部錯誤
+        }else if(response.status === 500){ 
             console.log(result);
         };
     }catch(message){
@@ -184,9 +176,7 @@ async function get_unread_message_with_nutri(stime,etime){
 
 
 
-
-
-//營養師要與使用者的已讀訊息
+//nutritionist get readed message with user 
 async function get_read_message_with_user(etime){
     let jwt = localStorage.getItem("JWT");
     try{
@@ -195,12 +185,11 @@ async function get_read_message_with_user(etime){
                                                 headers: {"Authorization" : `Bearer ${jwt}`}
                                                 });
         let result = await response.json();                                
-        if(response.ok){  //200情況下  
-            //顯示出來
+        if(response.ok){    
             let message_number;
-            if(result["data"].length===11){ //更新最早的訊息時間
+            if(result["data"].length===11){ //update the earliest message time 
                 message_number = result["data"].length-1;
-                user[on_which_user]["oldest_time"] = result["data"][10]["time"] 
+                user[on_which_user]["oldest_time"] = result["data"][10]["time"]; 
             }else if(result["data"].length>0 && result["data"].length<11){
                 message_number = result["data"].length;
                 user[on_which_user]["oldest_time"] = null;
@@ -227,22 +216,21 @@ async function get_read_message_with_user(etime){
                     display_message_section.scrollTop = display_message_section.scrollHeight/2;
                 };
             };    
-            //最後確認buffet list裡面有沒有訊息要顯示
+            //check if any message in buffer needs to be showed 
             if(buffer_message_list.length>0){
                 for(let i=0;i<buffer_message_list.length;i++){
                     log_div.appendChild(buffer_message_list[i]) 
                 };
                 buffer_message_list = [];
                 display_message_section.scrollTop =  display_message_section.scrollHeight;
-                console.log('清空buffer list');
             };
             lock = false;
             scroll_lock = false;
-        }else if(response.status === 403){ //拒絕存取
+        }else if(response.status === 403){
             console.log('JWT已失效,請重新登入');
             localStorage.removeItem("JWT");
             window.location.href = '/';
-        }else if(response.status === 500){ //如果是500,代表伺服器(資料庫)內部錯誤
+        }else if(response.status === 500){ 
             console.log(result);
         };
     }catch(message){
@@ -252,10 +240,9 @@ async function get_read_message_with_user(etime){
 };
 
 
-//營養師要與使用者的未讀訊息
+//nutritionist get unread message with user 
 async function get_unread_message_with_user(stime,etime){
     let jwt = localStorage.getItem("JWT");
-    console.log('hihihi');
     try{
         if(!stime){
             stime = -1;
@@ -264,12 +251,8 @@ async function get_unread_message_with_user(stime,etime){
                                                 method: 'get',
                                                 headers: {"Authorization" : `Bearer ${jwt}`}
                                                 });
-        let result = await response.json(); 
-        console.log(result);                               
-        if(response.ok){  //200情況下  
-            console.log('200喔');
-            console.log(result["data"]);
-            //顯示出來 
+        let result = await response.json();                              
+        if(response.ok){   
             let log_div = document.getElementById("log-"+on_which_user);
             let display_message_section =document.querySelector(".display-message-section");
             for(let i=0;i < result["data"].length;i++){
@@ -285,7 +268,6 @@ async function get_unread_message_with_user(stime,etime){
                     message_box = create_message_box(my_name,result["data"][i]["msg"],message_time_format,result["data"][i]["time"],2);
                     console.log(message_box);
                 }; 
-                console.log('hjhjhjhj');
                 if(log_div.firstChild){
                     log_div.firstChild.before(message_box);
                     display_message_section.scrollTop =  display_message_section.scrollHeight;
@@ -294,17 +276,17 @@ async function get_unread_message_with_user(stime,etime){
                     display_message_section.scrollTop = display_message_section.scrollHeight;
                 };
             };  
-            //馬上再打已讀訊息API(如果有才要打,因為有可能是使用者傳給營養師,營養師第一次點開,所以根本沒有nutri_read)
+            //if have readed message then call this API(might be nutirtionist fist time clikc on user, so no nutri_read)
             if(stime!=-1){ 
                 get_read_message_with_user(stime);
             }else{
                 lock = false;
             };
-        }else if(response.status === 403){ //拒絕存取
+        }else if(response.status === 403){ 
             console.log('JWT已失效,請重新登入');
             localStorage.removeItem("JWT");
             window.location.href = '/';
-        }else if(response.status === 500){ //如果是500,代表伺服器(資料庫)內部錯誤
+        }else if(response.status === 500){
             console.log(result);
         };
     }catch(message){
@@ -315,16 +297,14 @@ async function get_unread_message_with_user(stime,etime){
 
 
 
-
-
 function create_status_container(){
     let status_container = document.createElement("div");
     status_container.classList.add("status-container");
     return status_container
-}
+};
 
 
-//產生營養師個別狀態div
+
 function render_nutri(nutri_id,nutri_data){
     let nutri_div = document.createElement("div");
     nutri_div.classList.add("status");
@@ -332,7 +312,7 @@ function render_nutri(nutri_id,nutri_data){
     let status_photo_container = document.createElement("div");
     status_photo_container.classList.add("status-photo-container");
     let status_img = new Image();
-    status_img.src = "/picture/doctor.png";
+    status_img.src = "https://d2fbjpv4bzz3d2.cloudfront.net/doctor.png";
     status_img.classList.add("status-photo");
     let div = document.createElement("div"); 
     div.classList.add("status-light");
@@ -346,14 +326,13 @@ function render_nutri(nutri_id,nutri_data){
     let p = document.createElement("p");
     p.appendChild(document.createTextNode(nutri_data["name"]));
     span.appendChild(p);
-    if(nutri_data["user_unread"]>0){ //代表有最後一筆未讀的訊息時間,有未讀
+    if(nutri_data["user_unread"]>0){ //means there is last unread meaasge time
         let unread_img = document.createElement("i");
         unread_img.setAttribute("data-feather","message-circle");
-        //unread_img.src="/picture/unread.png";
         unread_img.classList.add("unread");
         span.appendChild(unread_img);
     }; 
-    if(nutri_data["unread_count"] && nutri_data["unread_count"]>0){ //未讀訊息數量
+    if(nutri_data["unread_count"] && nutri_data["unread_count"]>0){ //unread message amount
         let unread_cnt = document.createElement("span");
         unread_cnt.classList.add("unread-cnt");
         if(nutri_data["unread_count"]>9 && nutri_data["unread_count"]<100){
@@ -370,8 +349,8 @@ function render_nutri(nutri_id,nutri_data){
     };
     nutri_div.appendChild(status_photo_container);
     nutri_div.appendChild(span);
-    nutri_div.addEventListener("click",function(){ //按下後產生與該營養師的對話
-        if(on_which_nutri !== nutri_id){ //如果按下去不等於目前所在的營養師對話筐,才要換
+    nutri_div.addEventListener("click",function(){ //click to show meaasge with the nutritionist
+        if(on_which_nutri !== nutri_id){ 
             if(on_which_nutri){
                 nutritionist[on_which_nutri]["oldest_time"] = null;
                 nutritionist[on_which_nutri]["is_typing"] = false;
@@ -387,20 +366,20 @@ function render_nutri(nutri_id,nutri_data){
             if(document.querySelector(".talking-to")){
                 document.querySelector(".talking-to").remove();
             };
-            let show_talk_who = document.createElement("div"); //顯示和誰對話
+            let show_talk_who = document.createElement("div"); 
             show_talk_who.classList.add("talking-to");
             show_talk_who.appendChild(document.createTextNode("@"+nutritionist[nutri_id]["name"]));
             let helper_title_container = document.querySelector(".helper-title-container");
             helper_title_container.appendChild(show_talk_who);
-            //看看有沒有user_read/unread in nutritionist
+            //check if user_read/unread in nutritionist
             if(nutritionist[nutri_id]["user_read"]===-1 && nutritionist[nutri_id]["user_unread"]===-1){
-                console.log("與該營養師沒有對話紀錄");//代表與該營養師沒有對話過
-            }else{ //代表與該營養師有對話過
-                lock = true; //要先鎖起來,以免有人突然傳訊息過來
+                //means no message with the nutritionist
+            }else{ //means has message with the nutritionist
+                lock = true; //lock set to true in case someone sending message
                 if(!nutritionist[nutri_id]["user_unread"] || nutritionist[nutri_id]["user_unread"]<0){
-                    //代表沒有未讀訊息,打已讀API就好,取完後不管有沒有未讀標誌都要拿掉                    
+                    //means no unread message                     
                     get_read_message_with_nutri(nutritionist[nutri_id]["user_read"]);
-                }else{ //代表要已讀跟未讀,打兩個API,先打未讀API,取完後不管有沒有未讀標誌都要拿掉
+                }else{ //means needs to call 2 API 
                     let temp_user_unread = nutritionist[nutri_id]["user_unread"];
                     let temp_user_read = nutritionist[nutri_id]["user_read"];
                     nutritionist[nutri_id]["user_unread"]= -1;
@@ -409,7 +388,7 @@ function render_nutri(nutri_id,nutri_data){
                     user_socket.emit("update_user_read_unread",{"user_read":nutritionist[nutri_id]["user_read"],"user_unread":-1,"nutri_id":on_which_nutri});                  
                     user_socket.emit("update_user_unread_cnt",{"nutri_id":nutri_id,"count":0});
                     get_unread_message_with_nutri(temp_user_read,temp_user_unread);
-                    //最後把unread標誌拿掉
+                    //take off unread sign
                     let unread_img = document.getElementById(on_which_nutri).getElementsByClassName("nutri-name")[0].getElementsByClassName("unread")[0]
                     unread_img.remove();    
                     let unread_cnt = document.getElementById(on_which_nutri).getElementsByClassName("nutri-name")[0].getElementsByClassName("unread-cnt")[0]
@@ -419,8 +398,8 @@ function render_nutri(nutri_id,nutri_data){
             let display_message_section = document.querySelector(".display-message-section");
             while(display_message_section.firstChild){
                 display_message_section.removeChild(display_message_section.firstChild);
-            }; //都先移掉全部對話
-            //生成對話筐(打完API後會把訊息塞到這個框裡)
+            }; 
+            //generate meaasge box to put meaasge in 
             let msg_div = document.createElement("div");
             msg_div.setAttribute("id","log-"+nutri_id);
             msg_div.classList.add("log");
@@ -428,10 +407,10 @@ function render_nutri(nutri_id,nutri_data){
         };
     });
     return nutri_div;
-}
+};
 
 
-//產生使用者個別狀態div
+
 function render_user(user_id,user_data){
     let user_div = document.createElement("div");
     user_div.classList.add("status");
@@ -439,7 +418,7 @@ function render_user(user_id,user_data){
     let status_photo_container = document.createElement("div");
     status_photo_container.classList.add("status-photo-container");
     let status_img = new Image();
-    status_img.src = "/picture/face.png";
+    status_img.src = "https://d2fbjpv4bzz3d2.cloudfront.net/face.png";
     status_img.classList.add("status-photo");
     let div = document.createElement("div"); 
     div.classList.add("status-light");
@@ -451,13 +430,13 @@ function render_user(user_id,user_data){
     let span = document.createElement("span");
     span.classList.add("user-name");
     span.appendChild(document.createTextNode(user_data["name"]));
-    if(user_data["nutri_unread"]>0){ //代表有最後一筆未讀的訊息時間,有未讀
+    if(user_data["nutri_unread"]>0){ 
         let unread_img = document.createElement("i");
         unread_img.setAttribute("data-feather","message-circle");
         unread_img.classList.add("unread");
         span.appendChild(unread_img);
     }; 
-    if(user_data["unread_count"] && user_data["unread_count"]>0){ //未讀訊息數量
+    if(user_data["unread_count"] && user_data["unread_count"]>0){
         let unread_cnt = document.createElement("span");
         unread_cnt.classList.add("unread-cnt");
         if(user_data["unread_count"]>9 && user_data["unread_count"]<100){
@@ -474,9 +453,9 @@ function render_user(user_id,user_data){
     };
     user_div.appendChild(status_photo_container);
     user_div.appendChild(span);
-    user_div.addEventListener("click",function(){  //按下後產生與該使用者的對話
-        if(on_which_user !== user_id){ //如果按下去不等於目前所在的使用者對話筐,才要換
-            //一定是與該使用者有對話過(因為是使用者主動傳訊)
+    user_div.addEventListener("click",function(){  
+        if(on_which_user !== user_id){ 
+            //must have message with the nutritionist because user sends first
             if(on_which_user){
                 user[on_which_user]["oldest_time"] = null;
                 user[on_which_user]["is_typing"] = false;
@@ -492,25 +471,23 @@ function render_user(user_id,user_data){
             if(document.querySelector(".talking-to")){
                 document.querySelector(".talking-to").remove();
             };
-            let show_talk_who = document.createElement("div"); //顯示和誰對話
+            let show_talk_who = document.createElement("div"); 
             show_talk_who.classList.add("talking-to");
             show_talk_who.appendChild(document.createTextNode("@"+user[user_id]["name"]));
             let helper_title_container = document.querySelector(".helper-title-container");
             helper_title_container.appendChild(show_talk_who);
-            lock = true; //要先鎖起來,以免有人突然傳訊息過來
-            if(!user[user_id]["nutri_unread"] || user[user_id]["nutri_unread"]<0){
-                //代表沒有未讀訊息,打已讀API就好                   
+            lock = true; 
+            if(!user[user_id]["nutri_unread"] || user[user_id]["nutri_unread"]<0){                  
                 get_read_message_with_user(user[user_id]["nutri_read"]);
-            }else{ //代表要已讀跟未讀,打兩個API,先打未讀API,取完後不管有沒有未讀標誌都要拿掉
+            }else{ 
                 let temp_nutri_unread = user[user_id]["nutri_unread"];
-                let temp_nutri_read = user[user_id]["nutri_read"]; //(可能是undefined)nutri_read一開始可能是沒有的,因為可能是使用者先傳後,營養師第一次點開
+                let temp_nutri_read = user[user_id]["nutri_read"]; //(might be undefined)nutri_read might be nothing, beacuse might be user send first and nutritionist click out first time
                 user[user_id]["nutri_unread"]= -1;
                 user[user_id]["nutri_read"]= temp_nutri_unread;
                 user[user_id]["unread_count"] = 0;
                 nutri_socket.emit("update_nutri_read_unread",{"nutri_read":user[user_id]["nutri_read"],"nutri_unread":-1,"user_id":on_which_user});                  
                 nutri_socket.emit("update_nutri_unread_cnt",{"user_id":user_id,"count":0});
                 get_unread_message_with_user(temp_nutri_read,temp_nutri_unread);  
-                //最後把unread標誌和未讀數拿掉
                 let unread_img = document.getElementById(on_which_user).getElementsByClassName("user-name")[0].getElementsByClassName("unread")[0]
                 unread_img.remove();
                 let unread_cnt = document.getElementById(on_which_user).getElementsByClassName("user-name")[0].getElementsByClassName("unread-cnt")[0]
@@ -519,8 +496,7 @@ function render_user(user_id,user_data){
             let display_message_section = document.querySelector(".display-message-section");
             while(display_message_section.firstChild){
                 display_message_section.removeChild(display_message_section.firstChild);
-            }; //都先移掉全部對話
-            //生成對話筐(打完API後會把訊息塞到這個框裡)
+            }; 
             let msg_div = document.createElement("div");
             msg_div.setAttribute("id","log-"+user_id);
             msg_div.classList.add("log");
@@ -531,16 +507,16 @@ function render_user(user_id,user_data){
 };
 
 
-//顯示訊息
+//show message
 function create_message_box(name,message,time,timestamp,identity){
     let msg_box = document.createElement('div');
     let msg_pic_box = document.createElement('div');
     msg_pic_box.classList.add("msg-pic-box");
     let img = new Image();
     if(identity === 1){
-        img.src="/picture/face.png";
+        img.src="https://d2fbjpv4bzz3d2.cloudfront.net/face.png";
     }else if(identity === 2){   
-        img.src = "/picture/doctor.png";
+        img.src = "https://d2fbjpv4bzz3d2.cloudfront.net/doctor.png";
     };
     img.classList.add("msg-pic");
     msg_pic_box.appendChild(img);
@@ -559,7 +535,6 @@ function create_message_box(name,message,time,timestamp,identity){
     msg_box.appendChild(msg_div);
     msg_box.classList.add('msg-box');
     return msg_box
-
 }
 
 
@@ -579,16 +554,13 @@ function render_user_title(navmenu){
 }
 
 
-
 let t = 0;
-
-
-//認證通過後,進入helper頁面JWT認證通過才進行socket連線
+//after authentication, in heloer page connect to socket
 function connect_socket(identity){
     let jwt = localStorage.getItem("JWT"); 
-    if(identity === 1){ //如果是使用者   
-        user_socket = io('/user',{auth: {token: jwt}}); //record:2代表從helper頁面連線
-        user_socket.on("authentication_pass",function(data){ //如果認證通過才要渲染出諮詢頁面
+    if(identity === 1){ //if user   
+        user_socket = io('/user',{auth: {token: jwt}}); 
+        user_socket.on("authentication_pass",function(data){ 
             if(document.querySelector(".user-profile")){
                 let helper_title_container = document.querySelector(".helper-title-container");
                 let message_panel = document.querySelector(".message-panel");
@@ -612,7 +584,6 @@ function connect_socket(identity){
                 };
                 document.querySelector(".user-profile").remove();
                 on_which_nutri=null;
-                console.log("already have it");
             }
             let navmenu = document.querySelector(".navmenu");
             render_user_profile(navmenu,data["user_data"]); 
@@ -627,12 +598,11 @@ function connect_socket(identity){
             navmenu.appendChild(status_container);
             feather.replace();
             render_log_out(navmenu);
-            //把右邊顯示好,先把loading移除
             let loading = document.getElementById('loading');
             if(loading){
                 loading.remove()
             };
-            //上面的helper title
+            //helper title
             let main_container = document.querySelector(".main-container");
             let helper_container = document.createElement("div");
             helper_container.classList.add('helper-title-container');
@@ -641,30 +611,28 @@ function connect_socket(identity){
             helper_title.appendChild(document.createTextNode("Health Helper"));
             helper_container.appendChild(helper_title);
             main_container.appendChild(helper_container);
-            //下面的指示提示
             let message_panel =  document.createElement("div");
             message_panel.classList.add("message-panel");
             let display_message_section = document.createElement("div"); //先把display-message-section div弄好
             display_message_section.classList.add("display-message-section"); 
-            //instruction按下後會不見
             let instruction = document.createElement("div");
             instruction.classList.add("helper-instruction");
             instruction.appendChild(document.createTextNode("Nice to see you! Click on any nutritionist to ask question about your diet."));
             display_message_section.appendChild(instruction);
             message_panel.appendChild(display_message_section);
-            //訊息輸入
+            //input message
             let input_message_section = document.createElement("div");
             input_message_section.id="input-message-section";
             let input_container = document.createElement("div");
             input_container.classList.add("input-container");
             let emoji = new Image(); //emoji
             emoji.classList.add("emoji")
-            emoji.src = "/picture/emoji.svg";
+            emoji.src = "https://d2fbjpv4bzz3d2.cloudfront.net/emoji.svg";
             const picker = new EmojiButton();
             picker.on('emoji', emoji => {
                 document.getElementById('message').value += emoji;
             });
-            emoji.addEventListener('click', () => { //點下去跑出emoji可以選
+            emoji.addEventListener('click', () => { //click on emoji
                 picker.togglePicker(emoji);
             });
             let input = document.createElement("input");
@@ -679,7 +647,7 @@ function connect_socket(identity){
             send_img.setAttribute("data-feather","send");
             send_img.id="arrow";
             send_message_btn.appendChild(send_img);
-            send_message_btn.addEventListener("click",function(){ //按下後傳送訊息給營養師
+            send_message_btn.addEventListener("click",function(){ //send mssage to nitritionist
                 let input_bar;
                 if(on_which_nutri){
                     let receiver = on_which_nutri; //string
@@ -689,14 +657,13 @@ function connect_socket(identity){
                     if(message){
                         user_socket.emit("message_to_nutri",{"message":message,"receiver":receiver,"token":jwt});
                     };
-                    //清空輸入框
                     input_bar.value="";
                 }else{
                     input_bar.value="";
-                }    
+                };    
             });
 
-            input.addEventListener("keypress",function(e){ //按下後傳送訊息給營養師
+            input.addEventListener("keypress",function(e){ 
                 if(e.key === "Enter"){
                     send_message_btn.click();
                 }
@@ -717,7 +684,7 @@ function connect_socket(identity){
             message_panel.appendChild(input_message_section);
             main_container.appendChild(message_panel);
             feather.replace();
-            //要先註冊display-message-section往上滑動載入歷史訊息的事件
+            //註冊display-message-section往上滑動載入歷史訊息的事件
             display_message_section.addEventListener("scroll",function(){
                 if(display_message_section.scrollTop === 0){
                     let oldest_time = nutritionist[on_which_nutri]["oldest_time"];
@@ -726,18 +693,18 @@ function connect_socket(identity){
                         scroll_lock = true;
                         get_read_message_with_nutri(oldest_time);
                     };
-                }
+                };
             });  
           
         });
 
-        //使用者接收自己回傳的訊息,並顯示
+        
         user_socket.on("show_self_message",function(data){
                 let if_update_read_time = true;
                 // data = {"message":message,"time":message_time}
                 let my_name = document.querySelector(".username").textContent;
                 let message = data["message"];
-                //要顯示的訊息時間格式
+                //顯示的訊息時間格式
                 let message_time_format = generate_msg_time_format(data["time"]);
                 let message_box = create_message_box(my_name,message,message_time_format,data["time"],1);
                 let message_boxs = document.getElementsByClassName("msg-box");
@@ -755,15 +722,14 @@ function connect_socket(identity){
                                 if(data["time"] < time_id_1 && data["time"] > time_id_2){
                                     message_boxs[i].before(message_box);
                                     break;
-                                }
+                                };
                             }else{
                                 message_boxs[i].before(message_box);
                             }; 
                         };
-                        console.log("置換成功");
                         if_update_read_time = false;
                     }    
-                }else{ //表示是使用者第一次傳訊息
+                }else{ //means user sends first time
                     let log_div = document.getElementById("log-"+on_which_nutri);
                     log_div.appendChild(message_box);
                 }   
@@ -778,25 +744,23 @@ function connect_socket(identity){
                 display_message_section.scrollTop =  display_message_section.scrollHeight;
         });    
 
-
-        //使用者接收營養師傳來的訊息(因為使用者在線上才收到)    
+  
         user_socket.on("show_nutri_message",function(data){
                 //data = {"message":message,"time":message_time,"name":nutri_name,"nutri_id":nutri_id}
-                //看on_which_nutri,如果有在該營養師,就顯示,如果沒有就顯示未讀
-                if(on_which_nutri === String(data["nutri_id"])){ //直接顯示
+                //if on_which_nutri then show. if not,show unread
+                if(on_which_nutri === String(data["nutri_id"])){ 
                     let if_update_read_time = true;
                     let nutri_name = data["name"];
                     let message = data["message"];
                     let message_time = new Date(data["time"]);
-                    let year = message_time.getFullYear(); //2022
-                    let month = message_time.getMonth()  //4
-                    let date = message_time.getDate();   //28
+                    let year = message_time.getFullYear(); 
+                    let month = message_time.getMonth()  
+                    let date = message_time.getDate();   
                     let hour = message_time.getHours();
                     let minute = message_time.getMinutes();
-                    //要顯示的訊息時間格式
                     let message_time_format = String(year)+"/"+ String(month+1) + "/" + String(date) + " " + String(hour) + ":" + String(minute)
                     let message_box = create_message_box(nutri_name,message,message_time_format,data["time"],2);
-                    if(!lock){ //確認lock是false
+                    if(!lock){ //confirm lock = false
                         if(data["time"] > nutritionist[String(data["nutri_id"])]["user_read"]){ //如果要顯示的訊息>目前的read時間,正常顯示
                             let log_div = document.getElementById("log-"+on_which_nutri);
                             log_div.appendChild(message_box);
@@ -821,14 +785,12 @@ function connect_socket(identity){
                                     };
                                 } 
                             }
-                            console.log("置換成功");
                             if_update_read_time = false;
                         };
                         let display_message_section =document.querySelector(".display-message-section");
                         display_message_section.scrollTop =  display_message_section.scrollHeight;
                     }else{ //如果不是false就先存到buffer list
-                        buffer_message_list.push(message_box);  
-                        console.log("塞到buffer list囉");  
+                        buffer_message_list.push(message_box);   
                     };
                     //把nutritionist裡的user_read更新,並且emit給後端更新
                     if(if_update_read_time){
@@ -945,7 +907,7 @@ function connect_socket(identity){
                             dot_box.appendChild(typing_content);
                             dot_box.appendChild(dot);
                             input_message_section.appendChild(dot_box);
-                            //要設一個timer 
+                            //設一個timer 
                             nutritionist[on_which_nutri]["is_typing_timer"] = setTimeout(function(){
                                                                         cancel_typing("user",on_which_nutri)},900)
                         }else if(nutritionist[on_which_nutri]["is_typing"] === true){
@@ -966,7 +928,6 @@ function connect_socket(identity){
         });
 
         user_socket.on("open_again",function(){ //又再開一次
-            console.log('開過了');
             window.location.replace('/again') //導到警告頁面        
         });
 
@@ -976,7 +937,6 @@ function connect_socket(identity){
                 window.location.replace("https://d2fbjpv4bzz3d2.cloudfront.net/error.html");
             }else{
                 console.log(reason);
-                console.log('client 斷線')
             }
         });
 
@@ -1056,7 +1016,7 @@ function connect_socket(identity){
             input_container.classList.add("input-container");
             let emoji = new Image(); //emoji
             emoji.classList.add("emoji")
-            emoji.src = "/picture/emoji.svg";
+            emoji.src = "https://d2fbjpv4bzz3d2.cloudfront.net/emoji.svg";
             const picker = new EmojiButton();
             picker.on('emoji', emoji => {
                 document.getElementById('message').value += emoji;
@@ -1064,8 +1024,6 @@ function connect_socket(identity){
             emoji.addEventListener('click', () => { //點下去跑出emoji可以選
                 picker.togglePicker(emoji);
             });
-
-
             let input = document.createElement("input");
             input.setAttribute("type","text");
             input.setAttribute("id","message");
@@ -1076,7 +1034,6 @@ function connect_socket(identity){
             send_message_btn.id = "send_message";
             let send_img  = document.createElement("i");
             send_img.setAttribute("data-feather","send");
-            send_img.src="/picture/reply-arrow.png";
             send_img.id="arrow";
             send_message_btn.appendChild(send_img);
             send_message_btn.addEventListener("click",function(){ //按下後傳送訊息給使用者
@@ -1085,8 +1042,7 @@ function connect_socket(identity){
                     let receiver = on_which_user; //string
                     input_bar = document.getElementById("message");
                     let message = input_bar.value;
-                    let jwt = localStorage.getItem("JWT");
-                    console.log('傳給使用者')   
+                    let jwt = localStorage.getItem("JWT"); 
                     if(message){
                         nutri_socket.emit("message_to_user",{"message":message,"receiver":receiver,"token":jwt});
                     };
@@ -1167,14 +1123,12 @@ function connect_socket(identity){
 
                                     } 
                                 };    
-                                console.log("置換成功");
                                 if_update_read_time = false;
                             };
                             let display_message_section =document.querySelector(".display-message-section");
                             display_message_section.scrollTop =  display_message_section.scrollHeight;    
                         }else{ //如果不是false就先存到buffer list
                             buffer_message_list.push(message_box);    
-                            console.log("塞到buffer list囉");
                         };
                         if(if_update_read_time){
                             //把user裡的nutri_read更新,並且emit給後端更新
@@ -1288,7 +1242,6 @@ function connect_socket(identity){
                                     };
                                 }; 
                             };
-                            console.log("置換成功");
                             if_update_read_time = false;
                         }
                     };    
@@ -1310,7 +1263,6 @@ function connect_socket(identity){
                     if(user[data["user_id"]]){ //如果這個上線的使用者有在營養師的side bar裡
                         let user_div = document.getElementById(data["user_id"]);
                         let div = user_div.querySelector(".status-light");
-                        //div.classList.toggle("online");
                         if(data["status"]===0){
                             user[data["user_id"]]["status"] = 0;
                             if(div.classList.contains("online")){
@@ -1344,7 +1296,7 @@ function connect_socket(identity){
                             dot_box.appendChild(typing_content);
                             dot_box.appendChild(dot);
                             input_message_section.appendChild(dot_box);
-                            //要設一個timer 
+                            //設一個timer 
                             user[on_which_user]["is_typing_timer"] = setTimeout(function(){
                                                                         cancel_typing("nutri",on_which_user)},900)
                         }else if(user[on_which_user]["is_typing"] === true){
@@ -1365,7 +1317,6 @@ function connect_socket(identity){
         });
 
         nutri_socket.on("open_again",function(){ //又再開一次
-            console.log('開過了');
             window.location.replace('/again') //導到警告頁面        
         });
 
@@ -1374,13 +1325,10 @@ function connect_socket(identity){
                 window.location.replace("https://d2fbjpv4bzz3d2.cloudfront.net/error.html");
             }else{
                 console.log(reason);
-                console.log('client 斷線')
             }
         });
 
     }    
-
-
 }
 
 

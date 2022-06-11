@@ -26,8 +26,6 @@ self.addEventListener('push', function(event) {
   const options = {
     body: body
   };
-  console.log(title, options);
-
   event.waitUntil(
     self.registration.showNotification(title, options)
   );

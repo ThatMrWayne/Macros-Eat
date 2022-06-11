@@ -5,7 +5,7 @@ let select_food={"food_name":null,
                  "fat":null,
                 "calories":null} 
 
-//按下去選的食物後
+//when press on chosen food
 function lock_food(food){ 
     let input_area = document.getElementById("input-area");
     let input_name = document.getElementById("food_name");
@@ -18,7 +18,7 @@ function lock_food(food){
     select_food["protein"] = Number(food.getAttribute("protein"));
     select_food["fat"] = Number(food.getAttribute("fat"));
     select_food["carbs"] = Number(food.getAttribute("carbs"));
-} 
+}; 
 
 
 
@@ -28,11 +28,11 @@ async function get_food(food,jwt,page){
                                     {headers: {"Authorization" : `Bearer ${jwt}`}
                                     });
         let data = await response.json();
-        return data
+        return data;
     }catch(message){
         console.log(`${message}`);
         throw Error('Fetching was not ok!!.');
-    }    
+    };    
 };
 
 
@@ -88,29 +88,27 @@ function create_search_li(food){
     li.setAttribute("fat",food["fat"])
     li.setAttribute("carbs",food["carbs"])
     li.classList.add("food-item-li");
-    li.addEventListener("mouseenter",function(e){ //mouseenter的時候顯示PFC和熱量
+    li.addEventListener("mouseenter",function(e){ //mouseenter show PFCand calories
         let p = e.target.getAttribute("protein");
         let f = e.target.getAttribute("fat");
         let c = e.target.getAttribute("carbs");
         show_food_info(p,f,c); 
     });
-    li.addEventListener("mouseleave",function(){ //mouseleave的時候移掉食物資訊
+    li.addEventListener("mouseleave",function(){ 
         let info_box = document.querySelector(".info-box");
         if(info_box){
             info_box.remove();
         };
     });
-    li.addEventListener("click",function(){ //按下去的時候鎖定食物,存在全域變數,
+    li.addEventListener("click",function(){ 
         lock_food(this); 
     });  
     return li;  
-}
+};
 
 
 
 
-
-//not done yet
 function render_data(data){
     let input_amount = document.getElementById("food_portion");
     if(input_amount.value){
@@ -118,7 +116,7 @@ function render_data(data){
     };
     let input_area = document.getElementById("input-area");
     if(document.querySelector(".search-result")){
-        input_area.removeChild(document.querySelector(".search-result"))
+        input_area.removeChild(document.querySelector(".search-result"));
     };
     let div = document.createElement("div");
     div.classList.add("search-result");
@@ -128,7 +126,7 @@ function render_data(data){
         let li = create_search_li(data[i]);
         ul.appendChild(li);  
     };
-    ul.addEventListener("scroll",function(){ //註冊滑動載入事件
+    ul.addEventListener("scroll",function(){ 
         if(this.scrollHeight-this.scrollTop <= this.clientHeight){
             if(can_get_public_food_scroll && public_food_page){
                 can_get_public_food_scroll = false;
@@ -145,12 +143,12 @@ function render_data(data){
                         ul.appendChild(li);  
                     };
                 });
-            }
+            };
         };
     });
     div.appendChild(ul);
     input_area.appendChild(div);
-}
+};
 
 
 
