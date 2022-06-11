@@ -11,9 +11,9 @@ tasks/.env
 nginx_for_ssl
 test-redis.py
 test-mongo.py
-docker-compose.yml
 food_crawler/
 .DS_Store
+docker-compose.yml
 
 .idea
 # Byte-compiled / optimized / DLL files

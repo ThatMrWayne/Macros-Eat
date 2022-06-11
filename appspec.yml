@@ -2,9 +2,13 @@ version: 0.0
 os: linux
 files:
   - source: ./test.txt
-    destination: /home/ubuntu/test/
+    destination: /home/ubuntu/test
 hooks:
   AfterInstall:
-   - location: setup.sh
+   - location: ./scripts/setup.sh
      timeout: 300
      runas: root
+  ApplicationStart:
+  - location: ./scripts/run.sh
+    timeout: 400
+    runas: root   
