@@ -730,36 +730,6 @@ def show_typing_nutri(payload):
 		emit("authencation_fail")
 
 
-#-------------------------------------------------#
-
-import time
-@app.route("/getfood")
-def food():
-	s = time.perf_counter()
-	e = s+5
-	while time.perf_counter() < e:
-		try:
-			c = db.cnxpool.get_connection()
-			break
-		except:
-			time.sleep(0.1)
-	if c:		
-		time.sleep(1)
-		c.close()
-		result={"data":1}
-		return jsonify(result), 200
-	else:
-		return jsonify({"data":2}), 200
-
-
-
-
-#-------------------------------------------------#
-
-
-
-
-
 
 if __name__ == "__main__":
 	gunicorn_logger = logging.getLogger('gunicorn.error')

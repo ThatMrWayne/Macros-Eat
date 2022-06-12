@@ -1,7 +1,9 @@
 
 # Macros Eat
 
-![Logo](https://d2fbjpv4bzz3d2.cloudfront.net/macroseat_logo.png)
+<p align="center">
+  <img width="200" src="https://d2fbjpv4bzz3d2.cloudfront.net/macroseat_logo.png">
+</p>
 
 Macros Eat aims to help you record your daily diet with personalized diet plans focusing on macronutrients and provide consulting service chatting with nutritionist online in real-time. 
 
@@ -131,6 +133,8 @@ Insert gif or link to demo
   - chart.js 
   - moment.js 
 ## API Doc
+
+[API doc](https://app.swaggerhub.com/apis/mrwayne/macros-eat/1.0.0-oas3)
 ## Contact
 
 👨🏻‍💻 許哲瑋 Che Wei Hsu 

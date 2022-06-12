@@ -35,6 +35,7 @@ body{
     font-weight:bold;
     color: #F0754F;
     margin-left: 10px;
+    padding-bottom: 10px;
 }
 
 .header-1 > span, .header-1 > img{
