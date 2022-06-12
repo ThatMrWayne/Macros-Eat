@@ -40,7 +40,5 @@ class Utils:
         return user_name        
 
 
-
-
 Utils_obj =  Utils()       
                 

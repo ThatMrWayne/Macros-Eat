@@ -1,14 +1,8 @@
 from flask import request
 from flask import Blueprint
-from flask import make_response
 from flask import jsonify 
-from flask_jwt_extended import create_access_token
-from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import verify_jwt_in_request
-from flask_jwt_extended import decode_token
 from functools import wraps
-from werkzeug.security import generate_password_hash, check_password_hash
-from daily_record import record
 from model import db
 from model import redis_db
 from model.connection import Connection
@@ -33,12 +27,10 @@ def jwt_required_for_intake():
 
 
 
-
-
 def organize_diet_data(data):
     first_row = data[0]
     result={}
-    if first_row["food_name"]: #代表有飲食紀錄
+    if first_row["food_name"]: #means there is food record
         result["food_record"]=[]
         for row in data:
             temp = {
@@ -68,13 +60,9 @@ def verify_diet(input):
 
 
 
-
-
-
-
 def handle_get_diet(request):
-    connection = db.get_daily_diet_cnx() #取得飲食紀錄操作相關的自定義connection物件
-    if isinstance(connection,Connection): #如果有順利取得連線
+    connection = db.get_daily_diet_cnx() 
+    if isinstance(connection,Connection): 
         user_id = Utils_obj.get_member_id_from_jwt(request)
         datetimestamp = request.args.get('datetime')  
         if not datetimestamp or not datetimestamp.isdigit():
@@ -85,26 +73,23 @@ def handle_get_diet(request):
         data = connection.get_diet_info(datetimestamp,user_id)
         if data == "error":
             response_msg={
-                    "error":True,
-                    "message":"不好意思,資料庫暫時有問題,維修中"}
+                          "error":True,
+                        "message":"不好意思,資料庫暫時有問題,維修中"}
             return jsonify(response_msg), 500          
-        else: #取得資料成功  
-            if not data: #代表當日沒有紀錄
+        else:  
+            if not data: 
                 return jsonify({"food_record":None})
-            else: #代表有當日紀錄,但不一定有飲食紀錄
+            else: #means record existed (with/without food record)
                 result = organize_diet_data(data)
-                return jsonify(result), 200   #                   
-    elif connection == "error":  #如果沒有順利取得連線
+                return jsonify(result), 200                      
+    elif connection == "error": 
         response_msg={
-                "error":True,
-                "message":"不好意思,資料庫暫時有問題,維修中"}
+                      "error":True,
+                      "message":"不好意思,資料庫暫時有問題,維修中"}
         return jsonify(response_msg), 500       
-
-def handle_add_diet(resuest):
-        #前端送過來的是json檔
+def handle_add_diet(request):
         try:
             request_data = request.get_json()
-        #如果POST過來根本沒有json檔
         except:
             response_msg={
                           "error":True,
@@ -114,46 +99,42 @@ def handle_add_diet(resuest):
         input = {}
         for label in labels:
             input[label] = request_data.get(label)
-        #如果有傳json檔,但裡面根本沒有需要的更新資料
         if None in input.values():    
             response_msg={
                           "error":True,
                           "message":"新增紀錄失敗"}
             return jsonify(response_msg), 400 
-        #後端也要驗證正不正確 防止有人不是從瀏覽器
         verify_result = verify_diet(input)
         if verify_result == False:
             response_msg={
-                            "error":True,
-                            "message":"新增紀錄失敗,新增資料有誤"}  
+                          "error":True,
+                          "message":"新增紀錄失敗,新增資料有誤"}  
             return jsonify(response_msg), 400 
-        #取得連線物件
-        connection = db.get_daily_diet_cnx() #取得飲食紀錄操作相關的自定義connection物件
-        if isinstance(connection,Connection): #如果有順利取得連線
+        connection = db.get_daily_diet_cnx() 
+        if isinstance(connection,Connection): 
             user_id = Utils_obj.get_member_id_from_jwt(request)
             result = connection.insert_new_diet(request_data,user_id)
-            if result == "error": #如果檢查回傳結果是"error",代表資料庫query時發生錯誤
+            if result == "error": 
                 response_msg={
-                            "error":True,
-                            "message":"不好意思,資料庫暫時有問題,維修中"}
+                              "error":True,
+                              "message":"不好意思,資料庫暫時有問題,維修中"}
                 return jsonify(response_msg), 500
-            elif result:  #新增飲食紀錄成功,要把對應的cache刪除(get_my_record18)
+            elif result:  #add successfully, needs to delete corresponded cache
                 timestamp = request_data["create_at"]
                 redis_key = f'get_my_record{user_id}'
                 redis_db.redis_instance.hdel(redis_key,str(timestamp))
                 response_msg={"ok": True, "intake_id": result["intake_id"]}
-                return jsonify(response_msg), 201 #api test ok
+                return jsonify(response_msg), 201 
             else:
                 response_msg={
-                            "error":True,
-                            "message":"該紀錄代號不存在或該紀錄代號不屬於此會員"}  
+                              "error":True,
+                              "message":"該紀錄代號不存在或該紀錄代號不屬於此會員"}  
                 return jsonify(response_msg), 400 
-        elif connection == "error":  #如果沒有順利取得連線
+        elif connection == "error":  
             response_msg={
-                        "error":True,
-                        "message":"不好意思,資料庫暫時有問題維修中"}          
+                          "error":True,
+                          "message":"不好意思,資料庫暫時有問題維修中"}          
             return jsonify(response_msg), 500       
-
 def handle_delete_diet(request):
         intake_id = request.args.get("intake_id")
         record_id = request.args.get("record_id")
@@ -163,44 +144,44 @@ def handle_delete_diet(request):
                           "error":True,
                           "message":"刪除失敗,沒有給intake_id or datetime or record_id"}
             return jsonify(response_msg), 400 
-        connection = db.get_daily_diet_cnx()   #取得飲食紀錄相關操作的自定義connection物件
-        if isinstance(connection,Connection): #如果有順利取得連線
+        connection = db.get_daily_diet_cnx()  
+        if isinstance(connection,Connection): 
             user_id = Utils_obj.get_member_id_from_jwt(request)
             result = connection.delete_diet(intake_id,user_id,record_id) 
-            if result == "error": #代表刪除飲食資料失敗
+            if result == "error": 
                 response_msg={
-                            "error":True,
-                            "message":"不好意思,資料庫暫時有問題,維修中"}
+                              "error":True,
+                              "message":"不好意思,資料庫暫時有問題,維修中"}
                 return jsonify(response_msg), 500 
-            elif result: #表示刪除飲食資料成功,更新對應cache
+            elif result: #delete successfull, update corresponded cache 
                     redis_key = f'get_my_record{user_id}'
                     redis_db.redis_instance.hdel(redis_key,str(timestamp))
                     response_msg={ "ok": True }
-                    return jsonify(response_msg), 204 #api test ok
+                    return jsonify(response_msg), 204 
             else:
                 response_msg={
-                            "error":True,
-                            "message":"此intake_id不存在或不屬於該會員"}
-                return jsonify(response_msg), 400 #api test ok                
-        elif connection == "error": #如果沒有順利取得連線
+                              "error":True,
+                              "message":"此intake_id不存在或不屬於該會員"}
+                return jsonify(response_msg), 400                
+        elif connection == "error": 
             response_msg={
-                        "error":True,
-                        "message":"不好意思,資料庫暫時有問題,維修中"}              
+                          "error":True,
+                          "message":"不好意思,資料庫暫時有問題,維修中"}              
             return jsonify(response_msg), 500    
 
 
 
 
-#要驗證JWT
+
 @diet.route('/api/intakes', methods=["GET","POST","DELETE"])
 @jwt_required_for_intake()
 def intakes():
-    if request.method == "POST": #如果是POST,代表要新增吃的紀錄
+    if request.method == "POST": 
         add_record_result = handle_add_diet(request)
         return add_record_result
-    elif request.method == "DELETE": #如果是delete,代表要刪除吃的紀錄
+    elif request.method == "DELETE": 
         delete_diet_result = handle_delete_diet(request)
         return delete_diet_result
-    elif request.method == "GET": #如果是GET,代表要取得當日吃的紀錄)
+    elif request.method == "GET": 
         get_diet_result = handle_get_diet(request)
         return get_diet_result

@@ -61,11 +61,14 @@ Insert gif or link to demo
 ### Backend Technique
 
 #### Infrastructure
-- Docker 
+- Containerize 
 - docker-compose 
 
-#### Environment
-- Gunicorn / Flask
+#### Language / Web Framework
+- Python / Flask
+
+#### WSGI Server
+- Gunicorn
 
 #### Cloud Service (AWS)
 - EC2

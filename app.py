@@ -4,7 +4,7 @@ from flask import *
 from flask_jwt_extended import JWTManager
 from flask_jwt_extended import decode_token
 from flask_socketio import SocketIO
-from flask_socketio import send, emit, join_room
+from flask_socketio import emit
 from flask_jwt_extended import create_access_token
 from authen import auth_blueprint
 from food import food_blueprint
@@ -17,7 +17,6 @@ import config
 from model import db
 from model import redis_db
 from model import Connection
-#from cache import cache
 from celery_factory.make_celery import make_celery
 from webpush_handler import trigger_push_notifications_for_subscriptions
 from authlib.integrations.flask_client import OAuth
@@ -25,17 +24,15 @@ from authlib.integrations.flask_client import OAuth
 
 
 app=Flask(__name__,static_folder="static",static_url_path="/")
-#config for flask object
-app.config.from_object(config.DevelopmentConfig)
 
+#config for flask object
+app.config.from_object(config.ProductionConfig)
+
+#attach celery object
 celery_obj = make_celery(app)
 app.celery = celery_obj
 
-
-# flask caching part 
-#cache.init_app(app)
-
-
+#blueprint register
 app.register_blueprint(auth_blueprint)
 app.register_blueprint(food_blueprint)
 app.register_blueprint(record_blueprint)
@@ -44,13 +41,13 @@ app.register_blueprint(diet_blueprint)
 app.register_blueprint(weight_blueprint)
 app.register_blueprint(message_blueprint)
 
+# attach JWT
 jwt = JWTManager(app)
 
-
+# Flask_socketio 
 socketio = SocketIO(app,cors_allowed_origins='*',ping_timeout=20)
 
-
-
+#oauth
 oauth = OAuth(app)
 oauth.register(
     name='google',
@@ -74,18 +71,17 @@ def authorize():
     userinfo = token.get('userinfo')
     email = userinfo["email"]
     name = userinfo["name"]
-    current_app.logger.info(email)
     initial=0	
     # do something with the token and profile
     connection1 = db.get_auth_cnx()
-    if isinstance(connection1,Connection): #如果有順利取得連線
-        result = connection1.confirm_member_information(email,1) #先確認有沒有這個email帳號 
-        if result == "error": #代表查詢失敗
+    if isinstance(connection1,Connection): 
+        result = connection1.confirm_member_information(email,1) 
+        if result == "error": 
                     response_msg={
                             "error":True,
                             "message":"不好意思,資料庫暫時有問題,維修中"}
                     return jsonify(response_msg), 500 
-        elif result: #表示有此會員
+        elif result: 
             if result["hash_password"] != "123": #表示已經用這個email註冊過,不能再用一樣的email goole登入
                 response_msg={
                             "error":True,

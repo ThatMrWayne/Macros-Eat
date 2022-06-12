@@ -3,20 +3,14 @@ import json
 from datetime import datetime
 from flask import request
 from flask import Blueprint
-from flask import make_response
 from flask import jsonify 
-from flask_jwt_extended import create_access_token
-from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import verify_jwt_in_request
-from flask_jwt_extended import decode_token
 from functools import wraps
-from werkzeug.security import generate_password_hash, check_password_hash
 from model import db
 from model import redis_db
 from model.connection import Connection
 from utils import Utils_obj
 from flask import current_app
-#from celery_factory.celery_tasks import del_myrecord_cache
 
 
 
@@ -72,9 +66,6 @@ def verify_add_record_info(input):
     return result 
 
 
-
-
-
 def organize_record_data(data):
     first_row = data[0]
     result={
@@ -106,13 +97,9 @@ def organize_record_data(data):
 
 
 
-
-
 def handle_add_record(request):
-        #前端送過來的是json檔
         try:
             request_data = request.get_json()
-        #如果POST過來根本沒有json檔
         except:
             response_msg={
                           "error":True,
@@ -122,71 +109,65 @@ def handle_add_record(request):
         input = {}
         for label in labels:
             input[label] = request_data.get(label)
-        #如果有傳json檔,但裡面根本沒有需要的更新資料
         if None in input.values():    
             response_msg={
                           "error":True,
                           "message":"新增紀錄失敗,新增資料不齊全"}
             return jsonify(response_msg), 400 
-        #後端也要驗證正不正確 防止有人不是從瀏覽器
         verify_result = verify_add_record_info(input)
         if verify_result == False:
             response_msg={
                             "error":True,
                             "message":"新增紀錄失敗,新增資料有誤"}  
             return jsonify(response_msg), 400 
-        #取得連線物件
-        connection = db.get_daily_record_cnx() #取得每日紀錄操作相關的自定義connection物件
-        if isinstance(connection,Connection): #如果有順利取得連線
+        connection = db.get_daily_record_cnx() 
+        if isinstance(connection,Connection): 
             user_id = Utils_obj.get_member_id_from_jwt(request)
             result = connection.insert_new_record(request_data,user_id)
-            if result == "error": #如果檢查回傳結果是"error",代表資料庫query時發生錯誤
+            if result == "error": 
                 response_msg={
                             "error":True,
                             "message":"不好意思,資料庫暫時有問題,維修中"}
                 return jsonify(response_msg), 500
-            elif result == True:  #順利新增紀錄,要清除cache裡的資料
+            elif result == True:  #insert successfully, clear corresponded cache
                 timestamp = request_data["create_at"]
                 redis_key = f'get_my_record{user_id}'
                 redis_db.redis_instance.hdel(redis_key,str(timestamp))
                 response_msg={"ok": True}
-                return jsonify(response_msg), 201 #api test ok
-        elif connection == "error":  #如果沒有順利取得連線
+                return jsonify(response_msg), 201 
+        elif connection == "error": 
             response_msg={
                         "error":True,
                         "message":"不好意思,資料庫暫時有問題維修中"}          
             return jsonify(response_msg), 500       
 
 
-#取得使用者的日紀錄＋取得飲食紀錄
+#(day record + intake record)
 def handle_get_record(datetimestamp,user_id):
-    connection = db.get_daily_record_cnx() #取得每日紀錄操作相關的自定義connection物件
-    if isinstance(connection,Connection): #如果有順利取得連線   
+    connection = db.get_daily_record_cnx() 
+    if isinstance(connection,Connection):   
         data = connection.get_record_info(datetimestamp,user_id)
         if data == "error":
             response_msg={
-                    "error":True,
-                    "message":"不好意思,資料庫暫時有問題,維修中"}
+                          "error":True,
+                          "message":"不好意思,資料庫暫時有問題,維修中"}
             return jsonify(response_msg), 500          
-        else: #取得資料成功  
-            if not data: #代表當日沒有紀錄
+        else:  
+            if not data: #there is no record
                 return jsonify({"day_record":None,"food_record":None}), 200
-            else: #代表有當日紀錄,但不一定有飲食紀錄
+            else: #there is record with/without intake record
                 result = organize_record_data(data)
-                return jsonify(result), 200   #                   
-    elif connection == "error":  #如果沒有順利取得連線
+                return jsonify(result), 200                     
+    elif connection == "error":  
         response_msg={
                 "error":True,
                 "message":"不好意思,資料庫暫時有問題,維修中"}
         return jsonify(response_msg), 500    
             
 
-
 def handle_update_record(request):
-        #前端送過來的是json檔
         try:
             request_data = request.get_json()
-        #如果POST過來根本沒有json檔
         except:
             response_msg={
                           "error":True,
@@ -196,30 +177,27 @@ def handle_update_record(request):
         input = {}
         for label in labels:
             input[label] = request_data.get(label)
-        #如果有傳json檔,但裡面根本沒有需要的更新資料
         if None in input.values():
             response_msg={
                           "error":True,
                           "message":"更新失敗,更新資料不完整"}
             return jsonify(response_msg), 400
-        #後端也要更新的資料正不正確 防止有人不是從瀏覽器更新
         verify_result = verify_record_info(input)
         if verify_result == False:
             response_msg={
                             "error":True,
                             "message":"更新失敗,更新資料不正確"}  
             return jsonify(response_msg), 400
-        #取得連線物件
-        connection = db.get_daily_record_cnx() #取得每日紀錄操作相關的自定義connection物件
-        if isinstance(connection,Connection): #如果有順利取得連線
+        connection = db.get_daily_record_cnx() 
+        if isinstance(connection,Connection): 
             user_id = Utils_obj.get_member_id_from_jwt(request)
             result = connection.update_record(input,user_id)
-            if result == "error": #如果檢查回傳結果是"error",代表資料庫query時發生錯誤
+            if result == "error": 
                 response_msg={
-                            "error":True,
-                            "message":"不好意思,資料庫暫時有問題,維修中"}
+                              "error":True,
+                              "message":"不好意思,資料庫暫時有問題,維修中"}
                 return jsonify(response_msg), 500
-            elif result == True: #更新成功,要把對應那天的cache清空
+            elif result == True: #update successfully, clear corresponded cache
                 timestamp = request_data["create_at"]
                 redis_key = f'get_my_record{user_id}'
                 redis_db.redis_instance.hdel(redis_key,str(timestamp))
@@ -230,7 +208,7 @@ def handle_update_record(request):
                             "error":True,
                             "message":"該日紀錄不存在"}  
                 return jsonify(response_msg), 400    
-        elif connection == "error":  #如果沒有順利取得連線
+        elif connection == "error": 
             response_msg={
                         "error":True,
                         "message":"不好意思,資料庫暫時有問題維修中"}          
@@ -240,17 +218,17 @@ def handle_update_record(request):
 
 
 
-#要驗證JWT
+
 @record.route('/api/records', methods=["GET","POST","PATCH"])
 @jwt_required_for_record()
 def records():
-    if request.method == "POST": #如果是POST,代表要新增日紀錄
+    if request.method == "POST": 
         add_record_result = handle_add_record(request)
         return add_record_result
-    elif request.method == "PATCH": #如果是patch,代表要更新日紀錄
+    elif request.method == "PATCH": 
         update_record_result = handle_update_record(request)
         return update_record_result
-    elif request.method == "GET": #如果是GET,代表要取得日紀錄(包括當日吃的紀錄)
+    elif request.method == "GET": 
         datetimestamp = request.args.get('datetime')
         if not datetimestamp or not datetimestamp.isdigit():
             return jsonify({
@@ -262,25 +240,24 @@ def records():
             redis_key = f'get_my_record{user_id}' # e.g => get_my_record18
             high = datetime.now().timestamp()
             low = int(high - (86400*7))
-            if low <= int(datetimestamp)/1000 <= high: #包括當日往前七天才做快取
+            if low <= int(datetimestamp)/1000 <= high: #only within 7 days in cache
                 try:
                     start = time.perf_counter()
                     r = redis_db.redis_instance.hget(redis_key,str(datetimestamp))
-                    if r: #如果redis有資料
+                    if r: #if there is data in redis
                         data = json.loads(r)
                         result = jsonify(data), 200  
                         end_a = time.perf_counter()
                         current_app.logger.info(f"record cache hits!=>time consuming:{end_a-start} s")
-                    else:  #如果redis沒資料,就要去mysql拿,再存入redis,要send一個background task 半天內後刪除
+                    else:  #if not in redis , get from mysql and then put in redis 
                         result = handle_get_record(datetimestamp,user_id)
                         if result[0].status_code == 200: #如果result成功,才存入redis
                             data = {str(datetimestamp) : result[0].get_data()} #result[0].get_data()已是byte string
                             redis_db.redis_instance.hset(redis_key, mapping = data)
-                            current_app.logger.info("task sended!")
                             current_app.celery.send_task('task.delmyrecordCache',args=[redis_key,datetimestamp],countdown=600) 
                             end_b = time.perf_counter()
                             current_app.logger.info(f"record cache miss!=>time consuming:{end_b-start} s")                            
-                except: #如果redis掛掉,就要去mysql拿
+                except: #if redis is down, get from mysql 
                     result = handle_get_record(datetimestamp,user_id) 
             else:
                 current_app.logger.info(f"get record without cache.")       

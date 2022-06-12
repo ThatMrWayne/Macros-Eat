@@ -1,4 +1,3 @@
-from pydoc import pager
 import time
 import json
 from flask import request
@@ -11,9 +10,7 @@ from model import db
 from model import redis_db
 from model.connection import Connection
 from utils import Utils_obj
-#from cache import cache
 from flask import current_app
-#from celery_factory.celery_tasks import del_myfood_cache
 
 
 
@@ -35,8 +32,6 @@ def jwt_required_for_food():
     return wrapper
 
 
-
-
 def verify_food_info(input):
     result=True
     if (type(input["protein"]) not in [float,int]) or (input["protein"]<0):
@@ -51,48 +46,43 @@ def verify_food_info(input):
 
 
 def handle_add_food(request):
-        #前端送過來的是json檔
         try:
             request_data = request.get_json()
-        #如果POST過來根本沒有json檔
         except:
             response_msg={
                           "error":True,
                           "message":"新增食物失敗"}
-            return jsonify(response_msg), 400 #api test ok
+            return jsonify(response_msg), 400 
         labels = ["food_name","protein","fat","carbs"]
         input = {}
         for label in labels:
             input[label] = request_data.get(label)
-        #如果有傳json檔,但裡面根本沒有需要的更新資料
         if None in input.values():    
             response_msg={
                           "error":True,
                           "message":"新增食物失敗"}
-            return jsonify(response_msg), 400 #api test ok
-        #後端也要驗證正不正確 防止有人不是從瀏覽器
+            return jsonify(response_msg), 400 
         verify_result = verify_food_info(input)
         if verify_result == False:
             response_msg={
-                            "error":True,
-                            "message":"新增資料有誤"}  
-            return jsonify(response_msg), 400 #api test ok
-        #取得連線物件
-        connection = db.get_food_cnx() #取得食物倉庫相關操作的自定義connection物件
-        if isinstance(connection,Connection): #如果有順利取得連線
+                          "error":True,
+                          "message":"新增資料有誤"}  
+            return jsonify(response_msg), 400 
+        connection = db.get_food_cnx() 
+        if isinstance(connection,Connection): 
             user_id = Utils_obj.get_member_id_from_jwt(request)
             result = connection.insert_new_food(request_data,user_id)
-            if result == "error": #如果檢查回傳結果是"error",代表資料庫query時發生錯誤
+            if result == "error": 
                 response_msg={
                             "error":True,
                             "message":"伺服器內部錯誤，新增失敗"}
                 return jsonify(response_msg), 500
-            elif result: #如果成功新增食物,要把cache對應資料刪掉
+            elif result: #add successfully,clear corresponded cache
                 redis_key = f'get_my_food{user_id}'
                 redis_db.redis_instance.delete(redis_key)
-                response_msg={"ok": True,"food_id":result["food_id"]}
-                return jsonify(response_msg), 201 #api test ok
-        elif connection == "error":  #如果沒有順利取得連線
+                response_msg={"ok": True}
+                return jsonify(response_msg), 201 
+        elif connection == "error": 
             response_msg={
                         "error":True,
                         "message":"伺服器內部錯誤，新增失敗"}          
@@ -103,34 +93,34 @@ def handle_delete_food(request):
             response_msg={
                           "error":True,
                           "message":"刪除失敗,沒有給food id"}
-            return jsonify(response_msg), 400 #api test ok
-        connection = db.get_food_cnx()    #取得食物倉庫相關操作的自定義connection物件
-        if isinstance(connection,Connection): #如果有順利取得連線
+            return jsonify(response_msg), 400 
+        connection = db.get_food_cnx()   
+        if isinstance(connection,Connection): 
             user_id = Utils_obj.get_member_id_from_jwt(request)
             result = connection.delete_food(food_id,user_id) 
-            if result == "error": #代表刪除食物資料失敗
+            if result == "error": 
                 response_msg={
                             "error":True,
                             "message":"伺服器內部錯誤，資料刪除失敗"}
                 return jsonify(response_msg), 500 
-            elif result: #表示刪除食物資料成功,要把cache對應資料刪掉
+            elif result: #delete successfully, clear corresponded cache
                     redis_key = f'get_my_food{user_id}'
                     redis_db.redis_instance.delete(redis_key)
                     response_msg={ "ok": True }
-                    return jsonify(response_msg), 204 #api test ok
+                    return jsonify(response_msg), 204
             else:
                 response_msg={
                             "error":True,
                             "message":"food_id不屬於此會員或此food_id不存在"}
-                return jsonify(response_msg), 400 #api test ok                
-        elif connection == "error": #如果沒有順利取得連線
+                return jsonify(response_msg), 400                 
+        elif connection == "error": 
             response_msg={
                         "error":True,
                         "message":"伺服器內部錯誤，資料刪除失敗"}              
             return jsonify(response_msg), 500    
 def handle_get_my_food_data(page,user_id):
-    connection = db.get_food_cnx() #取得景點相關操作的自定義connection物件
-    if isinstance(connection,Connection): #如果有順利取得連線          
+    connection = db.get_food_cnx() 
+    if isinstance(connection,Connection):          
         data = connection.get_my_food_info(page,user_id) 
         if data == "error":
             response_msg={
@@ -139,18 +129,17 @@ def handle_get_my_food_data(page,user_id):
             return jsonify(response_msg), 500          
         else:
             return jsonify(data), 200                       
-    elif connection == "error":  #如果沒有順利取得連線
+    elif connection == "error":  
         response_msg={
                 "error":True,
                 "message":"伺服器內部錯誤，資料取得失敗"}
         return jsonify(response_msg), 500    
 def handle_get_public_food_data(request):
-    connection = db.get_food_cnx() #取得景點相關操作的自定義connection物件
-    if isinstance(connection,Connection): #如果有順利取得連線
+    connection = db.get_food_cnx() 
+    if isinstance(connection,Connection): 
         page = request.args.get('page')
         keyword = request.args.get('keyword')  
         if not keyword or not page:
-            current_app.logger.info("沒有keyword or 沒有給頁數")
             return jsonify({"data":[],"nextPage":None}), 200         
         data = connection.get_public_food_info(keyword,page)
         if data == "error":
@@ -159,8 +148,8 @@ def handle_get_public_food_data(request):
                     "message":"伺服器內部錯誤，資料取得失敗"}
             return jsonify(response_msg), 500          
         else:  
-            return jsonify(data), 200           #api test ok             
-    elif connection == "error":  #如果沒有順利取得連線
+            return jsonify(data), 200                      
+    elif connection == "error": 
         response_msg={
                 "error":True,
                 "message":"伺服器內部錯誤，資料取得失敗"}
@@ -171,57 +160,50 @@ def handle_get_public_food_data(request):
 
 
 
-#要驗證JWT
 @food.route('/api/my-food', methods=["GET","POST","PATCH","DELETE"])
 @jwt_required_for_food()
 def foods():
-    if request.method == "POST": #如果是POST,代表要新增食物
+    if request.method == "POST": 
         add_food_result = handle_add_food(request)
         return add_food_result
-    elif request.method == "DELETE": #如果是delete,代表要刪除食物
+    elif request.method == "DELETE": 
         delete_food_result = handle_delete_food(request)
         return delete_food_result
-    elif request.method == "GET": #如果是GET,代表要取得食物分頁資料
-        current_app.logger.info(request.headers.get("origin"))
-        current_app.logger.info(request.headers.get("host"))
-        current_app.logger.info(request.headers.get("remote_addr"))
-        current_app.logger.info(request.headers.get("url"))
+    elif request.method == "GET": 
         page = request.args.get('page')
-        #如果沒有給page或是page給的不是是數字形式
         if not page or not page.isdigit():
             response_msg={
                         "nextPage":None,
                         "data":[]}
             result = make_response(response_msg,200)  
         elif page.isdigit(): 
-            user_id = Utils_obj.get_member_id_from_jwt(request) #用get_my_food{user_id}當cache key
+            user_id = Utils_obj.get_member_id_from_jwt(request) #get_my_food{user_id} as cache key
             redis_key = f'get_my_food{user_id}' # e.g => get_my_food18
             try:
                 start = time.perf_counter()
                 r = redis_db.redis_instance.hget(redis_key,str(page))
-                if r: #如果redis有資料
+                if r: #if in redis 
                     data = json.loads(r)
                     result = jsonify(data), 200  
                     end_a = time.perf_counter()
                     current_app.logger.info(f"food cache hits!=>time consuming:{end_a-start} s")
-                else:  #如果redis沒資料,就要去mysql拿,再存入redi,要send一個background task 2分鐘後刪除
+                else:  #get from mysql and save in redis
                     result = handle_get_my_food_data(page,user_id)
-                    if result[0].status_code == 200: #如果result成功,才存入redis
-                        data = result[0].get_data() #result[0].get_data()已是byte string
+                    if result[0].status_code == 200: #if result,then save in redis
+                        data = result[0].get_data() #result[0].get_data() is byte string
                         redis_db.redis_instance.hset(redis_key,str(page), data)
                         current_app.logger.info("task sended!")
                         current_app.celery.send_task('task.delmyfoodCache',args=[redis_key,page],countdown=600) 
                         end_b = time.perf_counter()      
                         current_app.logger.info(f"food cache miss!=>time consuming:{end_b-start} s")                      
-            except: #如果redis掛掉,就要去mysql拿
+            except: #if redis is down, get from mysql
                 result = handle_get_my_food_data(page,user_id)  
         return result            
 
 
 
 
-
-#這個是用來在新增食物紀錄時,在search bar 搜尋時on the fly search
+ 
 @food.route('/api/public-food', methods=["GET"])
 @jwt_required_for_food()
 def public_food():

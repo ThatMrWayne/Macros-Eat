@@ -17,7 +17,6 @@ Deprecated==1.2.13
 dnspython==1.16.0
 eventlet==0.30.2
 Flask==2.1.1
-Flask-Caching==1.10.1
 Flask-JWT-Extended==4.3.1
 Flask-SocketIO==5.1.1
 gevent==21.12.0

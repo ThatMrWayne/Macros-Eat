@@ -12,9 +12,6 @@ class RedisWrapper:
     def __init__(self):
         self.redis_instance = redis.Redis(host=CACHE_REDIS_HOST,port=6379,decode_responses=True)
 
-
-
-
 redis_db = RedisWrapper()
 
 
@@ -28,9 +25,6 @@ class MongoWrapper:
 mongo_db = MongoWrapper()
 
 
-
-
-#app = Celery("task",broker="redis://localhost:6379/1", backend="redis://localhost:6379/1")
 app = Celery("task",broker=CELERY_BROKER_URL, backend=CELERY_RESULT_BACKEND)
 
 #刪除我的食物快取
@@ -63,6 +57,7 @@ def push_message(key,message_obj):
 
 
 #----- 使用者傳訊息給營養師 ----#
+
 #更新使用者的"已讀時間"
 @app.task()
 def update_user_read(key,message_time):
@@ -70,14 +65,6 @@ def update_user_read(key,message_time):
     #一定已經有這個document因為前面就已經先存訊息了
     collection.update_one({"history_id" : key}, {"$max":{"user_read":message_time}})
 
-'''
-#更新使用者"已讀時間"和營養師的"未讀時間"
-@app.task()
-def update_read_unread(key,message_time):
-    collection = mongo_db.db.message_history 
-    #一定已經有這個document因為前面就已經先存訊息了
-    collection.update_one({"history_id" : key}, {"$set":{"user_read":message_time, "nutri_unread":message_time}})        
-'''
 
 #更新使用者和營養師的"對話者列表"
 @app.task()
@@ -117,15 +104,6 @@ def update_nutri_unread(key,message_time):
 
 #----- 營養師傳訊息給使用者 ----#
 
-'''
-#更新使用者"未讀時間"和營養師的"已讀時間"
-@app.task()
-def update_unread_read(key,message_time):
-    collection = mongo_db.db.message_history 
-    #一定已經有這個document因為前面就已經先存訊息了
-    collection.update_one({"history_id" : key}, {"$set":{"user_unread":message_time, "nutri_read":message_time}})
-'''
-
 #更新使用者的"未讀時間"
 @app.task()
 def update_user_unread(key,message_time):
@@ -146,7 +124,6 @@ def update_nutri_read_unread(key,nutri_read,nutri_unread):
     collection = mongo_db.db.message_history 
     #一定已經有這個document因為前面就已經先存訊息了
     collection.update_one({"history_id" : key}, {"$set":{"nutri_read":nutri_read,"nutri_unread":nutri_unread}})
-
 
 
 #------- 更新營養師的未讀數量 ------#

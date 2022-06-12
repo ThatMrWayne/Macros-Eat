@@ -15,7 +15,6 @@ from model.connection import Diet_connection
 from model.connection import Weight_connection
 from model.connection import Notify_connection
 from pymongo import MongoClient
-
 import redis
 
 TABLES = {}
@@ -38,7 +37,7 @@ TABLES['members'] = (
     "  `name` varchar(255) NOT NULL,"
     "  `email` varchar(255) NOT NULL,"
     "  `hash_password` varchar(255) NOT NULL,"
-    "  `signup_date` bigint NOT NULL," #discuss with ta
+    "  `signup_date` bigint NOT NULL," 
     "  `age` int ,"
     "  `height` float(4,1),"
     "  `weight` float(4,1),"
@@ -93,7 +92,7 @@ TABLES['intakes'] = (
     "  FOREIGN KEY(`record_id`) REFERENCES records(`record_id`) ON DELETE CASCADE ON UPDATE CASCADE"
     ")")  
 
-#diet plans (4/19 checked)
+#diet plans 
 TABLES['plans'] = (
     "CREATE TABLE IF NOT EXISTS `plans` ("
      " `plan_id` bigint NOT NULL AUTO_INCREMENT,"
@@ -150,7 +149,6 @@ class DataBase():
             config = {
                 'user': MYSQL_USER,
                 'password': MYSQL_PASSWORD,
-                #'host':"localhost",
                 'host': "database-macroseat.cvtkgqdz8ivt.us-east-1.rds.amazonaws.com",
                 'raise_on_warnings': True,
                 'port': 3306
@@ -171,7 +169,6 @@ class DataBase():
         cursor= cnx.cursor()
         try:
             cursor.execute("USE {}".format('macroseat'))
-            #cursor.execute("drop table {}".format('comment'))
         except mysql.connector.Error as err:
             print("Database {} does not exists.".format('macroseat'))
             if err.errno == errorcode.ER_BAD_DB_ERROR:
@@ -197,7 +194,6 @@ class DataBase():
                 print(f"Creating table : {table} ")
                 cursor.execute(table_description)
                 cnx.commit()
-                print('execute over')
             except mysql.connector.Error as err: 
                 print(err)
             finally:
@@ -215,7 +211,6 @@ class DataBase():
             exit(1)
 
 
-    #取得驗證登入註冊相關操作的自定義connection物件
     def get_auth_cnx(self):
         n = 0
         cnx = None
@@ -234,7 +229,7 @@ class DataBase():
 
 
 
-    #取得食物倉庫操作的自定義connection物件
+
     def get_food_cnx(self):
         n = 0
         cnx = None
@@ -251,7 +246,7 @@ class DataBase():
         else:
             return "error"      
 
-    #取得飲食計畫操作的自定義connection物件
+
     def get_diet_plan_cnx(self):
         n = 0
         cnx = None
@@ -268,7 +263,7 @@ class DataBase():
         else:
             return "error"        
 
-    #取得每日紀錄操作的自定義connection物件
+
     def get_daily_record_cnx(self):
         n = 0
         cnx = None
@@ -286,7 +281,7 @@ class DataBase():
             return "error" 
 
 
-    #取得飲食操作的自定義connection物件
+
     def get_daily_diet_cnx(self):
         n = 0
         cnx = None
@@ -305,7 +300,7 @@ class DataBase():
 
 
 
-    #取得體重操作的自定義connection物件
+
     def get_weight_cnx(self):
         n = 0
         cnx = None
@@ -322,7 +317,7 @@ class DataBase():
         else:
             return "error" 
 
-    #取得通知操作的connection物件
+
     def get_notify_cnx(self):
         n = 0
         cnx = None
@@ -338,18 +333,13 @@ class DataBase():
             return Notify_connection(cnx)
         else:
             return "error" 
-
-
-
-
-             
+            
 db = DataBase()
 
 #------- redis---------#
 class RedisWrapper:
     def __init__(self):
         self.redis_instance = redis.Redis(host=CACHE_REDIS_HOST_,port=6379,decode_responses=True)
-
 
 redis_db = RedisWrapper()
 

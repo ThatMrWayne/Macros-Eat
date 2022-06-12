@@ -1,5 +1,4 @@
 import mysql.connector
-import json
 from flask import current_app
 
 
@@ -50,15 +49,15 @@ class Auth_connection(Connection):
             self.cnx.commit()
             result = True
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg
+            self.cnx.rollback()
         finally:
             cursor.close()
             self.cnx.close()
-            if msg:  #新增會員失敗  
+            if msg:    
                 return "error"
             elif result:
-                return True #新增會員成功
+                return True 
 
 
     def confirm_member_information(self,email,identity):
@@ -74,42 +73,38 @@ class Auth_connection(Connection):
             cursor.execute(query, input_data)
             result = cursor.fetchone()          
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg
         finally:
             cursor.close()
             self.cnx.close()
-            if msg:  #查詢失敗
+            if msg:  
                 return "error"
             elif result:
-                return result #有此會員
+                return result #member existed
             else:
-                return False #根本沒有這個會員      
+                return False #there is no this member     
 
     def retrieve_member_information(self,id,identity):
         result, msg = None, None
         cursor = self.cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
-        #2022/4/8: members要加一欄idendity,要另外加一個新表:營養師
         if identity ==1:
             query = "SELECT member_id, name, email, height, weight, target, identity, initial FROM members WHERE member_id=%(id)s"
         elif identity == 2:
             query = "SELECT nutri_id, name, email, identity FROM nutris WHERE nutri_id=%(id)s"
-
         input_data = {'id': id}
         try:
             cursor.execute(query, input_data)
             result = cursor.fetchone()          
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg
         finally:
             cursor.close()
             self.cnx.close()
-            if msg:  #查詢失敗
+            if msg:  
                 return "error"
             elif result:
-                return result #查詢成功
+                return result 
  
     def update_member_info(self,input,id):
         result, msg = None, None
@@ -123,15 +118,15 @@ class Auth_connection(Connection):
             self.cnx.commit()
             result = True
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg
+            self.cnx.rollback()
         finally:
             cursor.close()
             self.cnx.close()
-            if msg:  #更新會員資料失敗  
+            if msg:   
                 return "error"
             elif result:
-                return True #更新會員資料成功  
+                return True   
 
     def change_initial_state(self,email):
         msg = None
@@ -144,41 +139,37 @@ class Auth_connection(Connection):
             self.cnx.commit()
             result = True
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg
+            self.cnx.rollback()
         finally:
             cursor.close()
             self.cnx.close()
-            if msg:  #更新intial失敗  
+            if msg:   
                 return "error"
             elif result:
-                return True #更新intial成功   
+                return True   
 
 class Food_connection(Connection):
     def insert_new_food(self,request_data,user_id):
         result, msg = None, None
         cursor = self.cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
-        query1 = "INSERT INTO food VALUES (DEFAULT,%(member_id)s,%(food_name)s,%(protein)s,%(fat)s,%(carbs)s)"
-        query2 = "SELECT food_id FROM food WHERE member_id = %(member_id)s ORDER BY food_id DESC LIMIT 0,1"
+        query = "INSERT INTO food VALUES (DEFAULT,%(member_id)s,%(food_name)s,%(protein)s,%(fat)s,%(carbs)s)"
         input_data = {'member_id': user_id, 'food_name': request_data["food_name"], 'protein': request_data["protein"], 'fat':request_data["fat"], 'carbs':request_data["carbs"]}
         try:
-            cursor.execute(query1, input_data)
+            cursor.execute(query, input_data)
             self.cnx.commit()
-            cursor.execute(query2, {"member_id":user_id})
-            food_id = cursor.fetchone()
-            result = food_id
+            result = True
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg
             self.cnx.rollback()
         finally:
             cursor.close()
             self.cnx.close()
-            if msg:  #新增食物失敗
+            if msg:  
                 return "error"
             elif result:
-                return result #新增食物成功
+                return result 
 
     def delete_food(self,food_id,user_id):
         result, msg = None, None
@@ -189,25 +180,23 @@ class Food_connection(Connection):
         try:
             cursor.execute(query, input_data)
             result = cursor.rowcount
-            print(result)
             self.cnx.commit()
-            if result!=1: #要馬食物不存在或該食物不屬於會員
+            if result!=1: #food doesn;t exist or doesn't belong to member
                 result = False 
-            else: #可以刪除
+            else: 
                 result = True
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg
             self.cnx.rollback()
         finally:
             cursor.close()
             self.cnx.close()
-            if msg:  #刪除食物資料失敗  
+            if msg:  
                 return "error"
             elif result:
-                return True #刪除食物資料成功  
+                return True 
             elif not result:
-                return False  #刪除食物資料失敗
+                return False  
 
     def get_my_food_info(self,page,user_id):
         msg,food_data,nextPage,result = None,None,None,None
@@ -217,20 +206,18 @@ class Food_connection(Connection):
             query = ("SELECT food_id, food_name, protein, fat, carbs from "
             "food WHERE member_id = %(member_id)s ORDER BY food_id DESC LIMIT %(st)s, 11 ")
             cursor.execute(query,{"member_id":user_id,'st':int(page)*10})
-            food_data = cursor.fetchall() #可能是空的[]   
-            #查看有沒有下一頁
+            food_data = cursor.fetchall() #might be empty []   
+            #check if next page
             try:
                 next_item = food_data[10]
                 nextPage = int(page)+1
             except:
                 nextPage = None      
-
             result={
                     "nextPage":nextPage,
-                    "data":food_data[:10] #回傳前10筆就好
+                    "data":food_data[:10] #return the first 10 data
                     }  
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg      
         finally:
             cursor.close()
@@ -241,7 +228,6 @@ class Food_connection(Connection):
                 return result        
                 
     def get_public_food_info(self,keyword,page):
-        current_app.logger.info("get public fodd")
         msg,food_data, nextPage = None,None,None
         cursor= self.cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
@@ -249,8 +235,8 @@ class Food_connection(Connection):
             keyword_query = ("SELECT food_id, food_name, protein, fat, carbs from "
             "food WHERE MATCH(`food_name`) AGAINST( %(food)s IN NATURAL LANGUAGE MODE ) LIMIT %(st)s, 21 ") 
             cursor.execute(keyword_query,{"food":keyword,'st':int(page)*20})
-            food_data = cursor.fetchall() #可能是空的[]  
-            #查看有沒有下一頁
+            food_data = cursor.fetchall() #might be empty []  
+            #check if next page
             try:
                 next_item = food_data[20]
                 nextPage = int(page)+1
@@ -258,10 +244,9 @@ class Food_connection(Connection):
                 nextPage = None  
             result={
                     "nextPage":nextPage,
-                    "data":food_data[:20],#回傳前20筆就好
+                    "data":food_data[:20],#return the first 20 data
                     }  
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg      
         finally:
             cursor.close()
@@ -276,26 +261,22 @@ class Plan_connection(Connection):
         result, msg = None, None
         cursor = self.cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
-        query1 = "INSERT INTO plans VALUES (DEFAULT,%(create_at)s,%(member_id)s,%(protein)s,%(fat)s,%(carbs)s,%(plan_calories)s,%(plan_name)s)"
-        #query2 = "SELECT plan_id, plan_name FROM plans WHERE member_id = %(member_id)s ORDER BY plan_id DESC LIMIT 0,1"
+        query = "INSERT INTO plans VALUES (DEFAULT,%(create_at)s,%(member_id)s,%(protein)s,%(fat)s,%(carbs)s,%(plan_calories)s,%(plan_name)s)"
         input_data = {'member_id': user_id, 'create_at' : request_data["create_at"] ,'plan_name': request_data.get("plan_name") ,'plan_calories': request_data["plan_calories"], 'protein': request_data["protein"], 'fat':request_data["fat"], 'carbs':request_data["carbs"]}
         try:
-            cursor.execute(query1, input_data)
+            cursor.execute(query, input_data)
             self.cnx.commit()
-            #cursor.execute(query2, {"member_id":user_id})
-            #plan = cursor.fetchone()
             result = True
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg
             self.cnx.rollback()
         finally:
             cursor.close()
             self.cnx.close()
-            if msg:  #新增飲食計畫失敗
+            if msg:  
                 return "error"
             elif result:
-                return result #新增飲食計畫成功
+                return result 
 
     def update_diet_info(self,input,user_id):
         result, msg = None, None
@@ -312,16 +293,15 @@ class Plan_connection(Connection):
             else:    
                 result = True
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg
             self.cnx.rollback()
         finally:
             cursor.close()
             self.cnx.close()
-            if msg:  #更新飲食計畫失敗  
+            if msg:   
                 return "error"
             elif result:
-                return True #更新飲食計畫成功  
+                return True   
             elif not result:
                 return False    
 
@@ -335,23 +315,22 @@ class Plan_connection(Connection):
             cursor.execute(query, input_data)
             result = cursor.rowcount
             self.cnx.commit()
-            if result==0: #要馬飲食計畫不存在或該飲食計畫不屬於會員
+            if result==0: #either plan doesn't exist or doesn't belong to member
                 result = False 
-            else: #可以刪除
+            else: 
                 result = True
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg
             self.cnx.rollback()
         finally:
             cursor.close()
             self.cnx.close()
-            if msg:  #刪除飲食計畫失敗  
+            if msg:   
                 return "error"
             elif result == True:
-                return True #刪除飲食計畫成功  
+                return True  
             elif result == False:
-                return False  #刪除飲食計畫失敗
+                return False 
 
     def get_diet_info(self,page,user_id):
         msg,diet_data,nextPage,result = None,None,None,None
@@ -361,8 +340,8 @@ class Plan_connection(Connection):
             query = ("SELECT plan_id, plan_name, plan_calories,protein, fat, carbs from "
             "plans WHERE member_id = %(member_id)s ORDER BY plan_id DESC LIMIT %(st)s, 11") #member_id foreign key is non-clustered index
             cursor.execute(query,{ "member_id" : user_id, 'st':int(page)*10 })
-            diet_data = cursor.fetchall() #可能是空的[]    
-            #查看有沒有下一頁
+            diet_data = cursor.fetchall() #might be empty []    
+            #check if next page
             try:
                 next_item = diet_data[10]
                 nextPage = int(page)+1
@@ -371,10 +350,9 @@ class Plan_connection(Connection):
 
             result={
                     "nextPage":nextPage,
-                    "plans":diet_data[:10] #回傳前10筆就好 
+                    "plans":diet_data[:10] #return the first 10 data 
                     }  
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg      
         finally:
             cursor.close()
@@ -396,16 +374,15 @@ class Record_connection(Connection):
             self.cnx.commit()
             result = True
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg
             self.cnx.rollback()
         finally:
             cursor.close()
             self.cnx.close()
-            if msg:  #新增紀錄失敗
+            if msg:  
                 return "error"
             elif result:
-                return True #新增紀錄成功
+                return True 
 
     def update_record(self,input,user_id): 
         result, msg = None, None
@@ -422,16 +399,15 @@ class Record_connection(Connection):
             else:    
                 result = True
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg
             self.cnx.rollback()
         finally:
             cursor.close()
             self.cnx.close()
-            if msg:  #更新紀錄失敗  
+            if msg:    
                 return "error"
             elif result:
-                return True #更新紀錄成功  
+                return True   
             elif not result:
                 return False    
  
@@ -444,9 +420,8 @@ class Record_connection(Connection):
             "s2.intake_id, s2.food_name, s2.protein, s2.fat, s2.carbs, s2.amount from records as s1"
             " left join intakes as s2 on s1.record_id = s2.record_id WHERE s1.member_id = %(member_id)s AND s1.create_at = %(time)s") #member_id foreign key is non-clustered index
             cursor.execute(query,{"member_id":user_id,"time":datetimestamp})
-            record = cursor.fetchall() #可能是none    
+            record = cursor.fetchall() #might be none    
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg      
         finally:
             cursor.close()
@@ -483,16 +458,15 @@ class Diet_connection(Connection):
                 intake_id = cursor.fetchone()
                 result = intake_id
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg
             self.cnx.rollback()
         finally:
             cursor.close()
             self.cnx.close()
-            if msg:  #新增飲食失敗
+            if msg:  
                 return "error"
             elif result:
-                return result #新增飲食成功,回傳最新一筆的intake_id
+                return result #return the newest intake_id
             else:
                 return False    
 
@@ -512,23 +486,22 @@ class Diet_connection(Connection):
                 cursor.execute(query2, input_data)
                 self.cnx.commit()
                 result = cursor.rowcount
-                if result!=1: #飲食紀錄不存在或飲食紀錄不屬於該會員
+                if result!=1: #the intake doesn't exist or doesn't belong to member
                     result = False 
-                else: #可以刪除
+                else: 
                     result = True
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg
             self.cnx.rollback()
         finally:
             cursor.close()
             self.cnx.close()
-            if msg:  #刪除飲食資料失敗  
+            if msg:   
                 return "error"
             elif result:
-                return True #刪除飲食資料成功  
+                return True  
             elif not result:
-                return False  #刪除飲食資料失敗    
+                return False     
  
     def get_diet_info(self,datetimestamp,user_id):
         msg,record = None,None
@@ -539,9 +512,8 @@ class Diet_connection(Connection):
             "s2.food_name, s2.protein, s2.fat, s2.carbs, s2.amount from records as s1"
             " left join intakes as s2 on s1.record_id = s2.record_id WHERE s1.member_id = %(member_id)s AND s1.create_at = %(time)s") #member_id foreign key is non-clustered index
             cursor.execute(query,{"member_id":user_id,"time":datetimestamp})
-            record = cursor.fetchall() #可能是none    
+            record = cursor.fetchall() #might be none    
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg      
         finally:
             cursor.close()
@@ -560,26 +532,25 @@ class Weight_connection(Connection):
         query2 = "INSERT INTO weight VALUES (DEFAULT,%(create_at)s,%(member_id)s,%(weight)s)"
         input_data = {'member_id': user_id, 'create_at':input['create_at'], 'weight':input["weight"]}
         try:
-            #先確認該日有無體重紀錄
+            #confirm if weight record a;ready existed
             cursor.execute(query1,{"member_id":user_id,"create_at":input['create_at']})
             result = cursor.fetchall()
-            if len(result) != 0: #如果已經有就不能新增
+            if len(result) != 0: #if existed then can't add 
                 result = False
             else:    
                 cursor.execute(query2, input_data)
                 self.cnx.commit()
                 result = True
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg
             self.cnx.rollback()
         finally:
             cursor.close()
             self.cnx.close()
-            if msg:  #新增體重失敗
+            if msg:  
                 return "error"
             elif result:
-                return True #新增體重成功  
+                return True  
 
     def update_weight(self,input,user_id): 
         result, msg = None, None
@@ -596,16 +567,15 @@ class Weight_connection(Connection):
             else:    
                 result = True
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg
             self.cnx.rollback()
         finally:
             cursor.close()
             self.cnx.close()
-            if msg:  #更新體重失敗  
+            if msg:  
                 return "error"
             elif result:
-                return True #更新體重成功  
+                return True 
             elif not result:
                 return False    
  
@@ -617,9 +587,8 @@ class Weight_connection(Connection):
             query = ("SELECT create_at, weight "
             "from weight WHERE member_id = %(member_id)s AND (create_at BETWEEN %(start_date)s AND %(end_date)s) ORDER BY create_at")
             cursor.execute(query,{"member_id":user_id,"start_date":start_date,"end_date":end_date})
-            record = cursor.fetchall() #可能是none    
+            record = cursor.fetchall() #might be none    
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg      
         finally:
             cursor.close()
@@ -666,7 +635,6 @@ class Notify_connection(Connection):
 						"status": "success"
 					    }
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg
             self.cnx.rollback()
         finally:
@@ -690,7 +658,6 @@ class Notify_connection(Connection):
             if data:
                 result = data		
         except mysql.connector.Error as err:
-            print(err)
             msg = err.msg
             self.cnx.rollback()
         finally:
