@@ -16,7 +16,7 @@ body{
     align-items: center;
     width:100%;
     background: #2D303C; /*要設定白色要不然往下滑時,下面的內容會透過去選單列*/
-    height: 10vh;
+    height: 90px;
     
 }
 /*選單列外容器*/
@@ -24,9 +24,8 @@ body{
     width:1200px;
     flex:none;
     display: flex;
-    justify-content:space-between;
+    justify-content:flex-start;
     align-items: center;
-    height: 100px;
     
 }
 .header-1{
@@ -35,12 +34,11 @@ body{
     font-size:35px;
     font-weight:bold;
     color: #F0754F;
-    margin-right: 10px;
     margin-left: 10px;
 }
 
-.header-1:hover{
-    cursor: pointer;
+.header-1 > span, .header-1 > img{
+    vertical-align: bottom;
 }
 
 .header-2{
@@ -66,20 +64,35 @@ body{
     font-weight: bold;
     background-color: white;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     height: 80px;
     position:absolute;
     bottom:-80px;
     width:100%;   
     border-top:1px lightgray solid;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    box-sizing: border-box;
 }
-.section-4>span{
-    flex: none;
-    display: block;
+
+.profile-link a{
+    display: inline-block;
+    width: 32px;
+}
+
+.github{
+    margin-right: 10px;
 }
 
 
+.profile-link a img{
+    width: 100%;
+}
+
+.profile-link a img{
+    cursor: pointer;
+}
 
 
 .login{

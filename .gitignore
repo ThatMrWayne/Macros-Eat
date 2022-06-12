@@ -8,7 +8,6 @@ table.html
 test.html
 dot.html
 tasks/.env
-nginx_for_ssl
 test-redis.py
 test-mongo.py
 food_crawler/
