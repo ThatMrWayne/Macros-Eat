@@ -16,9 +16,9 @@ Test account and password : test@gmail.com / wayne123WAYNE
 
 ## Demo
 
-![image](https://d2fbjpv4bzz3d2.cloudfront.net/demo1.gif)
+![](https://d2fbjpv4bzz3d2.cloudfront.net/demo1.gif)
 
-![image](https://d2fbjpv4bzz3d2.cloudfront.net/demo2.gif)
+![](https://d2fbjpv4bzz3d2.cloudfront.net/demo2.gif)
 
 
 
