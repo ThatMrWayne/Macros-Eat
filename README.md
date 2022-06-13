@@ -48,19 +48,19 @@ Test account and password : test@gmail.com / wayne123WAYNE
 
 - Setup CI/CD pipeline with github action and AWS ECR / CodeDeploy.
 - Memebr System 
-  - Users can sign in locally or with Google account (OAuth2.0).
-  - Authenticate user with Json Web Token. 
+  - User can sign in locally or with Google account (OAuth2.0).
+  - User authentication with Json Web Token. 
 - Diet Record Features
-  - Users can customize personalized food and diet plans based on individual needs.
-  - Support searching for all food existing in this website.
+  - User can customize personalized food and diet plans based on individual needs.
+  - Supports searching for all food existing in this website.
   - Visualize macronutrients consuming status.
-  - Support recording daily weight.
+  - Supports recording daily weight.
 - Online Consulting Service 
   - live chat with nutritionist online.
-  - Showing online/offline status of general users and nutritionist.
-  - Showing unread number of messages.  
-  - Support tracing historical messages.
-  - Users can see all enrolled nutritionist but nutritionist can only see users who have talked to them.
+  - Showing online/offline status of general user and nutritionist.
+  - Showing the number of unread messages. 
+  - Supports tracing historical messages.
+  - User can see all nutritionists but nutritionists can only see users who have consulting history with them.
   - Web notification on receiving message.
 ### Backend Technique
 
