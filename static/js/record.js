@@ -224,6 +224,23 @@ function create_plan_tr_load(plan){
 }
 
 
+function search(){
+    can_get_public_food_scroll = true;
+    public_food_page = 0;
+    let jwt = localStorage.getItem("JWT");
+    let search_promise = get_food(value,jwt,public_food_page);
+    search_promise.then((result)=>{
+        if(document.getElementById("food_name").value.length!==0){
+            let next_page = result["nextPage"];
+            public_food_page = next_page;
+            render_data(result.data);
+        };    
+    });
+}
+
+
+
+
 function pop_search_food(background){
     let search_food_box = document.createElement("div");
     search_food_box.classList.add("search-food-box");
@@ -257,21 +274,7 @@ function pop_search_food(background){
             can_get_public_food_scroll = true;
             public_food_page = 0;
         }else{
-            if(search_times <= 10){
-                search_times+=1;
-                can_get_public_food_scroll = true;
-                public_food_page = 0;
-                let jwt = localStorage.getItem("JWT");
-                let search_promise = get_food(value,jwt,public_food_page);
-                search_promise.then((result)=>{
-                    search_times-=1;
-                    if(document.getElementById("food_name").value.length!==0){
-                        let next_page = result["nextPage"];
-                        public_food_page = next_page;
-                        render_data(result.data);
-                    };    
-                });
-            };    
+            _.debounce(search, 800);   
         };    
     });
     let input_amount = document.createElement("input");
