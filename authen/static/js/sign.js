@@ -574,8 +574,7 @@ async function sendJWT(jwt){
                                      method: 'get',
                                      headers: {"Authorization" : `Bearer ${jwt}`}
                                     });
-        let result = await response.json();         
-        console.log(result);                
+        let result = await response.json();                         
         if(response.ok && result.data["identity"]===1 && result.data["initial"]===0){
                 // 進到首頁時,如果已登入過就轉到紀錄畫面
                 if(window.location.pathname==='/'){

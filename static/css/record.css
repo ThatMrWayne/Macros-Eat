@@ -824,6 +824,7 @@ td {
     display: flex;
     justify-content: center;
     align-items: center;
+    background-color: white;
 }
 
 .start-box{
@@ -843,7 +844,7 @@ td {
 }
 
 #start-title{
-    font-size: 24px;
+    font-size: 26px;
 }
 
 #from-plan{
@@ -853,7 +854,8 @@ td {
     left: 50%;
     transform: translateX(-50%);
     margin-top: 30px;
-    border-radius: 5px
+    border-radius: 5px;
+    font-size: 20px;
 }
 
 #from-scratch{
@@ -864,6 +866,7 @@ td {
     position: relative;
     margin-top: 15px;
     border-radius: 5px;
+    font-size: 20px;
 }
 
 #from-plan:hover,#from-scratch:hover{
@@ -1025,6 +1028,7 @@ table.plan-table {
     overflow: auto;
     border-bottom-left-radius: 10px;
     border-top-left-radius: 10px;
+    position: relative;
 }
 
 .my-food-table{
@@ -1295,3 +1299,88 @@ table.plan-table {
         left: 200px;
     }
 }
+
+/* side icon */
+.side-icon{
+    display: inline-block;
+    vertical-align: middle;
+    width: 30px;
+    margin-right: 8px;
+}
+
+.side-icon >img{
+    width:100%
+}
+
+
+
+/* loading animation */
+@keyframes rotator {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(270deg); }
+    }
+
+@keyframes colors {
+        0% { stroke: #4285F4; }
+        25% { stroke: #DE3E35; }
+        50% { stroke: #F7C223; }
+        75% { stroke: #1B9A59; }
+        100% { stroke: #4285F4; }
+}
+
+@keyframes dash {
+        0% { stroke-dashoffset: 187; }
+        50% {
+        stroke-dashoffset: 40;
+        transform:rotate(135deg);
+        }
+        100% {
+        stroke-dashoffset: 187;
+        transform:rotate(450deg);
+        }
+}
+
+.spinner {
+    animation: rotator 1.4s linear infinite;
+    width: 40px;
+    height: 40px;
+    position: absolute;
+    top:150px;
+    left:270px;
+}
+
+.weight-spinner{
+    top:350px;
+    left:450px;
+}
+
+.path {
+        stroke-dasharray: 187;
+        stroke-dashoffset: 0;
+        transform-origin: center;
+        animation:
+            dash 1.4s ease-in-out infinite, 
+            colors 5.6s ease-in-out infinite;
+}
+
+/* let's get started section */
+.get-start{
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    background-color: white;
+    font-size: 26px;
+}
+
+/* scrolling food lloading effect */
+.loading{
+    position: relative;
+    height: 68px;
+}
+
+.loading-scroll{
+    top: 15px;
+    left: 250px;
+}
+
+

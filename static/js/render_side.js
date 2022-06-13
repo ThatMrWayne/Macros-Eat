@@ -6,6 +6,27 @@ let already_on_weight_page = false; //check if on weight record page
 let already_on_record_page = true; // check if on record page
 
 
+function generate_loading(){
+    let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.classList.add("spinner");
+    svg.setAttribute("viewBox","0 0 66 66");
+    let circle = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'circle'
+      );
+    circle.classList.add("path");
+    circle.setAttribute("fill","none");
+    circle.setAttribute("stroke-width","6");
+    circle.setAttribute("stroke-linecap","round");
+    circle.setAttribute("cx","33");
+    circle.setAttribute("cy","33");
+    circle.setAttribute("r","30");
+    svg.appendChild(circle);
+    return svg;
+}
+
+
+
 async function get_member_data(){ 
     /* memebr page */
 };
@@ -39,7 +60,7 @@ function render_nutri_profile(navmenu,nutri_data){
     let user_profile = document.createElement("div");
     user_profile.classList.add("user-profile");
     let img = new Image();
-    img.src = "/picture/doctor.png";
+    img.src = "https://d2fbjpv4bzz3d2.cloudfront.net/doctor.png";
     img.classList.add("profile_picture");
     let span = document.createElement("span");
     span.classList.add("username");
@@ -64,7 +85,11 @@ async function get_my_food(food_page,purpose){ //after get_my_food then render_m
                                                     headers: {"Authorization" : `Bearer ${jwt}`}
                                                 });
         let result = await response.json();                                
-        if(response.ok){  
+        if(response.ok){ 
+            let spinner = document.querySelector(".spinner");
+            if(spinner){
+                spinner.remove();
+            }; 
             let tbody = document.querySelector(".my-food-body");
             let food = result["data"];
             if(food.length!==0){
@@ -114,6 +139,10 @@ async function delete_my_food(food_id){
             while(tbody.firstChild){
                 tbody.firstChild.remove(); 
             };
+            //add loading effect
+            let table = document.querySelector(".my-food-table");
+            let svg = generate_loading();
+            table.appendChild(svg);
             my_food_page = 0;
             get_my_food(my_food_page,"foredit");      
         }else if(response.status === 400){ 
@@ -225,6 +254,10 @@ async function add_food(payload,jwt){
             while(tbody.firstChild){
                 tbody.firstChild.remove(); 
             };
+            //add loading effect
+            let table = document.querySelector(".my-food-table");
+            let svg = generate_loading();
+            table.appendChild(svg);
             my_food_page = 0;
             get_my_food(my_food_page,"foredit");
             //clear out add food box and reminder
@@ -342,6 +375,9 @@ function render_my_food_window(background){
         };
     });
     table.appendChild(tbody);
+    //add loading effect first
+    let svg = generate_loading();
+    table.appendChild(svg);
     show_my_food.appendChild(table);
     my_food_box.appendChild(show_my_food);
     //right adding new food section
@@ -506,6 +542,9 @@ function render_my_food_window_load(background){
         };
     });
     table.appendChild(tbody);
+    //add loading effect first
+    let svg = generate_loading();
+    table.appendChild(svg);
     show_my_food.appendChild(table);
     my_food_box.appendChild(show_my_food);
     //right : input amount
@@ -718,6 +757,11 @@ function render_my_food(navmenu){
     let personal_food = document.createElement("div");
     personal_food.classList.add("nav-page");
     personal_food.classList.add("personal-food");
+    let pic_div = document.createElement("div");
+    pic_div.classList.add("side-icon");
+    let icon = new Image();
+    icon.src="https://d2fbjpv4bzz3d2.cloudfront.net/myfood.png";
+    pic_div.appendChild(icon);
     let span = document.createElement("span");
     span.setAttribute("id","myfood");
     span.appendChild(document.createTextNode("My Food"));
@@ -725,6 +769,7 @@ function render_my_food(navmenu){
         let bg = render_my_food_window(createBack());
         document.body.appendChild(bg);
     });
+    personal_food.appendChild(pic_div);
     personal_food.appendChild(span);
     navmenu.appendChild(personal_food);
 };
@@ -948,6 +993,9 @@ function render_my_plan_window(background){
     tbody.classList.add("plan-body");
     get_diet_plan(my_plan_page,"foredit"); //get diet plan 
     table.appendChild(tbody);
+    //add loading effect first
+    let svg = generate_loading();
+    table.appendChild(svg);
     diet_plan.appendChild(table);
     load_plan.appendChild(title_div);
     load_plan.appendChild(break_line);
@@ -1070,6 +1118,11 @@ function render_my_plan(navmenu){
     let personal_plan = document.createElement("div");
     personal_plan.classList.add("nav-page");
     personal_plan.classList.add("personal-plan");
+    let pic_div = document.createElement("div");
+    pic_div.classList.add("side-icon");
+    let icon = new Image();
+    icon.src="https://d2fbjpv4bzz3d2.cloudfront.net/myplan.png";
+    pic_div.appendChild(icon);
     let span = document.createElement("span");
     span.setAttribute("id","dietplan");
     span.appendChild(document.createTextNode("My Diet Plan"));
@@ -1081,6 +1134,7 @@ function render_my_plan(navmenu){
             remind.remove();
         };
     });
+    personal_plan.appendChild(pic_div);
     personal_plan.appendChild(span);
     navmenu.appendChild(personal_plan);
 };
@@ -1136,6 +1190,18 @@ function date_to_stamp(d){
 
 
 async function get_weight(sdate,edate){
+    let canvas = Chart.getChart("weight");
+    if(canvas){
+        canvas.destroy(); 
+    };
+    //add loading effect first
+    let spinner = document.querySelector(".spinner");
+    if(!spinner){
+        let weight_record= document.querySelector(".weight-record-container");
+        let svg = generate_loading();
+        svg.classList.add("weight-spinner");
+        weight_record.appendChild(svg);
+    };
     let jwt = localStorage.getItem("JWT");
     try{
         let response = await fetch(`/api/weight?sdate=${sdate}&edate=${edate}`,{
@@ -1144,10 +1210,10 @@ async function get_weight(sdate,edate){
                                                 });
         let result = await response.json();                                
         if(response.ok){  
-            //remove old one
-            let canvas = Chart.getChart("weight");
-            if(canvas){
-                canvas.destroy(); 
+            //remove spinner
+            let spinner = document.querySelector(".spinner");
+            if(spinner){
+                spinner.remove();
             };
             let final_data = [];
             let how_many_days = ((edate - sdate)/86400000)+1;
@@ -1262,7 +1328,7 @@ async function update_today_weight(payload,jwt){
         let result = await response.json();                            
         if(response.ok){ 
              let end_date = new Date();
-             let end_utc = date_to_stamp(end_date);e
+             let end_utc = date_to_stamp(end_date);
              let start_utc = end_utc - (6*86400000);
              get_weight(start_utc,end_utc);
              let weight_input = document.getElementsByName("updateweight")[0];
@@ -1272,12 +1338,10 @@ async function update_today_weight(payload,jwt){
                  tip.remove();
              };
         }else if (response.status === 403){
-            console.log(result);
             console.log('JWT已失效,請重新登入');
             localStorage.removeItem("JWT");
             window.location.href = '/';
         }else if (response.status === 400){
-            console.log(result);
             let weight_input = document.getElementsByName("updateweight")[0];
              weight_input.value = "";
             show_tip('No record for today to update.',"." + "update-weight-title");
@@ -1425,9 +1489,13 @@ function show_weight_section(){
     line_chart.classList.add("line-chart");
     let canvas = document.createElement("canvas");
     canvas.setAttribute("id","weight");
+    //add loading effect first
+    let svg = generate_loading();
+    svg.classList.add("weight-spinner");
     line_chart.appendChild(canvas);
     //put in weight_record
     weight_record.appendChild(line_chart);
+    weight_record.appendChild(svg);
     //then put in record_container
     record_container.appendChild(weight_record);
     $('input[name="daterange"]').daterangepicker({
@@ -1455,6 +1523,11 @@ function render_my_weight(navmenu){
     let weight_record = document.createElement("div");
     weight_record.classList.add("nav-page");
     weight_record.classList.add("weight-record");
+    let pic_div = document.createElement("div");
+    pic_div.classList.add("side-icon");
+    let icon = new Image();
+    icon.src="https://d2fbjpv4bzz3d2.cloudfront.net/weight.png";
+    pic_div.appendChild(icon);
     let span = document.createElement("span");
     span.setAttribute("id","weightrecord");
     span.appendChild(document.createTextNode("Weight Record"));
@@ -1465,6 +1538,7 @@ function render_my_weight(navmenu){
             show_weight_section();
         };
     });
+    weight_record.appendChild(pic_div);
     weight_record.appendChild(span);
     navmenu.appendChild(weight_record);
 }
@@ -1474,6 +1548,11 @@ function render_my_record(navmenu){
     let diet_record = document.createElement("div");
     diet_record.classList.add("nav-page");
     diet_record.classList.add("daily-record");
+    let pic_div = document.createElement("div");
+    pic_div.classList.add("side-icon");
+    let icon = new Image();
+    icon.src="https://d2fbjpv4bzz3d2.cloudfront.net/daily.png";
+    pic_div.appendChild(icon);
     let span = document.createElement("span");
     span.setAttribute("id","dailyrecord");
     span.appendChild(document.createTextNode("Daily Record"));
@@ -1489,6 +1568,7 @@ function render_my_record(navmenu){
             already_on_record_page = true;
         };
     });
+    diet_record.appendChild(pic_div);
     diet_record.appendChild(span);
     navmenu.appendChild(diet_record);
 };
@@ -1499,12 +1579,18 @@ function render_health_helper(navmenu){
     let health_helper = document.createElement("div");
     health_helper.classList.add("nav-page");
     health_helper.classList.add("health-helper");
+    let pic_div = document.createElement("div");
+    pic_div.classList.add("side-icon");
+    let icon = new Image();
+    icon.src="https://d2fbjpv4bzz3d2.cloudfront.net/helper.png";
+    pic_div.appendChild(icon);
     let span = document.createElement("span");
     span.setAttribute("id","healthhelper");
     span.appendChild(document.createTextNode("Health Helper"));
     span.addEventListener("click",function(){ //to chat page
         window.open('https://www.macroseat.xyz/helper', '_blank'); 
     });
+    health_helper.appendChild(pic_div);
     health_helper.appendChild(span);
     navmenu.appendChild(health_helper);
 };

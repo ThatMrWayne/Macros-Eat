@@ -29,6 +29,7 @@
     flex-wrap: wrap;
     justify-content: center;
     align-items: start;
+    position: relative;
 }
 
 .weight-input-container {

@@ -729,10 +729,12 @@ function show_consume(main_container,food_record){
         };
     }else{
         let start_record = document.querySelector(".start-record");
+        let get_start = document.querySelector(".get-start");
         let record_container;
         let use_main_container;
         if(start_record){
             start_record.remove();
+            get_start.remove();
             record_container = document.querySelector(".record-container");
             use_main_container = false;
         }else{
@@ -1107,7 +1109,6 @@ function pop_edit_window(background){
         //check data before submit
         let validate = validate_target_update();
         if(validate){
-            console.log("ok");
             let jwt = localStorage.getItem("JWT");
             let json_data = organize_target_update();
             update_target(json_data,jwt);
@@ -1478,7 +1479,9 @@ function pop_load_diet_plan(background){
     tbody.classList.add("plan-body");
     get_diet_plan(my_plan_page,"forload"); //取得飲食計畫 ,先傳入預設0的my_plan_page
     table.appendChild(tbody);
-    //
+    //add loading effect first
+    let svg = generate_loading();
+    table.appendChild(svg);
     diet_plan.appendChild(table);
     //
     load_plan.appendChild(title_div);
@@ -1548,6 +1551,10 @@ async function get_diet_plan(plan_page,purpose){
                                                 });
         let result = await response.json();                                
         if(response.ok){  //get memebr's diet plan
+            let spinner = document.querySelector(".spinner");
+            if(spinner){
+                spinner.remove();
+            }; 
             let tbody = document.querySelector(".plan-body");
             let plans = result.plans;
             if(plans.length!==0){
@@ -1668,14 +1675,34 @@ function show_empty(){
             left.remove();
             right.remove();
             let start_record = create_blank_content();
+            //right section
+            let get_start = document.createElement("div");
+            get_start.classList.add("get-start");
+            let gif = new Image();
+            gif.src = "https://d2fbjpv4bzz3d2.cloudfront.net/point.gif";
+            let start_div = document.createElement("div");
+            start_div.appendChild(document.createTextNode("Let's get started !"));
+            get_start.appendChild(gif);
+            get_start.appendChild(start_div);
             record_container.appendChild(start_record);
+            record_container.appendChild(get_start);
         }
     }else{ //means no record on that day
         let main_container = document.querySelector(".main-container");
         let record_container = document.createElement("div");
         record_container.classList.add("record-container");
         let start_record = create_blank_content();
+        //right section
+        let get_start = document.createElement("div");
+        get_start.classList.add("get-start");
+        let gif = new Image();
+        gif.src = "https://d2fbjpv4bzz3d2.cloudfront.net/point.gif";
+        let start_div = document.createElement("div");
+        start_div.appendChild(document.createTextNode("Let's get started !"));
+        get_start.appendChild(gif);
+        get_start.appendChild(start_div);
         record_container.appendChild(start_record);
+        record_container.appendChild(get_start);
         main_container.appendChild(record_container);
     };
 };

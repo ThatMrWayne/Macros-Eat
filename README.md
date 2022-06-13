@@ -16,7 +16,11 @@ Test account and password : test@gmail.com / wayne123WAYNE
 
 ## Demo
 
-Insert gif or link to demo
+![image](https://d2fbjpv4bzz3d2.cloudfront.net/demo1.gif)
+
+![image](https://d2fbjpv4bzz3d2.cloudfront.net/demo2.gif)
+
+
 
 
 ## Table of Contents

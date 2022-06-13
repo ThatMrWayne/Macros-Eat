@@ -617,7 +617,7 @@ function connect_socket(identity){
             display_message_section.classList.add("display-message-section"); 
             let instruction = document.createElement("div");
             instruction.classList.add("helper-instruction");
-            instruction.appendChild(document.createTextNode("Nice to see you! Click on any nutritionist to ask question about your diet."));
+            instruction.appendChild(document.createTextNode("Nice to see you ! Click on any nutritionist to ask question about your diet."));
             display_message_section.appendChild(instruction);
             message_panel.appendChild(display_message_section);
             //input message
@@ -1006,7 +1006,7 @@ function connect_socket(identity){
             //instruction按下後會不見
             let instruction = document.createElement("div");
             instruction.classList.add("helper-instruction");
-            instruction.appendChild(document.createTextNode("Start helping our user with your expertise! Click on any user who needs your help showing on the left bar."));
+            instruction.appendChild(document.createTextNode("Start helping our user with your expertise ! Click on any user who needs your help showing on the left."));
             display_message_section.appendChild(instruction);
             message_panel.appendChild(display_message_section);
             //訊息輸入
