@@ -117,10 +117,10 @@ Test account and password : test@gmail.com / wayne123WAYNE
 - Socket Architecture
 
 #### User and nutritionist get online.
-![Logo](https://d2fbjpv4bzz3d2.cloudfront.net/socket.drawio.png)
+![Logo](demo/socket.drawio.png)
 
 #### Retrieving historical messages.
-![Logo](https://d2fbjpv4bzz3d2.cloudfront.net/socket2.drawio.png)
+![Logo](demo/socket2.drawio.png)
 
 #### Send messages.
 ![Logo](https://d2fbjpv4bzz3d2.cloudfront.net/socket3.drawio.png)
