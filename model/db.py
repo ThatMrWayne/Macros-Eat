@@ -157,11 +157,11 @@ class DataBase():
             self.cnxpool = pooling.MySQLConnectionPool(pool_name="tinipool", pool_size=15, **config)
         except mysql.connector.Error as err:
             if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-                current_app.logger.info("Something is wrong with your user name or password")
+                print("Something is wrong with your user name or password")
             elif err.errno == errorcode.ER_BAD_DB_ERROR:
-                current_app.logger.info("Database does not exist")
+                print("Database does not exist")
             else:
-                current_app.logger.info(err.msg)
+                print(err.msg)
             exit(1)
 
 
@@ -170,13 +170,10 @@ class DataBase():
         db_exist = True
         try:
             cursor.execute("USE {}".format('macroseat'))
-            current_app.logger.info("Database exists")
         except mysql.connector.Error as err:
-            current_app.logger.info("Database {} does not exists.".format('macroseat'))
             if err.errno == errorcode.ER_BAD_DB_ERROR:
                 self.create_database(cursor)
                 cnx.commit()
-                current_app.logger.info("Database {} created successfully.".format('macroseat'))
             else:
                 current_app.logger.info(err)
                 db_exist = False
