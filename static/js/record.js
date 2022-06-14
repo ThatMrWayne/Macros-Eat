@@ -224,7 +224,9 @@ function create_plan_tr_load(plan){
 }
 
 
+
 function search(){
+    let value = document.getElementById("food_name").value;
     can_get_public_food_scroll = true;
     public_food_page = 0;
     let jwt = localStorage.getItem("JWT");
@@ -238,6 +240,8 @@ function search(){
     });
 }
 
+
+let debounce_search = _.debounce(search, 800);
 
 
 
@@ -274,7 +278,7 @@ function pop_search_food(background){
             can_get_public_food_scroll = true;
             public_food_page = 0;
         }else{
-            _.debounce(search, 800);   
+            debounce_search();   
         };    
     });
     let input_amount = document.createElement("input");

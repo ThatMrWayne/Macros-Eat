@@ -150,37 +150,44 @@ class DataBase():
                 'user': MYSQL_USER,
                 'password': MYSQL_PASSWORD,
                 'host': "database-macroseat.cvtkgqdz8ivt.us-east-1.rds.amazonaws.com",
-                'raise_on_warnings': True,
+                'database': "macroseat",
                 'port': 3306
                 }
             # create connection
-            self.cnxpool = pooling.MySQLConnectionPool(pool_name="tinipool", pool_size=10, **config)
+            self.cnxpool = pooling.MySQLConnectionPool(pool_name="tinipool", pool_size=15, **config)
         except mysql.connector.Error as err:
             if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-                print("Something is wrong with your user name or password")
+                current_app.logger.info("Something is wrong with your user name or password")
             elif err.errno == errorcode.ER_BAD_DB_ERROR:
-                print("Database does not exist")
+                current_app.logger.info("Database does not exist")
             else:
-                print(err.msg)
+                current_app.logger.info(err.msg)
             exit(1)
 
 
         cnx = self.cnxpool.get_connection()
         cursor= cnx.cursor()
+        db_exist = True
         try:
             cursor.execute("USE {}".format('macroseat'))
+            current_app.logger.info("Database exists")
         except mysql.connector.Error as err:
-            print("Database {} does not exists.".format('macroseat'))
+            current_app.logger.info("Database {} does not exists.".format('macroseat'))
             if err.errno == errorcode.ER_BAD_DB_ERROR:
                 self.create_database(cursor)
                 cnx.commit()
-                print("Database {} created successfully.".format('macroseat'))
-                cnx.database = 'macroseat'
-                cursor.close()
-                cnx.close()
+                current_app.logger.info("Database {} created successfully.".format('macroseat'))
             else:
-                print(err)
+                current_app.logger.info(err)
+                db_exist = False
+        finally:
+            cursor.close()
+            cnx.close()
+            if not db_exist:
                 exit(1)
+
+
+
 
           
         tables=['nutris','members','food','records','intakes','plans','weight','service_user','service_nutri']
@@ -221,11 +228,12 @@ class DataBase():
             except mysql.connector.Error as err: 
                 current_app.logger.info('get_auth_cnx => cannot get mysql connection from connection pool.')
                 n+=1
-                time.sleep(0.05)   
-        if cnx:
+                time.sleep(0.1)   
+        if not cnx:
+            return "error"
+        elif cnx.is_connected():
             return Auth_connection(cnx)     
-        else:
-            return "error" 
+
 
 
 
@@ -240,11 +248,11 @@ class DataBase():
             except mysql.connector.Error as err: 
                 current_app.logger.info('get_food_cnx => cannot get mysql connection from connection pool.')
                 n+=1
-                time.sleep(0.05)   
-        if cnx:
-            return Food_connection(cnx)
-        else:
-            return "error"      
+                time.sleep(0.1)   
+        if not cnx:
+            return "error"
+        elif cnx.is_connected():        
+            return Food_connection(cnx)     
 
 
     def get_diet_plan_cnx(self):
@@ -257,11 +265,11 @@ class DataBase():
             except mysql.connector.Error as err: 
                 current_app.logger.info('get_diet_plan_cnx => cannot get mysql connection from connection pool.')
                 n+=1
-                time.sleep(0.05) 
-        if cnx:
-            return Plan_connection(cnx)
-        else:
-            return "error"        
+                time.sleep(0.1) 
+        if not cnx:
+            return "error"
+        elif cnx.is_connected():        
+            return Plan_connection(cnx)      
 
 
     def get_daily_record_cnx(self):
@@ -274,11 +282,11 @@ class DataBase():
             except mysql.connector.Error as err: 
                 current_app.logger.info('get_daily_record_cnx => cannot get mysql connection from connection pool.')
                 n+=1
-                time.sleep(0.05)  
-        if cnx:
+                time.sleep(0.1)  
+        if not cnx:
+            return "error"
+        elif cnx.is_connected():        
             return Record_connection(cnx)
-        else:
-            return "error" 
 
 
 
@@ -292,11 +300,11 @@ class DataBase():
             except mysql.connector.Error as err: 
                 current_app.logger.info('get_daily_diet_cnx => cannot get mysql connection from connection pool.')
                 n+=1
-                time.sleep(0.05)  
-        if cnx:
+                time.sleep(0.1)  
+        if not cnx:
+            return "error"
+        elif cnx.is_connected():
             return Diet_connection(cnx)
-        else:
-            return "error" 
 
 
 
@@ -311,11 +319,11 @@ class DataBase():
             except mysql.connector.Error as err: 
                 current_app.logger.info('get_weight_cnx => cannot get mysql connection from connection pool.')
                 n+=1
-                time.sleep(0.05)   
-        if cnx:
+                time.sleep(0.1) 
+        if not cnx:
+            return "error"
+        elif cnx.is_connected():          
             return Weight_connection(cnx)
-        else:
-            return "error" 
 
 
     def get_notify_cnx(self):
@@ -328,11 +336,11 @@ class DataBase():
             except mysql.connector.Error as err: 
                 current_app.logger.info('get_notify_cnx => cannot get mysql connection from connection pool.')
                 n+=1
-                time.sleep(0.05)   
-        if cnx:
+                time.sleep(0.1)   
+        if not cnx:
+            return "error"
+        elif cnx.is_connected():        
             return Notify_connection(cnx)
-        else:
-            return "error" 
             
 db = DataBase()
 

@@ -496,6 +496,10 @@ function showBox(obj,flag){//flag true代表有帳戶,false沒有帳戶
     input_mail.className = "email";
     input_mail.setAttribute("placeholder",obj.mail_txt);
     input_mail.setAttribute("type","text");
+    //test account
+    if(flag){
+        input_mail.value = "test@gmail.com";
+    };
     sign_content.appendChild(input_mail);
     //密碼輸入框
     let input_pass = document.createElement("input");
@@ -503,6 +507,10 @@ function showBox(obj,flag){//flag true代表有帳戶,false沒有帳戶
     input_pass.setAttribute("placeholder","password");
     input_pass.setAttribute("type","password");
     sign_content.appendChild(input_pass);
+    //test account
+    if(flag){
+        input_pass.value = "wayne123WAYNE";
+    };
     //身份選擇匡
     let select = document.createElement("select");
     select.setAttribute("name",'identity');
@@ -518,6 +526,10 @@ function showBox(obj,flag){//flag true代表有帳戶,false沒有帳戶
     select.appendChild(option0);
     select.appendChild(option1);
     select.appendChild(option2);
+    //test account
+    if(flag){
+        select.value = "1";
+    };
     sign_content.appendChild(select);
     //登入,註冊鈕
     let button = document.createElement("div");

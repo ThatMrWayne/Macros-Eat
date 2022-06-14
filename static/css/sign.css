@@ -68,7 +68,8 @@
     width: 500px;
     flex: none;
     position: relative;
-    top: 110px;
+    top: 80px;
+    right: 60px;
 }
 
 
@@ -287,14 +288,14 @@ select{
 
 
 @media(max-height:730px){
-    .signinbox{
+    .signinbox,.signupbox{
         top:40px;
     }
 }
 
 
 @media(max-height:600px){
-    .signinbox{
+    .signinbox,.signupbox{
         position: initial;
     }
     .section-2{
