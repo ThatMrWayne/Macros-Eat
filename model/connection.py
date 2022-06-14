@@ -229,7 +229,7 @@ class Food_connection():
             msg = err.msg      
         finally:
             cursor.close()
-            cnx.close()   
+            #cnx.close()   
             if msg:
                 return "error"
             else:
