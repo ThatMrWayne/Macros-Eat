@@ -3,16 +3,17 @@ from flask import current_app
 
 
 #base class
-class Connection:
-    def __init__(self,cnx):
-        self.cnx = cnx
+#class Connection:
+#    def __init__(self,cnx):
+#        self.cnx = cnx
 
                  
 
-class Auth_connection(Connection):
-    def check_if_member_exist(self,email,identity):
+class Auth_connection():
+    @staticmethod
+    def check_if_member_exist(cnx,email,identity):
         result,msg=None,None
-        cursor = self.cnx.cursor(dictionary=True)
+        cursor = cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         if identity ==1:
             query = "SELECT name FROM members WHERE email=%(email)s"
@@ -26,7 +27,7 @@ class Auth_connection(Connection):
             msg = err.msg
         finally:
             cursor.close()
-            self.cnx.close()
+            #self.cnx.close()
             if msg:
                 return "error"
             elif result:
@@ -34,9 +35,10 @@ class Auth_connection(Connection):
             else:
                 return False
 
-    def insert_new_member(self,name,email,hash_password,identity,date):
+    @staticmethod 
+    def insert_new_member(cnx,name,email,hash_password,identity,date):
         result, msg = None, None
-        cursor = self.cnx.cursor(dictionary=True)
+        cursor = cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         if identity==1:
             query = "INSERT INTO members VALUES (DEFAULT,%(name)s,%(email)s,%(password)s,%(date)s,null,null,null,null,null,null,true,%(identity)s)"
@@ -46,23 +48,23 @@ class Auth_connection(Connection):
             input_data = {'name': name, 'email': email, 'password': hash_password,'identity':identity}
         try:
             cursor.execute(query, input_data)
-            self.cnx.commit()
+            cnx.commit()
             result = True
         except mysql.connector.Error as err:
             msg = err.msg
-            self.cnx.rollback()
+            cnx.rollback()
         finally:
             cursor.close()
-            self.cnx.close()
+            #self.cnx.close()
             if msg:    
                 return "error"
             elif result:
                 return True 
 
-
-    def confirm_member_information(self,email,identity):
+    @staticmethod
+    def confirm_member_information(cnx,email,identity):
         result, msg = None, None
-        cursor = self.cnx.cursor(dictionary=True)
+        cursor = cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         if identity==1:
             query = "SELECT member_id, hash_password, name, initial, identity FROM members WHERE email=%(email)s"
@@ -76,7 +78,7 @@ class Auth_connection(Connection):
             msg = err.msg
         finally:
             cursor.close()
-            self.cnx.close()
+            #self.cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -84,9 +86,10 @@ class Auth_connection(Connection):
             else:
                 return False #there is no this member     
 
-    def retrieve_member_information(self,id,identity):
+    @staticmethod
+    def retrieve_member_information(cnx,id,identity):
         result, msg = None, None
-        cursor = self.cnx.cursor(dictionary=True)
+        cursor = cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         if identity ==1:
             query = "SELECT member_id, name, email, height, weight, target, identity, initial FROM members WHERE member_id=%(id)s"
@@ -100,97 +103,101 @@ class Auth_connection(Connection):
             msg = err.msg
         finally:
             cursor.close()
-            self.cnx.close()
+            #self.cnx.close()
             if msg:  
                 return "error"
             elif result:
                 return result 
  
-    def update_member_info(self,input,id):
+    @staticmethod 
+    def update_member_info(cnx,input,id):
         result, msg = None, None
-        cursor = self.cnx.cursor(dictionary=True)
+        cursor = cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         query = "UPDATE members SET gender = %(gender)s, height = %(height)s, weight=%(weight)s, habit=%(habit)s,target=%(target)s,age=%(age)s WHERE member_id=%(id)s" 
         input_data = {'gender':input["gender"],"height": round(input["height"],1), "weight": round(input["weight"],1), 
         'habit': input["habit"], 'target':input["target"],"age":input["age"],"id":id}
         try:
             cursor.execute(query, input_data)
-            self.cnx.commit()
+            cnx.commit()
             result = True
         except mysql.connector.Error as err:
             msg = err.msg
-            self.cnx.rollback()
+            cnx.rollback()
         finally:
             cursor.close()
-            self.cnx.close()
+            #self.cnx.close()
             if msg:   
                 return "error"
             elif result:
                 return True   
 
-    def change_initial_state(self,email):
+    @staticmethod
+    def change_initial_state(cnx,email):
         msg = None
-        cursor = self.cnx.cursor()
+        cursor = cnx.cnx.cursor()
         cursor.execute("USE {}".format('macroseat'))
         query = "UPDATE members SET initial = %(initial)s WHERE email=%(email)s" 
         input_data = {'initial': False,"email": email}
         try:
             cursor.execute(query, input_data)
-            self.cnx.commit()
+            cnx.commit()
             result = True
         except mysql.connector.Error as err:
             msg = err.msg
-            self.cnx.rollback()
+            cnx.rollback()
         finally:
             cursor.close()
-            self.cnx.close()
+            #self.cnx.close()
             if msg:   
                 return "error"
             elif result:
                 return True   
 
-class Food_connection(Connection):
-    def insert_new_food(self,request_data,user_id):
+class Food_connection():
+    @staticmethod
+    def insert_new_food(cnx,request_data,user_id):
         result, msg = None, None
-        cursor = self.cnx.cursor(dictionary=True)
+        cursor = cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         query = "INSERT INTO food VALUES (DEFAULT,%(member_id)s,%(food_name)s,%(protein)s,%(fat)s,%(carbs)s)"
         input_data = {'member_id': user_id, 'food_name': request_data["food_name"], 'protein': request_data["protein"], 'fat':request_data["fat"], 'carbs':request_data["carbs"]}
         try:
             cursor.execute(query, input_data)
-            self.cnx.commit()
+            cnx.commit()
             result = True
         except mysql.connector.Error as err:
             msg = err.msg
-            self.cnx.rollback()
+            cnx.rollback()
         finally:
             cursor.close()
-            self.cnx.close()
+            #self.cnx.close()
             if msg:  
                 return "error"
             elif result:
                 return result 
 
-    def delete_food(self,food_id,user_id):
+    @staticmethod
+    def delete_food(cnx,food_id,user_id):
         result, msg = None, None
-        cursor = self.cnx.cursor(buffered=True)
+        cursor = cnx.cursor(buffered=True)
         cursor.execute("USE {}".format('macroseat'))
         query = "DELETE FROM food WHERE food_id = %(food_id)s AND member_id=%(member_id)s" 
         input_data = {'food_id':food_id,"member_id": user_id}
         try:
             cursor.execute(query, input_data)
             result = cursor.rowcount
-            self.cnx.commit()
+            cnx.commit()
             if result!=1: #food doesn;t exist or doesn't belong to member
                 result = False 
             else: 
                 result = True
         except mysql.connector.Error as err:
             msg = err.msg
-            self.cnx.rollback()
+            cnx.rollback()
         finally:
             cursor.close()
-            self.cnx.close()
+            #self.cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -198,9 +205,10 @@ class Food_connection(Connection):
             elif not result:
                 return False  
 
-    def get_my_food_info(self,page,user_id):
+    @staticmethod
+    def get_my_food_info(cnx,page,user_id):
         msg,food_data,nextPage,result = None,None,None,None
-        cursor= self.cnx.cursor(dictionary=True)
+        cursor= cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         try:
             query = ("SELECT food_id, food_name, protein, fat, carbs from "
@@ -221,15 +229,16 @@ class Food_connection(Connection):
             msg = err.msg      
         finally:
             cursor.close()
-            self.cnx.close()   
+            cnx.close()   
             if msg:
                 return "error"
             else:
                 return result        
-                
-    def get_public_food_info(self,keyword,page):
+
+    @staticmethod            
+    def get_public_food_info(cnx,keyword,page):
         msg,food_data, nextPage = None,None,None
-        cursor= self.cnx.cursor(dictionary=True)
+        cursor= cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         try:
             keyword_query = ("SELECT food_id, food_name, protein, fat, carbs from "
@@ -250,54 +259,57 @@ class Food_connection(Connection):
             msg = err.msg      
         finally:
             cursor.close()
-            self.cnx.close()   
+            #self.cnx.close()   
             if msg:
                 return "error"
             else:
                 return result   
 
-class Plan_connection(Connection):
-    def insert_new_diet_plan(self,request_data,user_id):
+class Plan_connection():
+
+    @staticmethod
+    def insert_new_diet_plan(cnx,request_data,user_id):
         result, msg = None, None
-        cursor = self.cnx.cursor(dictionary=True)
+        cursor = cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         query = "INSERT INTO plans VALUES (DEFAULT,%(create_at)s,%(member_id)s,%(protein)s,%(fat)s,%(carbs)s,%(plan_calories)s,%(plan_name)s)"
         input_data = {'member_id': user_id, 'create_at' : request_data["create_at"] ,'plan_name': request_data.get("plan_name") ,'plan_calories': request_data["plan_calories"], 'protein': request_data["protein"], 'fat':request_data["fat"], 'carbs':request_data["carbs"]}
         try:
             cursor.execute(query, input_data)
-            self.cnx.commit()
+            cnx.commit()
             result = True
         except mysql.connector.Error as err:
             msg = err.msg
-            self.cnx.rollback()
+            cnx.rollback()
         finally:
             cursor.close()
-            self.cnx.close()
+            #self.cnx.close()
             if msg:  
                 return "error"
             elif result:
                 return result 
 
-    def update_diet_info(self,input,user_id):
+    @staticmethod
+    def update_diet_info(cnx,input,user_id):
         result, msg = None, None
-        cursor = self.cnx.cursor(dictionary=True)
+        cursor = cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         query = "UPDATE plans SET plan_calories = %(plan_calories)s, protein = %(protein)s , fat = %(fat)s , carbs=%(carbs)s WHERE plan_id = %(plan_id)s AND member_id = %(member_id)s" 
         input_data = {'member_id': user_id, 'plan_calories':input["plan_calories"],'plan_id':input["plan_id"],"protein": input["protein"],"fat":input["fat"],"carbs":input["carbs"]}
         try:
             cursor.execute(query, input_data)
             count = cursor.rowcount
-            self.cnx.commit()
+            cnx.commit()
             if count==0:
                 result = False
             else:    
                 result = True
         except mysql.connector.Error as err:
             msg = err.msg
-            self.cnx.rollback()
+            cnx.rollback()
         finally:
             cursor.close()
-            self.cnx.close()
+            #self.cnx.close()
             if msg:   
                 return "error"
             elif result:
@@ -305,26 +317,27 @@ class Plan_connection(Connection):
             elif not result:
                 return False    
 
-    def delete_diet(self,plan_id,user_id):
+    @staticmethod
+    def delete_diet(cnx,plan_id,user_id):
         result, msg = None, None
-        cursor = self.cnx.cursor(buffered=True)
+        cursor = cnx.cursor(buffered=True)
         cursor.execute("USE {}".format('macroseat'))
         query = "DELETE FROM plans WHERE plan_id = %(plan_id)s AND member_id=%(member_id)s" 
         input_data = {'plan_id':plan_id,"member_id": user_id}
         try:
             cursor.execute(query, input_data)
             result = cursor.rowcount
-            self.cnx.commit()
+            cnx.commit()
             if result==0: #either plan doesn't exist or doesn't belong to member
                 result = False 
             else: 
                 result = True
         except mysql.connector.Error as err:
             msg = err.msg
-            self.cnx.rollback()
+            cnx.rollback()
         finally:
             cursor.close()
-            self.cnx.close()
+            #self.cnx.close()
             if msg:   
                 return "error"
             elif result == True:
@@ -332,9 +345,10 @@ class Plan_connection(Connection):
             elif result == False:
                 return False 
 
-    def get_diet_info(self,page,user_id):
+    @staticmethod
+    def get_diet_info(cnx,page,user_id):
         msg,diet_data,nextPage,result = None,None,None,None
-        cursor= self.cnx.cursor(dictionary=True)
+        cursor= cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         try:
             query = ("SELECT plan_id, plan_name, plan_calories,protein, fat, carbs from "
@@ -356,54 +370,57 @@ class Plan_connection(Connection):
             msg = err.msg      
         finally:
             cursor.close()
-            self.cnx.close()   
+            #self.cnx.close()   
             if msg:
                 return "error"
             else:
                 return result        
 
-class Record_connection(Connection):
-    def insert_new_record(self,request_data,user_id):
+class Record_connection():
+
+    @staticmethod
+    def insert_new_record(cnx,request_data,user_id):
         result, msg = None, None
-        cursor = self.cnx.cursor(dictionary=True)
+        cursor = cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         query = "INSERT INTO records VALUES (DEFAULT,%(create_at)s,%(member_id)s,%(protein)s,%(fat)s,%(carbs)s,%(plan_calories)s)"
         input_data = {'member_id': user_id, 'create_at' : request_data["create_at"] ,'plan_calories': request_data["plan_calories"], 'protein': request_data["protein"], 'fat':request_data["fat"], 'carbs':request_data["carbs"]}
         try:
             cursor.execute(query, input_data)
-            self.cnx.commit()
+            cnx.commit()
             result = True
         except mysql.connector.Error as err:
             msg = err.msg
-            self.cnx.rollback()
+            cnx.rollback()
         finally:
             cursor.close()
-            self.cnx.close()
+            #self.cnx.close()
             if msg:  
                 return "error"
             elif result:
                 return True 
 
-    def update_record(self,input,user_id): 
+    @staticmethod
+    def update_record(cnx,input,user_id): 
         result, msg = None, None
-        cursor = self.cnx.cursor(dictionary=True)
+        cursor = cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         query = "UPDATE records SET plan_calories = %(plan_calories)s, protein = %(protein)s , fat = %(fat)s , carbs=%(carbs)s WHERE record_id = %(record_id)s AND member_id = %(member_id)s" 
         input_data = {'member_id': user_id, 'record_id':input["record_id"],"protein": input["protein"],"fat":input["fat"],"carbs":input["carbs"], "plan_calories":input["plan_calories"]}
         try:
             cursor.execute(query, input_data)
             count = cursor.rowcount
-            self.cnx.commit()
+            cnx.commit()
             if count==0:
                 result = False
             else:    
                 result = True
         except mysql.connector.Error as err:
             msg = err.msg
-            self.cnx.rollback()
+            cnx.rollback()
         finally:
             cursor.close()
-            self.cnx.close()
+            #self.cnx.close()
             if msg:    
                 return "error"
             elif result:
@@ -411,9 +428,10 @@ class Record_connection(Connection):
             elif not result:
                 return False    
  
-    def get_record_info(self,datetimestamp,user_id):
+    @staticmethod
+    def get_record_info(cnx,datetimestamp,user_id):
         msg,record = None,None
-        cursor= self.cnx.cursor(dictionary=True)
+        cursor= cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         try:
             query = ("SELECT s1.record_id, s1.plan_calories, s1.protein AS record_protein, s1.fat AS record_fat, s1.carbs AS record_carbs,"
@@ -425,16 +443,18 @@ class Record_connection(Connection):
             msg = err.msg      
         finally:
             cursor.close()
-            self.cnx.close()   
+            #self.cnx.close()   
             if msg:
                 return "error"
             else:
                 return record 
 
-class Diet_connection(Connection):
-    def insert_new_diet(self,request_data,user_id):
+class Diet_connection():
+    
+    @staticmethod
+    def insert_new_diet(cnx,request_data,user_id):
         result, msg = None, None
-        cursor = self.cnx.cursor(dictionary=True)
+        cursor = cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         query1 = "SELECT member_id FROM records WHERE record_id = %(record_id)s"
         query2 = "INSERT INTO intakes VALUES (DEFAULT,%(record_id)s,%(food_name)s,%(protein)s,%(fat)s,%(carbs)s,%(amount)s)"
@@ -453,16 +473,16 @@ class Diet_connection(Connection):
                 result = False
             else:
                 cursor.execute(query2, input_data)
-                self.cnx.commit()
+                cnx.commit()
                 cursor.execute(query3, {"record_id": request_data["record_id"]})
                 intake_id = cursor.fetchone()
                 result = intake_id
         except mysql.connector.Error as err:
             msg = err.msg
-            self.cnx.rollback()
+            cnx.rollback()
         finally:
             cursor.close()
-            self.cnx.close()
+            #self.cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -470,9 +490,10 @@ class Diet_connection(Connection):
             else:
                 return False    
 
-    def delete_diet(self,intake_id,user_id,record_id): 
+    @staticmethod
+    def delete_diet(cnx,intake_id,user_id,record_id): 
         result, msg = None, None
-        cursor = self.cnx.cursor(dictionary=True)
+        cursor = cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         query1 = "SELECT member_id FROM records WHERE record_id = %(record_id)s"
         query2 = "DELETE FROM intakes WHERE intake_id = %(intake_id)s AND record_id = %(record_id)s" 
@@ -484,7 +505,7 @@ class Diet_connection(Connection):
                 result = False
             else:
                 cursor.execute(query2, input_data)
-                self.cnx.commit()
+                cnx.commit()
                 result = cursor.rowcount
                 if result!=1: #the intake doesn't exist or doesn't belong to member
                     result = False 
@@ -492,10 +513,10 @@ class Diet_connection(Connection):
                     result = True
         except mysql.connector.Error as err:
             msg = err.msg
-            self.cnx.rollback()
+            cnx.rollback()
         finally:
             cursor.close()
-            self.cnx.close()
+            #self.cnx.close()
             if msg:   
                 return "error"
             elif result:
@@ -503,9 +524,10 @@ class Diet_connection(Connection):
             elif not result:
                 return False     
  
-    def get_diet_info(self,datetimestamp,user_id):
+    @staticmethod
+    def get_diet_info(cnx,datetimestamp,user_id):
         msg,record = None,None
-        cursor= self.cnx.cursor(dictionary=True)
+        cursor= cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         try:
             query = ("SELECT s1.record_id,"
@@ -517,16 +539,19 @@ class Diet_connection(Connection):
             msg = err.msg      
         finally:
             cursor.close()
-            self.cnx.close()   
+            #self.cnx.close()   
             if msg:
                 return "error"
             else:
                 return record                 
 
-class Weight_connection(Connection):
-    def insert_new_weight(self,input,user_id):
+
+class Weight_connection():
+
+    @staticmethod
+    def insert_new_weight(cnx,input,user_id):
         result, msg = None, None
-        cursor = self.cnx.cursor(dictionary=True)
+        cursor = cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         query1 = "SELECT weight_id FROM weight WHERE member_id = %(member_id)s AND create_at = %(create_at)s"
         query2 = "INSERT INTO weight VALUES (DEFAULT,%(create_at)s,%(member_id)s,%(weight)s)"
@@ -539,39 +564,40 @@ class Weight_connection(Connection):
                 result = False
             else:    
                 cursor.execute(query2, input_data)
-                self.cnx.commit()
+                cnx.commit()
                 result = True
         except mysql.connector.Error as err:
             msg = err.msg
-            self.cnx.rollback()
+            cnx.rollback()
         finally:
             cursor.close()
-            self.cnx.close()
+            #self.cnx.close()
             if msg:  
                 return "error"
             elif result:
                 return True  
 
-    def update_weight(self,input,user_id): 
+    @staticmethod
+    def update_weight(cnx,input,user_id): 
         result, msg = None, None
-        cursor = self.cnx.cursor()
+        cursor = cnx.cursor()
         cursor.execute("USE {}".format('macroseat'))
         query = "UPDATE weight SET weight = %(new_weight)s WHERE member_id = %(member_id)s AND create_at = %(create_at)s" 
         input_data = {'member_id': user_id, 'create_at':input["create_at"], "new_weight":input["new_weight"]}
         try:
             cursor.execute(query, input_data)
             count = cursor.rowcount
-            self.cnx.commit()
+            cnx.commit()
             if count==0:
                 result = False
             else:    
                 result = True
         except mysql.connector.Error as err:
             msg = err.msg
-            self.cnx.rollback()
+            cnx.rollback()
         finally:
             cursor.close()
-            self.cnx.close()
+            #self.cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -579,9 +605,10 @@ class Weight_connection(Connection):
             elif not result:
                 return False    
  
-    def get_weight_info(self,start_date,end_date,user_id):
+    @staticmethod
+    def get_weight_info(cnx,start_date,end_date,user_id):
         msg,record = None,None
-        cursor= self.cnx.cursor(dictionary=True)
+        cursor= cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         try:
             query = ("SELECT create_at, weight "
@@ -592,17 +619,19 @@ class Weight_connection(Connection):
             msg = err.msg      
         finally:
             cursor.close()
-            self.cnx.close()   
+            #self.cnx.close()   
             if msg:
                 return "error"
             else:
                 return record    
 
 
-class Notify_connection(Connection):
-    def check_if_subscribe(self,identity,subcsription,id_):
+class Notify_connection():
+
+    @staticmethod
+    def check_if_subscribe(cnx,identity,subcsription,id_):
         msg,result = None, None
-        cursor= self.cnx.cursor(dictionary=True)
+        cursor= cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         try:
             if identity == 1:
@@ -626,28 +655,29 @@ class Notify_connection(Connection):
 				}
                 if identity == 1:
                     cursor.execute("INSERT INTO service_user VALUES(%(auth)s,%(id)s,%(p256dh)s,%(endpoint)s,%(expirationTime)s)",insert_data)	
-                    self.cnx.commit()
+                    cnx.commit()
                 else:
                     cursor.execute("INSERT INTO service_nutri VALUES(%(auth)s,%(id)s,%(p256dh)s,%(endpoint)s,%(expirationTime)s)",insert_data)	
-                    self.cnx.commit()
+                    cnx.commit()
                 current_app.logger.info('User newly subscribed!')    
                 result = {
 						"status": "success"
 					    }
         except mysql.connector.Error as err:
             msg = err.msg
-            self.cnx.rollback()
+            cnx.rollback()
         finally:
             cursor.close()
-            self.cnx.close()
+            #self.cnx.close()
             if msg:  
                 return "error"
             elif result:
                 return result 
 
-    def get_subscription_info(self,id_,identity):
+    @staticmethod
+    def get_subscription_info(cnx,id_,identity):
         msg,result = None, None
-        cursor= self.cnx.cursor(dictionary=True)
+        cursor= cnx.cursor(dictionary=True)
         cursor.execute("USE {}".format('macroseat'))
         try:
             if identity == 1:
@@ -659,10 +689,10 @@ class Notify_connection(Connection):
                 result = data		
         except mysql.connector.Error as err:
             msg = err.msg
-            self.cnx.rollback()
+            cnx.rollback()
         finally:
             cursor.close()
-            self.cnx.close()
+            #self.cnx.close()
             if msg: 
                 return "error"
             elif result:

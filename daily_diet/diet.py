@@ -5,8 +5,9 @@ from flask_jwt_extended import verify_jwt_in_request
 from functools import wraps
 from model import db
 from model import redis_db
-from model.connection import Connection
+#from model.connection import Connection
 from utils import Utils_obj
+from model import Diet_connection
 
 diet = Blueprint('diet', __name__,static_folder='static',static_url_path='/record')
 
@@ -62,7 +63,8 @@ def verify_diet(input):
 
 def handle_get_diet(request):
     connection = db.get_daily_diet_cnx() 
-    if isinstance(connection,Connection): 
+    #if isinstance(connection,Connection):
+    if connection != "error":     
         user_id = Utils_obj.get_member_id_from_jwt(request)
         datetimestamp = request.args.get('datetime')  
         if not datetimestamp or not datetimestamp.isdigit():
@@ -70,7 +72,8 @@ def handle_get_diet(request):
                             "error": True,
                             "message": "未提供日期或時間戳錯誤"
                             }), 400     
-        data = connection.get_diet_info(datetimestamp,user_id)
+        data = Diet_connection.get_diet_info(connection,datetimestamp,user_id)
+        connection.close()
         if data == "error":
             response_msg={
                           "error":True,
@@ -82,7 +85,8 @@ def handle_get_diet(request):
             else: #means record existed (with/without food record)
                 result = organize_diet_data(data)
                 return jsonify(result), 200                      
-    elif connection == "error": 
+    #elif connection == "error": 
+    else:
         response_msg={
                       "error":True,
                       "message":"不好意思,資料庫暫時有問題,維修中"}
@@ -111,9 +115,11 @@ def handle_add_diet(request):
                           "message":"新增紀錄失敗,新增資料有誤"}  
             return jsonify(response_msg), 400 
         connection = db.get_daily_diet_cnx() 
-        if isinstance(connection,Connection): 
+        #if isinstance(connection,Connection): 
+        if connection != "error":
             user_id = Utils_obj.get_member_id_from_jwt(request)
-            result = connection.insert_new_diet(request_data,user_id)
+            result = Diet_connection.insert_new_diet(connection,request_data,user_id)
+            connection.close()
             if result == "error": 
                 response_msg={
                               "error":True,
@@ -130,7 +136,8 @@ def handle_add_diet(request):
                               "error":True,
                               "message":"該紀錄代號不存在或該紀錄代號不屬於此會員"}  
                 return jsonify(response_msg), 400 
-        elif connection == "error":  
+        #elif connection == "error": 
+        else: 
             response_msg={
                           "error":True,
                           "message":"不好意思,資料庫暫時有問題維修中"}          
@@ -145,9 +152,11 @@ def handle_delete_diet(request):
                           "message":"刪除失敗,沒有給intake_id or datetime or record_id"}
             return jsonify(response_msg), 400 
         connection = db.get_daily_diet_cnx()  
-        if isinstance(connection,Connection): 
+        #if isinstance(connection,Connection): 
+        if connection != "error":
             user_id = Utils_obj.get_member_id_from_jwt(request)
-            result = connection.delete_diet(intake_id,user_id,record_id) 
+            result = Diet_connection.delete_diet(connection,intake_id,user_id,record_id) 
+            connection.close()
             if result == "error": 
                 response_msg={
                               "error":True,
@@ -163,7 +172,8 @@ def handle_delete_diet(request):
                               "error":True,
                               "message":"此intake_id不存在或不屬於該會員"}
                 return jsonify(response_msg), 400                
-        elif connection == "error": 
+        #elif connection == "error": 
+        else:
             response_msg={
                           "error":True,
                           "message":"不好意思,資料庫暫時有問題,維修中"}              

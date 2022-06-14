@@ -16,7 +16,9 @@ from message import message_blueprint
 import config
 from model import db
 from model import redis_db
-from model import Connection
+from model import Auth_connection
+from model import Notify_connection
+#from model import Connection
 from celery_factory.make_celery import make_celery
 from webpush_handler import trigger_push_notifications_for_subscriptions
 from authlib.integrations.flask_client import OAuth
@@ -74,8 +76,10 @@ def authorize():
     initial=0	
     # do something with the token and profile
     connection1 = db.get_auth_cnx()
-    if isinstance(connection1,Connection): 
-        result = connection1.confirm_member_information(email,1) 
+    #if isinstance(connection1,Connection): 
+    if connection1 != "error":
+        result = Auth_connection.confirm_member_information(connection1,email,1) 
+        connection1.close()
         if result == "error": 
                     response_msg={
                             "error":True,
@@ -93,7 +97,8 @@ def authorize():
                 session["temp"]=1					
         else: #表示沒有此會員,第一次用google登入,插到會員資料庫
             connection2 = db.get_auth_cnx()
-            result_ = connection2.insert_new_member(name, email,"123",1,0)
+            result_ = Auth_connection.insert_new_member(connection2,name, email,"123",1,0)
+            connection2.close()			
             if result_ == "error": #如果回傳結果是"error",代表資料庫insert時發生錯誤
                 response_msg={
 							"error":True,
@@ -102,7 +107,8 @@ def authorize():
             elif result_ == True: #如果檢查回傳結果是true代表新增會員到資料庫成功,
                 initial=1
                 session["temp"]=1
-    elif connection1 == "error": #如果沒有順利取得連線
+    #elif connection1 == "error": #如果沒有順利取得連線
+    else:
             response_msg={
                         "error":True,
                         "message":"不好意思,資料庫暫時有問題,維修中"}              
@@ -124,8 +130,10 @@ def get_jwt():
     email = request_data.get("email")
     initial = request_data.get("initial")	
     connection = db.get_auth_cnx()	
-    if isinstance(connection,Connection): #如果有順利取得連線	
-        result = connection.confirm_member_information(email,1) #先確認有沒有這個email帳號 
+    #if isinstance(connection,Connection): #如果有順利取得連線	
+    if connection != "error":
+        result = Auth_connection.confirm_member_information(connection,email,1) #先確認有沒有這個email帳號 
+        connection.close()
         if result == "error": #代表查詢失敗
             current_app.logger.info("查詢失敗")
             response_msg={
@@ -163,7 +171,8 @@ def get_jwt():
                     "message":"登入失敗"} 
             del session["temp"]					
             return jsonify(response_msg), 400 			
-    elif connection == "error": #如果沒有順利取得連線
+    #elif connection == "error": #如果沒有順利取得連線
+    else:
         response_msg={
                         "error":True,
                         "message":"不好意思,資料庫暫時有問題,維修中"}
@@ -211,8 +220,10 @@ def create_push_subscription():
     identity = data["identity"]
     subcsription = json.loads(json_data['subscription_json'])
     cnx = db.get_notify_cnx()
-    if isinstance(cnx,Connection): #如果有順利取得連線	
-        result = cnx.check_if_subscribe(identity,subcsription,id_)
+    #if isinstance(cnx,Connection): #如果有順利取得連線	
+    if cnx != "error":
+        result = Notify_connection.check_if_subscribe(cnx,identity,subcsription,id_)
+        cnx.close()
         if result == "error":
             response_msg={
                             "error":True,
@@ -220,7 +231,8 @@ def create_push_subscription():
             return jsonify(response_msg), 500
         else:
             return jsonify(result), 200
-    elif cnx == "error":  #如果沒有順利取得連線
+    #elif cnx == "error":  #如果沒有順利取得連線
+    else:	
         response_msg={
                 "error":True,
                 "message":"不好意思,資料庫暫時有問題維修中"}          
@@ -408,8 +420,10 @@ def msg_to_nutri_(payload): #payload={"message":message,"receiver":receiver,"tok
 			redis_db.redis_instance.zpopmin(key) #從pop掉value最小,時間最早的那筆訊息
 		#web notification
 		cnx = db.get_notify_cnx()
-		if isinstance(cnx,Connection): #如果有順利取得連線	
-			result = cnx.get_subscription_info(int(nutri_id),2)
+		#if isinstance(cnx,Connection): #如果有順利取得連線	
+		if cnx != "error":
+			result = Notify_connection.get_subscription_info(cnx,int(nutri_id),2)
+			cnx.close()
 			if result == "error":
 				current_app.logger.info('從資料庫取得subscription資料時出錯')
 			else:
@@ -419,7 +433,8 @@ def msg_to_nutri_(payload): #payload={"message":message,"receiver":receiver,"tok
 					f"Got a new message from {user_name}."
 				)
 				current_app.logger.info(res)
-		elif cnx == "error":  #如果沒有順利取得連線
+		#elif cnx == "error":  #如果沒有順利取得連線
+		else:		
 			current_app.logger.info('沒有取得web通知連線物件')
 	except:
 		emit("authencation_fail")	
@@ -661,8 +676,10 @@ def msg_to_user_(payload): #payload={"message":message,"receiver":receiver,"toke
 			redis_db.redis_instance.zpopmin(key) #從pop掉value最小,時間最早的那筆訊息
 		#web notification
 		cnx = db.get_notify_cnx()
-		if isinstance(cnx,Connection): #如果有順利取得連線	
-			result = cnx.get_subscription_info(int(user_id),1)
+		#if isinstance(cnx,Connection): #如果有順利取得連線	
+		if cnx != "error":
+			result = Notify_connection.get_subscription_info(cnx,int(user_id),1)
+			cnx.close()
 			if result == "error":
 				current_app.logger.info('從資料庫取得subscription資料時出錯')
 			else:
@@ -672,7 +689,8 @@ def msg_to_user_(payload): #payload={"message":message,"receiver":receiver,"toke
 					f"Got a new message from {nutri_name}."
 				)
 				current_app.logger.info(res)
-		elif cnx == "error":  #如果沒有順利取得連線
+		#elif cnx == "error":  #如果沒有順利取得連線
+		else:
 			current_app.logger.info('沒有取得web通知連線物件')	
 	except:
 		emit("authencation_fail")

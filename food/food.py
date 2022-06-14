@@ -8,9 +8,10 @@ from flask_jwt_extended import verify_jwt_in_request
 from functools import wraps
 from model import db
 from model import redis_db
-from model.connection import Connection
+#from model.connection import Connection
 from utils import Utils_obj
 from flask import current_app
+from model import Food_connection
 
 
 
@@ -69,9 +70,11 @@ def handle_add_food(request):
                           "message":"新增資料有誤"}  
             return jsonify(response_msg), 400 
         connection = db.get_food_cnx() 
-        if isinstance(connection,Connection): 
+        #if isinstance(connection,Connection): 
+        if connection != "error":
             user_id = Utils_obj.get_member_id_from_jwt(request)
-            result = connection.insert_new_food(request_data,user_id)
+            result = Food_connection.insert_new_food(connection,request_data,user_id)
+            connection.close()
             if result == "error": 
                 response_msg={
                             "error":True,
@@ -82,7 +85,8 @@ def handle_add_food(request):
                 redis_db.redis_instance.delete(redis_key)
                 response_msg={"ok": True}
                 return jsonify(response_msg), 201 
-        elif connection == "error": 
+        #elif connection == "error": 
+        else:    
             response_msg={
                         "error":True,
                         "message":"伺服器內部錯誤，新增失敗"}          
@@ -95,9 +99,11 @@ def handle_delete_food(request):
                           "message":"刪除失敗,沒有給food id"}
             return jsonify(response_msg), 400 
         connection = db.get_food_cnx()   
-        if isinstance(connection,Connection): 
+        #if isinstance(connection,Connection): 
+        if connection != "error":
             user_id = Utils_obj.get_member_id_from_jwt(request)
-            result = connection.delete_food(food_id,user_id) 
+            result = Food_connection.delete_food(connection,food_id,user_id) 
+            connection.close()
             if result == "error": 
                 response_msg={
                             "error":True,
@@ -113,15 +119,18 @@ def handle_delete_food(request):
                             "error":True,
                             "message":"food_id不屬於此會員或此food_id不存在"}
                 return jsonify(response_msg), 400                 
-        elif connection == "error": 
+        #elif connection == "error": 
+        else:
             response_msg={
                         "error":True,
                         "message":"伺服器內部錯誤，資料刪除失敗"}              
             return jsonify(response_msg), 500    
 def handle_get_my_food_data(page,user_id):
     connection = db.get_food_cnx() 
-    if isinstance(connection,Connection):          
-        data = connection.get_my_food_info(page,user_id) 
+    #if isinstance(connection,Connection):   
+    if connection != "error":           
+        data = Food_connection.get_my_food_info(connection,page,user_id) 
+        connection.close()
         if data == "error":
             response_msg={
                     "error":True,
@@ -129,19 +138,22 @@ def handle_get_my_food_data(page,user_id):
             return jsonify(response_msg), 500          
         else:
             return jsonify(data), 200                       
-    elif connection == "error":  
+    #elif connection == "error":  
+    else:
         response_msg={
                 "error":True,
                 "message":"伺服器內部錯誤，資料取得失敗"}
         return jsonify(response_msg), 500    
 def handle_get_public_food_data(request):
     connection = db.get_food_cnx() 
-    if isinstance(connection,Connection): 
+    #if isinstance(connection,Connection): 
+    if connection != "error":  
         page = request.args.get('page')
         keyword = request.args.get('keyword')  
         if not keyword or not page:
             return jsonify({"data":[],"nextPage":None}), 200         
-        data = connection.get_public_food_info(keyword,page)
+        data = Food_connection.get_public_food_info(connection,keyword,page)
+        connection.close()
         if data == "error":
             response_msg={
                     "error":True,
@@ -149,7 +161,8 @@ def handle_get_public_food_data(request):
             return jsonify(response_msg), 500          
         else:  
             return jsonify(data), 200                      
-    elif connection == "error": 
+    #elif connection == "error": 
+    else:
         response_msg={
                 "error":True,
                 "message":"伺服器內部錯誤，資料取得失敗"}

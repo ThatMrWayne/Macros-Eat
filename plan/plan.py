@@ -9,9 +9,10 @@ from flask_jwt_extended import verify_jwt_in_request
 from functools import wraps
 from model import db
 from model import redis_db
-from model.connection import Connection
+#from model.connection import Connection
 from utils import Utils_obj
 from flask import current_app
+from model import Plan_connection
 
 
 
@@ -78,7 +79,8 @@ def handle_add_diet_plan(request):
                             "message":"新增飲食計畫失敗,新增資料有誤"}  
             return jsonify(response_msg), 400 
         connection = db.get_diet_plan_cnx() 
-        if isinstance(connection,Connection): 
+        #if isinstance(connection,Connection): 
+        if connection != "error":
             user_id = Utils_obj.get_member_id_from_jwt(request)
              #轉成台灣時區
             gmtTimeDelta = datetime.timedelta(hours=8)
@@ -87,7 +89,8 @@ def handle_add_diet_plan(request):
             s = d.strftime("%Y/%m/%d %H:%M:%S")
             plan_name = "saved plan at " + s
             request_data["plan_name"] = plan_name
-            result = connection.insert_new_diet_plan(request_data,user_id)
+            result = Plan_connection.insert_new_diet_plan(connection,request_data,user_id)
+            connection.close()
             if result == "error": #
                 response_msg={
                             "error":True,
@@ -98,7 +101,8 @@ def handle_add_diet_plan(request):
                 redis_db.redis_instance.delete(redis_key)
                 response_msg={"ok": True} #"plan_id": result["plan_id"], "plan_name": result["plan_name"]}
                 return jsonify(response_msg), 201 
-        elif connection == "error":  
+        #elif connection == "error":  
+        else:
             response_msg={
                         "error":True,
                         "message":"不好意思,資料庫暫時有問題維修中"}          
@@ -111,9 +115,11 @@ def handle_delete_diet_plan(request):
                           "message":"刪除失敗,沒有給plan id"}
             return jsonify(response_msg), 400 
         connection = db.get_diet_plan_cnx()    
-        if isinstance(connection,Connection): 
+        #if isinstance(connection,Connection): 
+        if connection != "error":
             user_id = Utils_obj.get_member_id_from_jwt(request)
-            result = connection.delete_diet(plan_id,user_id) 
+            result = Plan_connection.delete_diet(connection,plan_id,user_id) 
+            connection.close()
             if result == "error": 
                 response_msg={
                             "error":True,
@@ -129,7 +135,8 @@ def handle_delete_diet_plan(request):
                             "error":True,
                             "message":"plan_id不屬於此會員或此plan_id不存在"}
                 return jsonify(response_msg), 400                 
-        elif connection == "error": 
+        #elif connection == "error": 
+        else:
             response_msg={
                         "error":True,
                         "message":"不好意思,資料庫暫時有問題,維修中"}              
@@ -158,9 +165,11 @@ def handle_update_diet_plan(request):
                             "message":"更新資料錯誤"}  
             return jsonify(response_msg), 400
         connection = db.get_diet_plan_cnx() 
-        if isinstance(connection,Connection): 
+        #if isinstance(connection,Connection): 
+        if connection != "error":
             user_id = Utils_obj.get_member_id_from_jwt(request)
-            result = connection.update_diet_info(input,user_id)
+            result = Plan_connection.update_diet_info(connection,input,user_id)
+            connection.close()
             if result == "error": 
                 response_msg={
                             "error":True,
@@ -174,15 +183,18 @@ def handle_update_diet_plan(request):
                             "error":True,
                             "message":"plan_id不屬於此會員或此plan_id不存在"}  
                 return jsonify(response_msg), 400    
-        elif connection == "error":  
+        #elif connection == "error":  
+        else:
             response_msg={
                         "error":True,
                         "message":"不好意思,資料庫暫時有問題維修中"}          
             return jsonify(response_msg), 500  
 def handle_get_diet_plans(page,user_id):
     connection = db.get_diet_plan_cnx() 
-    if isinstance(connection,Connection):             
-        data = connection.get_diet_info(page,user_id)
+    #if isinstance(connection,Connection):    
+    if connection != "error":          
+        data = Plan_connection.get_diet_info(connection,page,user_id)
+        connection.close()
         if data == "error":
             response_msg={
                 "error":True,
@@ -190,7 +202,8 @@ def handle_get_diet_plans(page,user_id):
             return jsonify(response_msg), 500          
         else:   
             return jsonify(data), 200                       
-    elif connection == "error": 
+    #elif connection == "error": 
+    else:
         response_msg={
                 "error":True,
                 "message":"不好意思,資料庫暫時有問題,維修中"}

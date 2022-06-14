@@ -12,7 +12,9 @@ from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from model import db
 from model import redis_db
-from model import Connection
+#from model import Connection
+from model import Auth_connection
+from model import Plan_connection
 from utils import Utils_obj
 
 
@@ -129,8 +131,11 @@ def handle_signup(request):
             return jsonify(response_msg), 400     
         #get connection object
         connection = db.get_auth_cnx() 
-        if isinstance(connection,Connection): 
-            result = connection.check_if_member_exist(email,identity)
+        #if isinstance(connection,Connection): 
+        if connection != "error":
+            #result = connection.check_if_member_exist(email,identity)
+            result = Auth_connection.check_if_member_exist(connection,email,identity)
+            connection.close()
             if result == "error": 
                 response_msg={
                             "error":True,
@@ -146,7 +151,9 @@ def handle_signup(request):
                 hash_password = generate_password_hash(password)
                 #add new member data
                 connection = db.get_auth_cnx() 
-                result = connection.insert_new_member(name, email, hash_password,identity,signup_date)
+                #result = connection.insert_new_member(name, email, hash_password,identity,signup_date)
+                result = Auth_connection.insert_new_member(connection,name, email, hash_password,identity,signup_date)
+                connection.close()
                 if result == "error": 
                     response_msg={
                             "error":True,
@@ -155,7 +162,8 @@ def handle_signup(request):
                 elif result == True:
                     response_msg={ "ok":True }
                     return jsonify(response_msg), 201 
-        elif connection == "error":  #if can't get connection
+        #elif connection == "error":  #if can't get connection
+        else:
             response_msg={
                         "error":True,
                         "message":"不好意思,資料庫暫時有問題維修中"}          
@@ -177,9 +185,12 @@ def handle_signin(request):
                           "message":"登入失敗"} 
             return jsonify(response_msg), 400
         connection = db.get_auth_cnx()  
-        if isinstance(connection,Connection): 
+        #if isinstance(connection,Connection): 
+        if connection != "error":
             #confirm if email existed
-            result = connection.confirm_member_information(email,identity)
+            #result = connection.confirm_member_information(email,identity)
+            result = Auth_connection.confirm_member_information(connection,email,identity)
+            connection.close()
             if result == "error": 
                 response_msg={
                             "error":True,
@@ -236,7 +247,8 @@ def handle_signin(request):
                               "error":True,
                               "message":"Member not found. Please confirm."}
                 return jsonify(response_msg), 400
-        elif connection == "error": 
+        #elif connection == "error":
+        else: 
             response_msg={
                           "error":True,
                           "message":"不好意思,資料庫暫時有問題,維修中"}
@@ -244,10 +256,13 @@ def handle_signin(request):
             return jsonify(response_msg), 500    
 def handle_get_user_data(request):
     connection = db.get_auth_cnx() 
-    if isinstance(connection,Connection): 
+    #if isinstance(connection,Connection): 
+    if connection != "error":
         user_id = Utils_obj.get_member_id_from_jwt(request) 
         user_identity = Utils_obj.get_member_identity_from_jwt(request)
-        result = connection.retrieve_member_information(user_id,user_identity) 
+        #result = connection.retrieve_member_information(user_id,user_identity) 
+        result = Auth_connection.retrieve_member_information(connection,user_id,user_identity)
+        connection.close()
         if result == "error":
             response_msg={
                         "error":True,
@@ -255,11 +270,12 @@ def handle_get_user_data(request):
             return jsonify(response_msg), 500 
         elif isinstance(result,dict):
             return jsonify({"data":result}) ,200 
-    elif connection == "error":
-            response_msg={
-                        "error":True,
-                        "message":"不好意思,資料庫暫時有問題,維修中"}
-            return jsonify(response_msg), 500    
+    #elif connection == "error":
+    else:    
+        response_msg={
+                    "error":True,
+                    "message":"不好意思,資料庫暫時有問題,維修中"}
+        return jsonify(response_msg), 500    
 def handle_update_user_data(request): 
       #while update memeber data,generate recommended plan
         try:
@@ -285,11 +301,13 @@ def handle_update_user_data(request):
                             "message":"更新資料錯誤"}  
             return jsonify(response_msg), 400 
         connection = db.get_auth_cnx() 
-        if isinstance(connection,Connection): 
+        if connection != "error":
+        #if isinstance(connection,Connection): 
             user_id = Utils_obj.get_member_id_from_jwt(request)
             email = Utils_obj.get_email_from_jwt(request)
             name = Utils_obj.get_member_name_from_jwt(request)
-            result = connection.update_member_info(input,user_id)
+            result = Auth_connection.update_member_info(connection,input,user_id)
+            connection.close()
             if result == "error": 
                 response_msg={
                             "error":True,
@@ -300,7 +318,8 @@ def handle_update_user_data(request):
                 #calculate recommended plan and insert in db 
                 recommended_plan = calc_plan(input)
                 connection = db.get_diet_plan_cnx()
-                insert_plan = connection.insert_new_diet_plan(recommended_plan,user_id)
+                insert_plan = Plan_connection.insert_new_diet_plan(connection,recommended_plan,user_id)
+                connection.close()
                 if insert_plan == "error":
                     response_msg={
                                   "error":True,
@@ -310,7 +329,8 @@ def handle_update_user_data(request):
                 initial = Utils_obj.get_member_initial_from_jwt(request) 
                 if initial == True:
                     connection = db.get_auth_cnx() 
-                    change_initial = connection.change_initial_state(email)   
+                    change_initial = Auth_connection.change_initial_state(connection,email)  
+                    connection.close() 
                     if change_initial == True:
                         session.permanent = True
                         #when update first time successfully,set cookie 
@@ -327,7 +347,8 @@ def handle_update_user_data(request):
                                       "message":"不好意思,資料庫暫時有問題,維修中"}
                         return jsonify(response_msg), 500                   
                 return jsonify(response_msg), 200 
-        elif connection == "error":  
+        #elif connection == "error":  
+        else:
             response_msg={
                         "error":True,
                         "message":"不好意思,資料庫暫時有問題維修中"}          

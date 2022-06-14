@@ -229,8 +229,8 @@ class DataBase():
         if not cnx:
             return "error"
         elif cnx.is_connected():
-            return Auth_connection(cnx)     
-
+            #return Auth_connection(cnx)     
+            return cnx
 
 
 
@@ -249,7 +249,7 @@ class DataBase():
         if not cnx:
             return "error"
         elif cnx.is_connected():        
-            return Food_connection(cnx)     
+            return cnx     
 
 
     def get_diet_plan_cnx(self):
@@ -266,8 +266,8 @@ class DataBase():
         if not cnx:
             return "error"
         elif cnx.is_connected():        
-            return Plan_connection(cnx)      
-
+            #return Plan_connection(cnx)      
+            return cnx
 
     def get_daily_record_cnx(self):
         n = 0
@@ -283,7 +283,8 @@ class DataBase():
         if not cnx:
             return "error"
         elif cnx.is_connected():        
-            return Record_connection(cnx)
+            #return Record_connection(cnx)
+            return cnx
 
 
 
@@ -301,7 +302,8 @@ class DataBase():
         if not cnx:
             return "error"
         elif cnx.is_connected():
-            return Diet_connection(cnx)
+            #return Diet_connection(cnx)
+            return cnx
 
 
 
@@ -320,7 +322,8 @@ class DataBase():
         if not cnx:
             return "error"
         elif cnx.is_connected():          
-            return Weight_connection(cnx)
+            #return Weight_connection(cnx)
+            return cnx
 
 
     def get_notify_cnx(self):
@@ -337,7 +340,8 @@ class DataBase():
         if not cnx:
             return "error"
         elif cnx.is_connected():        
-            return Notify_connection(cnx)
+            #return Notify_connection(cnx)
+            return cnx
             
 db = DataBase()
 
