@@ -98,7 +98,7 @@ def calc_plan(input):
 
 
 
-def handle_signup(request):
+def handle_signup():
         try:
             request_data = request.get_json()
             print(request_data)
@@ -162,7 +162,7 @@ def handle_signup(request):
                         "error":True,
                         "message":"不好意思,資料庫暫時有問題維修中"}          
             return jsonify(response_msg), 500    
-def handle_signin(request):
+def handle_signin():
         try:
             request_data = request.get_json()
         except:
@@ -244,11 +244,11 @@ def handle_signin(request):
                           "message":"不好意思,資料庫暫時有問題,維修中"}
             res=make_response(response_msg,500)               
             return jsonify(response_msg), 500    
-def handle_get_user_data(request):
+def handle_get_user_data():
     connection = db.get_cnx() 
     if connection != "error":
-        user_id = Utils_obj.get_member_id_from_jwt(request) 
-        user_identity = Utils_obj.get_member_identity_from_jwt(request) 
+        user_id = Utils_obj.get_member_id_from_jwt() 
+        user_identity = Utils_obj.get_member_identity_from_jwt() 
         result = Auth_connection.retrieve_member_information(connection,user_id,user_identity)
         if result == "error":
             response_msg={
@@ -262,7 +262,7 @@ def handle_get_user_data(request):
                     "error":True,
                     "message":"不好意思,資料庫暫時有問題,維修中"}
         return jsonify(response_msg), 500    
-def handle_update_user_data(request): 
+def handle_update_user_data(): 
       #while update memeber data,generate recommended plan
         try:
             request_data = request.get_json()
@@ -288,9 +288,9 @@ def handle_update_user_data(request):
             return jsonify(response_msg), 400 
         connection = db.get_cnx() 
         if connection != "error":
-            user_id = Utils_obj.get_member_id_from_jwt(request)
-            email = Utils_obj.get_email_from_jwt(request)
-            name = Utils_obj.get_member_name_from_jwt(request)
+            user_id = Utils_obj.get_member_id_from_jwt()
+            email = Utils_obj.get_email_from_jwt()
+            name = Utils_obj.get_member_name_from_jwt()
             result = Auth_connection.update_member_info(connection,input,user_id)
             if result == "error": 
                 response_msg={
@@ -310,7 +310,7 @@ def handle_update_user_data(request):
                                   "message":"不好意思,資料庫暫時有問題,維修中"}
                     return jsonify(response_msg), 500 
                 #chekc the initial value in JWT ,if true means update first time
-                initial = Utils_obj.get_member_initial_from_jwt(request) 
+                initial = Utils_obj.get_member_initial_from_jwt() 
                 if initial == True:
                     connection = db.get_cnx() 
                     change_initial = Auth_connection.change_initial_state(connection,email)  
@@ -345,21 +345,21 @@ def handle_update_user_data(request):
 @jwt_required_for_user()
 def user():
     if request.method == "GET": 
-        get_user_data_result = handle_get_user_data(request)
+        get_user_data_result = handle_get_user_data()
         return get_user_data_result
     elif request.method == "PUT": 
-        update_user_data_result = handle_update_user_data(request)
+        update_user_data_result = handle_update_user_data()
         return update_user_data_result    
 
 
 @auth.route('/api/users/signup',methods=["POST"])
 def signup():
-    signup_result = handle_signup(request)
+    signup_result = handle_signup()
     return signup_result
 
 @auth.route('/api/users/signin',methods=["POST"])
 def signin():
-    signin_result = handle_signin(request)
+    signin_result = handle_signin()
     return signin_result
 
 @auth.route('/api/users/signout',methods=["DELETE"])

@@ -54,7 +54,7 @@ def verify_diet_info(input):
 
 
 
-def handle_add_diet_plan(request):
+def handle_add_diet_plan():
         try:
             request_data = request.get_json()
         except:
@@ -79,7 +79,7 @@ def handle_add_diet_plan(request):
             return jsonify(response_msg), 400 
         connection = db.get_cnx()  
         if connection != "error":
-            user_id = Utils_obj.get_member_id_from_jwt(request)
+            user_id = Utils_obj.get_member_id_from_jwt()
              #轉成台灣時區
             gmtTimeDelta = datetime.timedelta(hours=8)
             gmtTZObject = datetime.timezone(gmtTimeDelta,name="GMT")
@@ -103,7 +103,7 @@ def handle_add_diet_plan(request):
                         "error":True,
                         "message":"不好意思,資料庫暫時有問題維修中"}          
             return jsonify(response_msg), 500    
-def handle_delete_diet_plan(request):
+def handle_delete_diet_plan():
         plan_id = request.args.get("plan_id")
         if not plan_id:
             response_msg={
@@ -112,7 +112,7 @@ def handle_delete_diet_plan(request):
             return jsonify(response_msg), 400 
         connection = db.get_cnx()    
         if connection != "error":
-            user_id = Utils_obj.get_member_id_from_jwt(request)
+            user_id = Utils_obj.get_member_id_from_jwt()
             result = Plan_connection.delete_diet(connection,plan_id,user_id) 
             if result == "error": 
                 response_msg={
@@ -134,7 +134,7 @@ def handle_delete_diet_plan(request):
                         "error":True,
                         "message":"不好意思,資料庫暫時有問題,維修中"}              
             return jsonify(response_msg), 500       
-def handle_update_diet_plan(request):
+def handle_update_diet_plan():
         try:
             request_data = request.get_json()
         except:
@@ -159,7 +159,7 @@ def handle_update_diet_plan(request):
             return jsonify(response_msg), 400
         connection = db.get_cnx() 
         if connection != "error":
-            user_id = Utils_obj.get_member_id_from_jwt(request)
+            user_id = Utils_obj.get_member_id_from_jwt()
             result = Plan_connection.update_diet_info(connection,input,user_id)
             if result == "error": 
                 response_msg={
@@ -206,10 +206,10 @@ def handle_get_diet_plans(page,user_id):
 @jwt_required_for_plan()
 def plans():
     if request.method == "POST": 
-        add_diet_plan_result = handle_add_diet_plan(request)
+        add_diet_plan_result = handle_add_diet_plan()
         return add_diet_plan_result
     elif request.method == "DELETE": 
-        delete_diet_result = handle_delete_diet_plan(request)
+        delete_diet_result = handle_delete_diet_plan()
         return delete_diet_result
     elif request.method == "GET": 
         page = request.args.get('page')
@@ -219,7 +219,7 @@ def plans():
                         "data":[]}
             result=make_response(response_msg,200)  
         elif page.isdigit(): 
-            user_id = Utils_obj.get_member_id_from_jwt(request)
+            user_id = Utils_obj.get_member_id_from_jwt()
             redis_key = f'get_my_plan{user_id}' # e.g => get_my_plan18
             try:
                 start = time.perf_counter()

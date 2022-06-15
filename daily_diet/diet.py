@@ -60,10 +60,10 @@ def verify_diet(input):
 
 
 
-def handle_get_diet(request):
+def handle_get_diet():
     connection = db.get_cnx() 
     if connection != "error":     
-        user_id = Utils_obj.get_member_id_from_jwt(request)
+        user_id = Utils_obj.get_member_id_from_jwt()
         datetimestamp = request.args.get('datetime')  
         if not datetimestamp or not datetimestamp.isdigit():
             return jsonify({
@@ -87,7 +87,7 @@ def handle_get_diet(request):
                       "error":True,
                       "message":"不好意思,資料庫暫時有問題,維修中"}
         return jsonify(response_msg), 500       
-def handle_add_diet(request):
+def handle_add_diet():
         try:
             request_data = request.get_json()
         except:
@@ -112,7 +112,7 @@ def handle_add_diet(request):
             return jsonify(response_msg), 400 
         connection = db.get_cnx() 
         if connection != "error":
-            user_id = Utils_obj.get_member_id_from_jwt(request)
+            user_id = Utils_obj.get_member_id_from_jwt()
             result = Diet_connection.insert_new_diet(connection,request_data,user_id)
             if result == "error": 
                 response_msg={
@@ -135,7 +135,7 @@ def handle_add_diet(request):
                           "error":True,
                           "message":"不好意思,資料庫暫時有問題維修中"}          
             return jsonify(response_msg), 500       
-def handle_delete_diet(request):
+def handle_delete_diet():
         intake_id = request.args.get("intake_id")
         record_id = request.args.get("record_id")
         timestamp = request.args.get("datetime")
@@ -146,7 +146,7 @@ def handle_delete_diet(request):
             return jsonify(response_msg), 400 
         connection = db.get_cnx()  
         if connection != "error":
-            user_id = Utils_obj.get_member_id_from_jwt(request)
+            user_id = Utils_obj.get_member_id_from_jwt()
             result = Diet_connection.delete_diet(connection,intake_id,user_id,record_id) 
             if result == "error": 
                 response_msg={
@@ -177,11 +177,11 @@ def handle_delete_diet(request):
 @jwt_required_for_intake()
 def intakes():
     if request.method == "POST": 
-        add_record_result = handle_add_diet(request)
+        add_record_result = handle_add_diet()
         return add_record_result
     elif request.method == "DELETE": 
-        delete_diet_result = handle_delete_diet(request)
+        delete_diet_result = handle_delete_diet()
         return delete_diet_result
     elif request.method == "GET": 
-        get_diet_result = handle_get_diet(request)
+        get_diet_result = handle_get_diet()
         return get_diet_result

@@ -24,7 +24,7 @@ def jwt_required_for_weight():
         return decorator
     return wrapper
 
-def handle_get_weight(request):
+def handle_get_weight():
     start_date = request.args.get("sdate")
     end_date = request.args.get("edate")
     if (not start_date) or (not end_date) or (not start_date.isdigit()) or (not end_date.isdigit()):
@@ -34,9 +34,8 @@ def handle_get_weight(request):
                 }), 400
     connection = db.get_cnx() 
     if connection != "error":
-        user_id = Utils_obj.get_member_id_from_jwt(request)    
+        user_id = Utils_obj.get_member_id_from_jwt()    
         data = Weight_connection.get_weight_info(connection,start_date,end_date,user_id)
-        connection.close()
         if data == "error":
             response_msg={
                     "error":True,
@@ -54,7 +53,7 @@ def handle_get_weight(request):
                 "message":"不好意思,資料庫暫時有問題,維修中"}
         return jsonify(response_msg), 500                  
 
-def handle_update_weight(request):
+def handle_update_weight():
         try:
             request_data = request.get_json()
             print(request_data)
@@ -82,9 +81,8 @@ def handle_update_weight(request):
             return jsonify(response_msg), 400
         connection = db.get_cnx() 
         if connection != "error":    
-            user_id = Utils_obj.get_member_id_from_jwt(request)
+            user_id = Utils_obj.get_member_id_from_jwt()
             result = Weight_connection.update_weight(connection,input,user_id)
-            connection.close()
             if result == "error": 
                 response_msg={
                             "error":True,
@@ -105,7 +103,7 @@ def handle_update_weight(request):
             return jsonify(response_msg), 500     
         
 
-def handle_add_weight(request):
+def handle_add_weight():
         try:
             request_data = request.get_json()
         except:
@@ -129,9 +127,8 @@ def handle_add_weight(request):
             return jsonify(response_msg), 400
         connection = db.get_cnx() 
         if connection != "error":
-            user_id = Utils_obj.get_member_id_from_jwt(request)
+            user_id = Utils_obj.get_member_id_from_jwt()
             result = Weight_connection.insert_new_weight(connection,input,user_id)
-            connection.close()
             if result == "error": 
                 response_msg={
                             "error":True,
@@ -160,11 +157,11 @@ def handle_add_weight(request):
 @jwt_required_for_weight()
 def records():
     if request.method == "POST": 
-        add_weight_result = handle_add_weight(request)
+        add_weight_result = handle_add_weight()
         return add_weight_result
     elif request.method == "PATCH": 
-        update_weight_result = handle_update_weight(request)
+        update_weight_result = handle_update_weight()
         return update_weight_result
     elif request.method == "GET":
-        get_weight_result = handle_get_weight(request)
+        get_weight_result = handle_get_weight()
         return get_weight_result

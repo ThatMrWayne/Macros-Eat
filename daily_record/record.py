@@ -97,7 +97,7 @@ def organize_record_data(data):
 
 
 
-def handle_add_record(request):
+def handle_add_record():
         try:
             request_data = request.get_json()
         except:
@@ -122,7 +122,7 @@ def handle_add_record(request):
             return jsonify(response_msg), 400 
         connection = db.get_cnx() 
         if connection != "error":
-            user_id = Utils_obj.get_member_id_from_jwt(request)
+            user_id = Utils_obj.get_member_id_from_jwt()
             result = Record_connection.insert_new_record(connection,request_data,user_id)
             if result == "error": 
                 response_msg={
@@ -165,7 +165,7 @@ def handle_get_record(datetimestamp,user_id):
         return jsonify(response_msg), 500    
             
 
-def handle_update_record(request):
+def handle_update_record():
         try:
             request_data = request.get_json()
         except:
@@ -190,7 +190,7 @@ def handle_update_record(request):
             return jsonify(response_msg), 400
         connection = db.get_cnx()  
         if connection != "error":
-            user_id = Utils_obj.get_member_id_from_jwt(request)
+            user_id = Utils_obj.get_member_id_from_jwt()
             result = Record_connection.update_record(connection,input,user_id)
             if result == "error": 
                 response_msg={
@@ -223,10 +223,10 @@ def handle_update_record(request):
 @jwt_required_for_record()
 def records():
     if request.method == "POST": 
-        add_record_result = handle_add_record(request)
+        add_record_result = handle_add_record()
         return add_record_result
     elif request.method == "PATCH": 
-        update_record_result = handle_update_record(request)
+        update_record_result = handle_update_record()
         return update_record_result
     elif request.method == "GET": 
         datetimestamp = request.args.get('datetime')
@@ -236,7 +236,7 @@ def records():
                             "message": "未提供日期或時間戳錯誤"
                             }), 400   
         else:
-            user_id = Utils_obj.get_member_id_from_jwt(request)                    
+            user_id = Utils_obj.get_member_id_from_jwt()                    
             redis_key = f'get_my_record{user_id}' # e.g => get_my_record18
             high = datetime.now().timestamp()
             low = int(high - (86400*7))

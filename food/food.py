@@ -45,7 +45,7 @@ def verify_food_info(input):
     return result     
 
 
-def handle_add_food(request):
+def handle_add_food():
         try:
             request_data = request.get_json()
         except:
@@ -70,7 +70,7 @@ def handle_add_food(request):
             return jsonify(response_msg), 400 
         connection = db.get_cnx() 
         if connection != "error":
-            user_id = Utils_obj.get_member_id_from_jwt(request)
+            user_id = Utils_obj.get_member_id_from_jwt()
             result = Food_connection.insert_new_food(connection,request_data,user_id)
             if result == "error": 
                 response_msg={
@@ -87,7 +87,7 @@ def handle_add_food(request):
                         "error":True,
                         "message":"伺服器內部錯誤，新增失敗"}          
             return jsonify(response_msg), 500    
-def handle_delete_food(request):
+def handle_delete_food():
         food_id = request.args.get("food_id")
         if not food_id:
             response_msg={
@@ -96,7 +96,7 @@ def handle_delete_food(request):
             return jsonify(response_msg), 400 
         connection = db.get_cnx()   
         if connection != "error":
-            user_id = Utils_obj.get_member_id_from_jwt(request)
+            user_id = Utils_obj.get_member_id_from_jwt()
             result = Food_connection.delete_food(connection,food_id,user_id) 
             if result == "error": 
                 response_msg={
@@ -134,7 +134,7 @@ def handle_get_my_food_data(page,user_id):
                 "error":True,
                 "message":"伺服器內部錯誤，資料取得失敗"}
         return jsonify(response_msg), 500    
-def handle_get_public_food_data(request):
+def handle_get_public_food_data():
     connection = db.get_cnx() 
     if connection != "error":  
         page = request.args.get('page')
@@ -164,10 +164,10 @@ def handle_get_public_food_data(request):
 @jwt_required_for_food()
 def foods():
     if request.method == "POST": 
-        add_food_result = handle_add_food(request)
+        add_food_result = handle_add_food()
         return add_food_result
     elif request.method == "DELETE": 
-        delete_food_result = handle_delete_food(request)
+        delete_food_result = handle_delete_food()
         return delete_food_result
     elif request.method == "GET": 
         page = request.args.get('page')
@@ -177,7 +177,7 @@ def foods():
                         "data":[]}
             result = make_response(response_msg,200)  
         elif page.isdigit(): 
-            user_id = Utils_obj.get_member_id_from_jwt(request) #get_my_food{user_id} as cache key
+            user_id = Utils_obj.get_member_id_from_jwt() #get_my_food{user_id} as cache key
             redis_key = f'get_my_food{user_id}' # e.g => get_my_food18
             try:
                 start = time.perf_counter()
@@ -207,7 +207,7 @@ def foods():
 @food.route('/api/public-food', methods=["GET"])
 @jwt_required_for_food()
 def public_food():
-    get_food_result = handle_get_public_food_data(request)
+    get_food_result = handle_get_public_food_data()
     return get_food_result
 
 
