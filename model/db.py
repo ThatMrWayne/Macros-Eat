@@ -149,7 +149,7 @@ class DataBase():
                 'port': 3306
                 }
             # create connection
-            self.cnxpool = pooling.MySQLConnectionPool(pool_name="tinipool", pool_size=15, **config)
+            self.cnxpool = pooling.MySQLConnectionPool(pool_name="tinipool", pool_size=15, pool_reset_session=True, **config)
         except mysql.connector.Error as err:
             if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
                 print("Something is wrong with your user name or password")
