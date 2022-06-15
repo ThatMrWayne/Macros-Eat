@@ -18,7 +18,6 @@ from model import db
 from model import redis_db
 from model import Auth_connection
 from model import Notify_connection
-#from model import Connection
 from celery_factory.make_celery import make_celery
 from webpush_handler import trigger_push_notifications_for_subscriptions
 from authlib.integrations.flask_client import OAuth
@@ -745,7 +744,7 @@ def show_typing_nutri(payload):
 
 
 
-if __name__ == "__main__":
+if __name__ != "__main__":
 	gunicorn_logger = logging.getLogger('gunicorn.error')
 	app.logger.handlers = gunicorn_logger.handlers
 	app.logger.setLevel(gunicorn_logger.level)

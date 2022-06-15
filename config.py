@@ -47,7 +47,7 @@ class DevelopmentConfig(Config):
 
 
 class ProductionConfig(Config):
-    DEBUG = False
+    
     JWT_SECRET_KEY = JWT_SECRET
     JWT_TOKEN_LOCATION = "headers"
     JSON_AS_ASCII = False

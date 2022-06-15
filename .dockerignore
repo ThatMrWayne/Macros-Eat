@@ -13,3 +13,9 @@ templates/table.html
 templates/test.html
 food_crawler/
 nginx_for_ssl/
+deploy.txt
+appspec.yml
+.github/
+__pycache__/
+demo/
+scripts/
