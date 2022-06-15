@@ -3,7 +3,6 @@ from flask import Blueprint
 from flask import jsonify 
 from flask_jwt_extended import verify_jwt_in_request
 from functools import wraps
-from model import db
 from utils import Utils_obj
 from model import Weight_connection
 
@@ -32,26 +31,21 @@ def handle_get_weight():
                     "error": True,
                     "message": "未提供日期或日期格式錯誤"
                 }), 400
-    connection = db.get_cnx() 
-    if connection != "error":
-        user_id = Utils_obj.get_member_id_from_jwt()    
-        data = Weight_connection.get_weight_info(connection,start_date,end_date,user_id)
-        if data == "error":
-            response_msg={
+
+    user_id = Utils_obj.get_member_id_from_jwt()    
+    data = Weight_connection.get_weight_info(start_date,end_date,user_id)
+    if data == "error":
+        response_msg={
                     "error":True,
                     "message":"不好意思,資料庫暫時有問題,維修中"}
-            return jsonify(response_msg), 500          
-        else:  
-            if not data: #no weight record
-                return jsonify({"weight_record":None})
-            else: 
-                result = {"weight_record":data}
-                return jsonify(result), 200                   
-    else:
-        response_msg={
-                "error":True,
-                "message":"不好意思,資料庫暫時有問題,維修中"}
-        return jsonify(response_msg), 500                  
+        return jsonify(response_msg), 500          
+    else:  
+        if not data: #no weight record
+            return jsonify({"weight_record":None})
+        else: 
+            result = {"weight_record":data}
+            return jsonify(result), 200                   
+                 
 
 def handle_update_weight():
         try:
@@ -79,28 +73,23 @@ def handle_update_weight():
                           "error":True,
                           "message":"更新失敗,體重不正確"}              
             return jsonify(response_msg), 400
-        connection = db.get_cnx() 
-        if connection != "error":    
-            user_id = Utils_obj.get_member_id_from_jwt()
-            result = Weight_connection.update_weight(connection,input,user_id)
-            if result == "error": 
-                response_msg={
-                            "error":True,
-                            "message":"不好意思,資料庫暫時有問題,維修中"}
-                return jsonify(response_msg), 500
-            elif result == True: 
-                response_msg={"ok": True}
-                return jsonify(response_msg), 200
-            else:
-                response_msg={
-                            "error":True,
-                            "message":"該日體重不存在"}             
-                return jsonify(response_msg), 400     
+   
+        user_id = Utils_obj.get_member_id_from_jwt()
+        result = Weight_connection.update_weight(input,user_id)
+        if result == "error": 
+            response_msg={
+                        "error":True,
+                        "message":"不好意思,資料庫暫時有問題,維修中"}
+            return jsonify(response_msg), 500
+        elif result == True: 
+            response_msg={"ok": True}
+            return jsonify(response_msg), 200
         else:
             response_msg={
                         "error":True,
-                        "message":"不好意思,資料庫暫時有問題維修中"}          
-            return jsonify(response_msg), 500     
+                        "message":"該日體重不存在"}             
+            return jsonify(response_msg), 400     
+    
         
 
 def handle_add_weight():
@@ -125,28 +114,23 @@ def handle_add_weight():
                           "error":True,
                           "message":"更新失敗,體重不正確"}
             return jsonify(response_msg), 400
-        connection = db.get_cnx() 
-        if connection != "error":
-            user_id = Utils_obj.get_member_id_from_jwt()
-            result = Weight_connection.insert_new_weight(connection,input,user_id)
-            if result == "error": 
-                response_msg={
-                            "error":True,
-                            "message":"不好意思,資料庫暫時有問題,維修中"}
-                return jsonify(response_msg), 500
-            elif result == True: 
-                response_msg={"ok": True}
-                return jsonify(response_msg), 201 
-            else:
-                response_msg={
-                            "error":True,
-                            "message":"已有該日紀錄"}
-                return jsonify(response_msg), 400 
+
+        user_id = Utils_obj.get_member_id_from_jwt()
+        result = Weight_connection.insert_new_weight(input,user_id)
+        if result == "error": 
+            response_msg={
+                        "error":True,
+                        "message":"不好意思,資料庫暫時有問題,維修中"}
+            return jsonify(response_msg), 500
+        elif result == True: 
+            response_msg={"ok": True}
+            return jsonify(response_msg), 201 
         else:
             response_msg={
                         "error":True,
-                        "message":"不好意思,資料庫暫時有問題維修中"}          
-            return jsonify(response_msg), 500    
+                        "message":"已有該日紀錄"}
+            return jsonify(response_msg), 400 
+   
 
 
 

@@ -8,4 +8,3 @@ from model.connection import Record_connection
 from model.connection import Diet_connection
 from model.connection import Weight_connection
 from model.connection import Notify_connection
-#from model.connection import Connection

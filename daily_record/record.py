@@ -6,7 +6,6 @@ from flask import Blueprint
 from flask import jsonify 
 from flask_jwt_extended import verify_jwt_in_request
 from functools import wraps
-from model import db
 from model import redis_db
 from utils import Utils_obj
 from flask import current_app
@@ -120,33 +119,26 @@ def handle_add_record():
                             "error":True,
                             "message":"新增紀錄失敗,新增資料有誤"}  
             return jsonify(response_msg), 400 
-        connection = db.get_cnx() 
-        if connection != "error":
-            user_id = Utils_obj.get_member_id_from_jwt()
-            result = Record_connection.insert_new_record(connection,request_data,user_id)
-            if result == "error": 
-                response_msg={
+
+        user_id = Utils_obj.get_member_id_from_jwt()
+        result = Record_connection.insert_new_record(request_data,user_id)
+        if result == "error": 
+            response_msg={
                             "error":True,
                             "message":"不好意思,資料庫暫時有問題,維修中"}
-                return jsonify(response_msg), 500
-            elif result == True:  #insert successfully, clear corresponded cache
-                timestamp = request_data["create_at"]
-                redis_key = f'get_my_record{user_id}'
-                redis_db.redis_instance.hdel(redis_key,str(timestamp))
-                response_msg={"ok": True}
-                return jsonify(response_msg), 201 
-        else:
-            response_msg={
-                        "error":True,
-                        "message":"不好意思,資料庫暫時有問題維修中"}          
-            return jsonify(response_msg), 500       
+            return jsonify(response_msg), 500
+        elif result == True:  #insert successfully, clear corresponded cache
+            timestamp = request_data["create_at"]
+            redis_key = f'get_my_record{user_id}'
+            redis_db.redis_instance.hdel(redis_key,str(timestamp))
+            response_msg={"ok": True}
+            return jsonify(response_msg), 201 
+     
 
 
 #(day record + intake record)
 def handle_get_record(datetimestamp,user_id):
-    connection = db.get_cnx()  
-    if connection != "error":
-        data = Record_connection.get_record_info(connection,datetimestamp,user_id)
+        data = Record_connection.get_record_info(datetimestamp,user_id)
         if data == "error":
             response_msg={
                           "error":True,
@@ -158,11 +150,7 @@ def handle_get_record(datetimestamp,user_id):
             else: #there is record with/without intake record
                 result = organize_record_data(data)
                 return jsonify(result), 200                      
-    else:
-        response_msg={
-                "error":True,
-                "message":"不好意思,資料庫暫時有問題,維修中"}
-        return jsonify(response_msg), 500    
+  
             
 
 def handle_update_record():
@@ -188,31 +176,26 @@ def handle_update_record():
                             "error":True,
                             "message":"更新失敗,更新資料不正確"}  
             return jsonify(response_msg), 400
-        connection = db.get_cnx()  
-        if connection != "error":
-            user_id = Utils_obj.get_member_id_from_jwt()
-            result = Record_connection.update_record(connection,input,user_id)
-            if result == "error": 
-                response_msg={
-                              "error":True,
-                              "message":"不好意思,資料庫暫時有問題,維修中"}
-                return jsonify(response_msg), 500
-            elif result == True: #update successfully, clear corresponded cache
-                timestamp = request_data["create_at"]
-                redis_key = f'get_my_record{user_id}'
-                redis_db.redis_instance.hdel(redis_key,str(timestamp))
-                response_msg={ "ok":True }
-                return jsonify(response_msg), 200
-            else:
-                response_msg={
+
+        user_id = Utils_obj.get_member_id_from_jwt()
+        result = Record_connection.update_record(input,user_id)
+        if result == "error": 
+            response_msg={
                             "error":True,
-                            "message":"該日紀錄不存在"}  
-                return jsonify(response_msg), 400    
+                            "message":"不好意思,資料庫暫時有問題,維修中"}
+            return jsonify(response_msg), 500
+        elif result == True: #update successfully, clear corresponded cache
+            timestamp = request_data["create_at"]
+            redis_key = f'get_my_record{user_id}'
+            redis_db.redis_instance.hdel(redis_key,str(timestamp))
+            response_msg={ "ok":True }
+            return jsonify(response_msg), 200
         else:
             response_msg={
-                        "error":True,
-                        "message":"不好意思,資料庫暫時有問題維修中"}          
-            return jsonify(response_msg), 500     
+                            "error":True,
+                            "message":"該日紀錄不存在"}  
+            return jsonify(response_msg), 400    
+    
     
 
 

@@ -6,7 +6,6 @@ from flask import make_response
 from flask import jsonify 
 from flask_jwt_extended import verify_jwt_in_request
 from functools import wraps
-from model import db
 from model import redis_db
 from utils import Utils_obj
 from flask import current_app
@@ -68,92 +67,68 @@ def handle_add_food():
                           "error":True,
                           "message":"新增資料有誤"}  
             return jsonify(response_msg), 400 
-        connection = db.get_cnx() 
-        if connection != "error":
-            user_id = Utils_obj.get_member_id_from_jwt()
-            result = Food_connection.insert_new_food(connection,request_data,user_id)
-            if result == "error": 
-                response_msg={
+        user_id = Utils_obj.get_member_id_from_jwt()
+        result = Food_connection.insert_new_food(request_data,user_id)
+        if result == "error": 
+            response_msg={
                             "error":True,
                             "message":"伺服器內部錯誤，新增失敗"}
-                return jsonify(response_msg), 500
-            elif result: #add successfully,clear corresponded cache
-                redis_key = f'get_my_food{user_id}'
-                redis_db.redis_instance.delete(redis_key)
-                response_msg={"ok": True}
-                return jsonify(response_msg), 201 
-        else:    
-            response_msg={
-                        "error":True,
-                        "message":"伺服器內部錯誤，新增失敗"}          
-            return jsonify(response_msg), 500    
+            return jsonify(response_msg), 500
+        elif result: #add successfully,clear corresponded cache
+            redis_key = f'get_my_food{user_id}'
+            redis_db.redis_instance.delete(redis_key)
+            response_msg={"ok": True}
+            return jsonify(response_msg), 201 
+   
 def handle_delete_food():
         food_id = request.args.get("food_id")
         if not food_id:
             response_msg={
                           "error":True,
                           "message":"刪除失敗,沒有給food id"}
-            return jsonify(response_msg), 400 
-        connection = db.get_cnx()   
-        if connection != "error":
-            user_id = Utils_obj.get_member_id_from_jwt()
-            result = Food_connection.delete_food(connection,food_id,user_id) 
-            if result == "error": 
-                response_msg={
+            return jsonify(response_msg), 400    
+        user_id = Utils_obj.get_member_id_from_jwt()
+        result = Food_connection.delete_food(food_id,user_id) 
+        if result == "error": 
+            response_msg={
                             "error":True,
                             "message":"伺服器內部錯誤，資料刪除失敗"}
-                return jsonify(response_msg), 500 
-            elif result: #delete successfully, clear corresponded cache
-                    redis_key = f'get_my_food{user_id}'
-                    redis_db.redis_instance.delete(redis_key)
-                    response_msg={ "ok": True }
-                    return jsonify(response_msg), 204
-            else:
-                response_msg={
+            return jsonify(response_msg), 500 
+        elif result: #delete successfully, clear corresponded cache
+                redis_key = f'get_my_food{user_id}'
+                redis_db.redis_instance.delete(redis_key)
+                response_msg={ "ok": True }
+                return jsonify(response_msg), 204
+        else:
+            response_msg={
                             "error":True,
                             "message":"food_id不屬於此會員或此food_id不存在"}
-                return jsonify(response_msg), 400                 
-        else:
-            response_msg={
-                        "error":True,
-                        "message":"伺服器內部錯誤，資料刪除失敗"}              
-            return jsonify(response_msg), 500    
-def handle_get_my_food_data(page,user_id):
-    connection = db.get_cnx()   
-    if connection != "error":           
-        data = Food_connection.get_my_food_info(connection,page,user_id) 
-        if data == "error":
-            response_msg={
+            return jsonify(response_msg), 400                 
+   
+def handle_get_my_food_data(page,user_id):            
+    data = Food_connection.get_my_food_info(page,user_id) 
+    if data == "error":
+        response_msg={
                     "error":True,
                     "message":"伺服器內部錯誤，資料取得失敗"}
-            return jsonify(response_msg), 500          
-        else:
-            return jsonify(data), 200                         
+        return jsonify(response_msg), 500          
     else:
+        return jsonify(data), 200                         
+
+def handle_get_public_food_data():  
+    page = request.args.get('page')
+    keyword = request.args.get('keyword')  
+    if not keyword or not page:
+        return jsonify({"data":[],"nextPage":None}), 200         
+    data = Food_connection.get_public_food_info(keyword,page)
+    if data == "error":
         response_msg={
-                "error":True,
-                "message":"伺服器內部錯誤，資料取得失敗"}
-        return jsonify(response_msg), 500    
-def handle_get_public_food_data():
-    connection = db.get_cnx() 
-    if connection != "error":  
-        page = request.args.get('page')
-        keyword = request.args.get('keyword')  
-        if not keyword or not page:
-            return jsonify({"data":[],"nextPage":None}), 200         
-        data = Food_connection.get_public_food_info(connection,keyword,page)
-        if data == "error":
-            response_msg={
                     "error":True,
                     "message":"伺服器內部錯誤，資料取得失敗"}
-            return jsonify(response_msg), 500          
-        else:  
-            return jsonify(data), 200                      
-    else:
-        response_msg={
-                "error":True,
-                "message":"伺服器內部錯誤，資料取得失敗"}
-        return jsonify(response_msg), 500    
+        return jsonify(response_msg), 500          
+    else:  
+        return jsonify(data), 200                      
+   
             
 
 

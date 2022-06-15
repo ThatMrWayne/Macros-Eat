@@ -3,7 +3,6 @@ from flask import Blueprint
 from flask import jsonify 
 from flask_jwt_extended import verify_jwt_in_request
 from functools import wraps
-from model import db
 from model import redis_db
 from utils import Utils_obj
 from model import Diet_connection
@@ -60,33 +59,27 @@ def verify_diet(input):
 
 
 
-def handle_get_diet():
-    connection = db.get_cnx() 
-    if connection != "error":     
-        user_id = Utils_obj.get_member_id_from_jwt()
-        datetimestamp = request.args.get('datetime')  
-        if not datetimestamp or not datetimestamp.isdigit():
-            return jsonify({
+def handle_get_diet():    
+    user_id = Utils_obj.get_member_id_from_jwt()
+    datetimestamp = request.args.get('datetime')  
+    if not datetimestamp or not datetimestamp.isdigit():
+        return jsonify({
                             "error": True,
                             "message": "未提供日期或時間戳錯誤"
                             }), 400     
-        data = Diet_connection.get_diet_info(connection,datetimestamp,user_id)
-        if data == "error":
-            response_msg={
+    data = Diet_connection.get_diet_info(datetimestamp,user_id)
+    if data == "error":
+        response_msg={
                           "error":True,
                         "message":"不好意思,資料庫暫時有問題,維修中"}
-            return jsonify(response_msg), 500          
-        else:  
-            if not data: 
-                return jsonify({"food_record":None})
-            else: #means record existed (with/without food record)
-                result = organize_diet_data(data)
-                return jsonify(result), 200                      
-    else:
-        response_msg={
-                      "error":True,
-                      "message":"不好意思,資料庫暫時有問題,維修中"}
-        return jsonify(response_msg), 500       
+        return jsonify(response_msg), 500          
+    else:  
+        if not data: 
+            return jsonify({"food_record":None})
+        else: #means record existed (with/without food record)
+            result = organize_diet_data(data)
+            return jsonify(result), 200                      
+      
 def handle_add_diet():
         try:
             request_data = request.get_json()
@@ -110,31 +103,25 @@ def handle_add_diet():
                           "error":True,
                           "message":"新增紀錄失敗,新增資料有誤"}  
             return jsonify(response_msg), 400 
-        connection = db.get_cnx() 
-        if connection != "error":
-            user_id = Utils_obj.get_member_id_from_jwt()
-            result = Diet_connection.insert_new_diet(connection,request_data,user_id)
-            if result == "error": 
-                response_msg={
+        user_id = Utils_obj.get_member_id_from_jwt()
+        result = Diet_connection.insert_new_diet(request_data,user_id)
+        if result == "error": 
+            response_msg={
                               "error":True,
                               "message":"不好意思,資料庫暫時有問題,維修中"}
-                return jsonify(response_msg), 500
-            elif result:  #add successfully, needs to delete corresponded cache
-                timestamp = request_data["create_at"]
-                redis_key = f'get_my_record{user_id}'
-                redis_db.redis_instance.hdel(redis_key,str(timestamp))
-                response_msg={"ok": True, "intake_id": result["intake_id"]}
-                return jsonify(response_msg), 201 
-            else:
-                response_msg={
+            return jsonify(response_msg), 500
+        elif result:  #add successfully, needs to delete corresponded cache
+            timestamp = request_data["create_at"]
+            redis_key = f'get_my_record{user_id}'
+            redis_db.redis_instance.hdel(redis_key,str(timestamp))
+            response_msg={"ok": True, "intake_id": result["intake_id"]}
+            return jsonify(response_msg), 201 
+        else:
+            response_msg={
                               "error":True,
                               "message":"該紀錄代號不存在或該紀錄代號不屬於此會員"}  
-                return jsonify(response_msg), 400 
-        else: 
-            response_msg={
-                          "error":True,
-                          "message":"不好意思,資料庫暫時有問題維修中"}          
-            return jsonify(response_msg), 500       
+            return jsonify(response_msg), 400 
+      
 def handle_delete_diet():
         intake_id = request.args.get("intake_id")
         record_id = request.args.get("record_id")
@@ -144,30 +131,25 @@ def handle_delete_diet():
                           "error":True,
                           "message":"刪除失敗,沒有給intake_id or datetime or record_id"}
             return jsonify(response_msg), 400 
-        connection = db.get_cnx()  
-        if connection != "error":
-            user_id = Utils_obj.get_member_id_from_jwt()
-            result = Diet_connection.delete_diet(connection,intake_id,user_id,record_id) 
-            if result == "error": 
-                response_msg={
+
+        user_id = Utils_obj.get_member_id_from_jwt()
+        result = Diet_connection.delete_diet(intake_id,user_id,record_id) 
+        if result == "error": 
+            response_msg={
                               "error":True,
                               "message":"不好意思,資料庫暫時有問題,維修中"}
-                return jsonify(response_msg), 500 
-            elif result: #delete successfull, update corresponded cache 
-                    redis_key = f'get_my_record{user_id}'
-                    redis_db.redis_instance.hdel(redis_key,str(timestamp))
-                    response_msg={ "ok": True }
-                    return jsonify(response_msg), 204 
-            else:
-                response_msg={
-                              "error":True,
-                              "message":"此intake_id不存在或不屬於該會員"}
-                return jsonify(response_msg), 400                
+            return jsonify(response_msg), 500 
+        elif result: #delete successfull, update corresponded cache 
+                redis_key = f'get_my_record{user_id}'
+                redis_db.redis_instance.hdel(redis_key,str(timestamp))
+                response_msg={ "ok": True }
+                return jsonify(response_msg), 204 
         else:
             response_msg={
-                          "error":True,
-                          "message":"不好意思,資料庫暫時有問題,維修中"}              
-            return jsonify(response_msg), 500    
+                              "error":True,
+                              "message":"此intake_id不存在或不屬於該會員"}
+            return jsonify(response_msg), 400                
+           
 
 
 

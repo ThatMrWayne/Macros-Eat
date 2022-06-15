@@ -7,7 +7,6 @@ from flask import make_response
 from flask import jsonify 
 from flask_jwt_extended import verify_jwt_in_request
 from functools import wraps
-from model import db
 from model import redis_db
 from utils import Utils_obj
 from flask import current_app
@@ -77,32 +76,26 @@ def handle_add_diet_plan():
                             "error":True,
                             "message":"新增飲食計畫失敗,新增資料有誤"}  
             return jsonify(response_msg), 400 
-        connection = db.get_cnx()  
-        if connection != "error":
-            user_id = Utils_obj.get_member_id_from_jwt()
-             #轉成台灣時區
-            gmtTimeDelta = datetime.timedelta(hours=8)
-            gmtTZObject = datetime.timezone(gmtTimeDelta,name="GMT")
-            d = datetime.datetime.fromtimestamp(request_data["create_at"]).astimezone(gmtTZObject)
-            s = d.strftime("%Y/%m/%d %H:%M:%S")
-            plan_name = "saved plan at " + s
-            request_data["plan_name"] = plan_name
-            result = Plan_connection.insert_new_diet_plan(connection,request_data,user_id)
-            if result == "error": #
-                response_msg={
+
+        user_id = Utils_obj.get_member_id_from_jwt()
+         #轉成台灣時區
+        gmtTimeDelta = datetime.timedelta(hours=8)
+        gmtTZObject = datetime.timezone(gmtTimeDelta,name="GMT")
+        d = datetime.datetime.fromtimestamp(request_data["create_at"]).astimezone(gmtTZObject)
+        s = d.strftime("%Y/%m/%d %H:%M:%S")
+        plan_name = "saved plan at " + s
+        request_data["plan_name"] = plan_name
+        result = Plan_connection.insert_new_diet_plan(request_data,user_id)
+        if result == "error": 
+            response_msg={
                             "error":True,
                             "message":"不好意思,資料庫暫時有問題,維修中"}
-                return jsonify(response_msg), 500
-            elif result: #update successfullt,clear corresponded cache
-                redis_key = f'get_my_plan{user_id}'
-                redis_db.redis_instance.delete(redis_key)
-                response_msg={"ok": True} #"plan_id": result["plan_id"], "plan_name": result["plan_name"]}
-                return jsonify(response_msg), 201  
-        else:
-            response_msg={
-                        "error":True,
-                        "message":"不好意思,資料庫暫時有問題維修中"}          
-            return jsonify(response_msg), 500    
+            return jsonify(response_msg), 500
+        elif result: #update successfullt,clear corresponded cache
+            redis_key = f'get_my_plan{user_id}'
+            redis_db.redis_instance.delete(redis_key)
+            response_msg={"ok": True} #"plan_id": result["plan_id"], "plan_name": result["plan_name"]}
+            return jsonify(response_msg), 201    
 def handle_delete_diet_plan():
         plan_id = request.args.get("plan_id")
         if not plan_id:
@@ -110,30 +103,25 @@ def handle_delete_diet_plan():
                           "error":True,
                           "message":"刪除失敗,沒有給plan id"}
             return jsonify(response_msg), 400 
-        connection = db.get_cnx()    
-        if connection != "error":
-            user_id = Utils_obj.get_member_id_from_jwt()
-            result = Plan_connection.delete_diet(connection,plan_id,user_id) 
-            if result == "error": 
-                response_msg={
+
+        user_id = Utils_obj.get_member_id_from_jwt()
+        result = Plan_connection.delete_diet(plan_id,user_id) 
+        if result == "error": 
+            response_msg={
                             "error":True,
                             "message":"不好意思,資料庫暫時有問題,維修中"}
-                return jsonify(response_msg), 500 
-            elif result: #delete successfully,clear out corresponded cache
-                    redis_key = f'get_my_plan{user_id}'
-                    redis_db.redis_instance.delete(redis_key)
-                    response_msg={ "ok": True }
-                    return jsonify(response_msg), 204 
-            else:
-                response_msg={
-                            "error":True,
-                            "message":"plan_id不屬於此會員或此plan_id不存在"}
-                return jsonify(response_msg), 400                  
+            return jsonify(response_msg), 500 
+        elif result: #delete successfully,clear out corresponded cache
+                redis_key = f'get_my_plan{user_id}'
+                redis_db.redis_instance.delete(redis_key)
+                response_msg={ "ok": True }
+                return jsonify(response_msg), 204 
         else:
             response_msg={
-                        "error":True,
-                        "message":"不好意思,資料庫暫時有問題,維修中"}              
-            return jsonify(response_msg), 500       
+                            "error":True,
+                            "message":"plan_id不屬於此會員或此plan_id不存在"}
+            return jsonify(response_msg), 400                  
+      
 def handle_update_diet_plan():
         try:
             request_data = request.get_json()
@@ -157,44 +145,33 @@ def handle_update_diet_plan():
                             "error":True,
                             "message":"更新資料錯誤"}  
             return jsonify(response_msg), 400
-        connection = db.get_cnx() 
-        if connection != "error":
-            user_id = Utils_obj.get_member_id_from_jwt()
-            result = Plan_connection.update_diet_info(connection,input,user_id)
-            if result == "error": 
-                response_msg={
-                            "error":True,
-                            "message":"不好意思,資料庫暫時有問題,維修中"}
-                return jsonify(response_msg), 500
-            elif result == True: 
-                response_msg={ "ok":True }
-                return jsonify(response_msg), 200
-            else:
-                response_msg={
-                            "error":True,
-                            "message":"plan_id不屬於此會員或此plan_id不存在"}  
-                return jsonify(response_msg), 400     
+
+        user_id = Utils_obj.get_member_id_from_jwt()
+        result = Plan_connection.update_diet_info(input,user_id)
+        if result == "error": 
+            response_msg={
+                        "error":True,
+                        "message":"不好意思,資料庫暫時有問題,維修中"}
+            return jsonify(response_msg), 500
+        elif result == True: 
+            response_msg={ "ok":True }
+            return jsonify(response_msg), 200
         else:
             response_msg={
                         "error":True,
-                        "message":"不好意思,資料庫暫時有問題維修中"}          
-            return jsonify(response_msg), 500  
-def handle_get_diet_plans(page,user_id):
-    connection = db.get_cnx()    
-    if connection != "error":          
-        data = Plan_connection.get_diet_info(connection,page,user_id)
-        if data == "error":
-            response_msg={
-                "error":True,
-                "message":"不好意思,資料庫暫時有問題,維修中"}
-            return jsonify(response_msg), 500          
-        else:   
-            return jsonify(data), 200                        
-    else:
+                        "message":"plan_id不屬於此會員或此plan_id不存在"}  
+            return jsonify(response_msg), 400     
+ 
+def handle_get_diet_plans(page,user_id):        
+    data = Plan_connection.get_diet_info(page,user_id)
+    if data == "error":
         response_msg={
-                "error":True,
-                "message":"不好意思,資料庫暫時有問題,維修中"}
-        return jsonify(response_msg), 500 
+            "error":True,
+            "message":"不好意思,資料庫暫時有問題,維修中"}
+        return jsonify(response_msg), 500          
+    else:   
+        return jsonify(data), 200                        
+
 
 
 

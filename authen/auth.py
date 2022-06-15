@@ -10,7 +10,6 @@ from flask_jwt_extended import create_access_token
 from flask_jwt_extended import verify_jwt_in_request
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
-from model import db
 from model import redis_db
 from model import Auth_connection
 from model import Plan_connection
@@ -128,40 +127,31 @@ def handle_signup():
                           "error":True,
                           "message":"信箱或密碼輸入格式錯誤"}  
             return jsonify(response_msg), 400     
-        #get connection object
-        connection = db.get_cnx() 
-        if connection != "error":
-            result = Auth_connection.check_if_member_exist(connection,email,identity)
+        result = Auth_connection.check_if_member_exist(email,identity)
+        if result == "error": 
+            response_msg={
+                            "error":True,
+                            "message":"不好意思,資料庫暫時有問題,維修中"}
+            return jsonify(response_msg), 500
+        elif result == True: #true means same email has been used
+            response_msg={
+                            "error":True,
+                            "message":"This email has been signed up. Please use another one."}
+            return jsonify(response_msg), 400
+        else: #false means able to sign up
+            #hash password
+            hash_password = generate_password_hash(password)
+            #add new member data
+            result = Auth_connection.insert_new_member(name, email, hash_password,identity,signup_date)
             if result == "error": 
                 response_msg={
                             "error":True,
                             "message":"不好意思,資料庫暫時有問題,維修中"}
                 return jsonify(response_msg), 500
-            elif result == True: #true means same email has been used
-                response_msg={
-                            "error":True,
-                            "message":"This email has been signed up. Please use another one."}
-                return jsonify(response_msg), 400
-            else: #false means able to sign up
-                #hash password
-                hash_password = generate_password_hash(password)
-                #add new member data
-                connection = db.get_cnx() 
-                result = Auth_connection.insert_new_member(connection,name, email, hash_password,identity,signup_date)
-                connection.close()
-                if result == "error": 
-                    response_msg={
-                            "error":True,
-                            "message":"不好意思,資料庫暫時有問題,維修中"}
-                    return jsonify(response_msg), 500
-                elif result == True:
-                    response_msg={ "ok":True }
-                    return jsonify(response_msg), 201 
-        else:
-            response_msg={
-                        "error":True,
-                        "message":"不好意思,資料庫暫時有問題維修中"}          
-            return jsonify(response_msg), 500    
+            elif result == True:
+                response_msg={ "ok":True }
+                return jsonify(response_msg), 201 
+   
 def handle_signin():
         try:
             request_data = request.get_json()
@@ -177,91 +167,79 @@ def handle_signin():
             response_msg={
                           "error":True,
                           "message":"登入失敗"} 
-            return jsonify(response_msg), 400
-        connection = db.get_cnx()   
-        if connection != "error":
-            #confirm if email existed
-            result = Auth_connection.confirm_member_information(connection,email,identity)
-            if result == "error": 
-                response_msg={
+            return jsonify(response_msg), 400  
+
+        #confirm if email existed
+        result = Auth_connection.confirm_member_information(email,identity)
+        if result == "error": 
+            response_msg={
                             "error":True,
                             "message":"不好意思,資料庫暫時有問題,維修中"}
-                return jsonify(response_msg), 500 
-            elif result: #means member exist,check password 
-                check_result = check_password_hash(result["hash_password"],password)
-                if check_result:
-                    #generate JWT token
-                    if identity ==1 and result["initial"]==1: #means sign in first time
-                        data = json.dumps(
+            return jsonify(response_msg), 500 
+        elif result: #means member exist,check password 
+            check_result = check_password_hash(result["hash_password"],password)
+            if check_result:
+                #generate JWT token
+                if identity ==1 and result["initial"]==1: #means sign in first time
+                    data = json.dumps(
                                           {"room_id" : 0,
                                            "name" : result["name"],
                                            "socket_id" : [0],
                                            "status" : 0	
                                          })
-                        redis_db.redis_instance.hsetnx("user",str(result["member_id"]),data)
-                        access_token = create_access_token(identity=json.dumps({'email':email,'id':result["member_id"],'name':result["name"],'identity':identity,'initial':True}),expires_delta=datetime.timedelta(days=15))
-                        response_msg = {"ok":True,"initial":True}
-                    elif identity ==1 and result["initial"]==0: #means not firsttime sing in
-                        data =json.dumps(
+                    redis_db.redis_instance.hsetnx("user",str(result["member_id"]),data)
+                    access_token = create_access_token(identity=json.dumps({'email':email,'id':result["member_id"],'name':result["name"],'identity':identity,'initial':True}),expires_delta=datetime.timedelta(days=15))
+                    response_msg = {"ok":True,"initial":True}
+                elif identity ==1 and result["initial"]==0: #means not firsttime sing in
+                    data =json.dumps(
                                          {"room_id" : 0,
                                           "name" : result["name"],
                                           "socket_id" : [0],
                                           "status" : 0	
                                         })
-                        redis_db.redis_instance.hsetnx("user",str(result["member_id"]),data)
-                        access_token = create_access_token(identity=json.dumps({'email':email,'id':result["member_id"],'name':result["name"],'identity':identity,'initial':False}),expires_delta=datetime.timedelta(days=15))
-                        session.permanent = True
-                        session["id"] = result["member_id"] 
-                        response_msg = {"ok":True,"initial":False}                      
-                    elif identity ==2: # nutritionist
-                        data = json.dumps(
+                    redis_db.redis_instance.hsetnx("user",str(result["member_id"]),data)
+                    access_token = create_access_token(identity=json.dumps({'email':email,'id':result["member_id"],'name':result["name"],'identity':identity,'initial':False}),expires_delta=datetime.timedelta(days=15))
+                    session.permanent = True
+                    session["id"] = result["member_id"] 
+                    response_msg = {"ok":True,"initial":False}                      
+                elif identity ==2: # nutritionist
+                    data = json.dumps(
                                           {"room_id" : 0,
                                            "name" : result["name"],
                                            "socket_id" : [0],
                                            "status" : 0	
                                          })
-                        redis_db.redis_instance.hsetnx("nutri",str(result["nutri_id"]),data)
-                        session.permanent = True
-                        session["id"] = result["nutri_id"]
-                        access_token = create_access_token(identity=json.dumps({'email':email,'id':result["nutri_id"],'name':result["name"],'identity':identity}),expires_delta=datetime.timedelta(days=15))
-                        response_msg = {"ok":True,"initial":None}
-                    res = make_response(json.dumps(response_msg,ensure_ascii=False),200)
-                    res.headers["access_token"] = access_token #put JWT in header
-                    return res 
-                else:
-                    response_msg={
+                    redis_db.redis_instance.hsetnx("nutri",str(result["nutri_id"]),data)
+                    session.permanent = True
+                    session["id"] = result["nutri_id"]
+                    access_token = create_access_token(identity=json.dumps({'email':email,'id':result["nutri_id"],'name':result["name"],'identity':identity}),expires_delta=datetime.timedelta(days=15))
+                    response_msg = {"ok":True,"initial":None}
+                res = make_response(json.dumps(response_msg,ensure_ascii=False),200)
+                res.headers["access_token"] = access_token #put JWT in header
+                return res 
+            else:
+                response_msg={
                                   "error":True,
                                   "message":"Password is not correct."}
-                    return jsonify(response_msg), 400 
-            else:  #means there is no this member
-                response_msg={
+                return jsonify(response_msg), 400 
+        else:  #means there is no this member
+            response_msg={
                               "error":True,
                               "message":"Member not found. Please confirm."}
-                return jsonify(response_msg), 400
-        else: 
-            response_msg={
-                          "error":True,
-                          "message":"不好意思,資料庫暫時有問題,維修中"}
-            res=make_response(response_msg,500)               
-            return jsonify(response_msg), 500    
+            return jsonify(response_msg), 400
+   
 def handle_get_user_data():
-    connection = db.get_cnx() 
-    if connection != "error":
-        user_id = Utils_obj.get_member_id_from_jwt() 
-        user_identity = Utils_obj.get_member_identity_from_jwt() 
-        result = Auth_connection.retrieve_member_information(connection,user_id,user_identity)
-        if result == "error":
-            response_msg={
+    user_id = Utils_obj.get_member_id_from_jwt() 
+    user_identity = Utils_obj.get_member_identity_from_jwt() 
+    result = Auth_connection.retrieve_member_information(user_id,user_identity)
+    if result == "error":
+        response_msg={
                         "error":True,
                         "message":"不好意思,資料庫暫時有問題,維修中"}
-            return jsonify(response_msg), 500 
-        elif isinstance(result,dict):
-            return jsonify({"data":result}) ,200 
-    else:    
-        response_msg={
-                    "error":True,
-                    "message":"不好意思,資料庫暫時有問題,維修中"}
-        return jsonify(response_msg), 500    
+        return jsonify(response_msg), 500 
+    elif isinstance(result,dict):
+        return jsonify({"data":result}) ,200 
+   
 def handle_update_user_data(): 
       #while update memeber data,generate recommended plan
         try:
@@ -286,56 +264,47 @@ def handle_update_user_data():
                             "error":True,
                             "message":"更新資料錯誤"}  
             return jsonify(response_msg), 400 
-        connection = db.get_cnx() 
-        if connection != "error":
-            user_id = Utils_obj.get_member_id_from_jwt()
-            email = Utils_obj.get_email_from_jwt()
-            name = Utils_obj.get_member_name_from_jwt()
-            result = Auth_connection.update_member_info(connection,input,user_id)
-            if result == "error": 
-                response_msg={
+
+        user_id = Utils_obj.get_member_id_from_jwt()
+        email = Utils_obj.get_email_from_jwt()
+        name = Utils_obj.get_member_name_from_jwt()
+        result = Auth_connection.update_member_info(input,user_id)
+        if result == "error": 
+            response_msg={
                             "error":True,
                             "message":"不好意思,資料庫暫時有問題,維修中"}
-                return jsonify(response_msg), 500
-            elif result == True:
-                response_msg={ "ok":True }
-                #calculate recommended plan and insert in db 
-                recommended_plan = calc_plan(input)
-                connection = db.get_cnx()
-                insert_plan = Plan_connection.insert_new_diet_plan(connection,recommended_plan,user_id)
-                connection.close()
-                if insert_plan == "error":
-                    response_msg={
+            return jsonify(response_msg), 500
+        elif result == True:
+            response_msg={ "ok":True }
+            #calculate recommended plan and insert in db 
+            recommended_plan = calc_plan(input)
+            insert_plan = Plan_connection.insert_new_diet_plan(recommended_plan,user_id)
+            if insert_plan == "error":
+                response_msg={
                                   "error":True,
                                   "message":"不好意思,資料庫暫時有問題,維修中"}
-                    return jsonify(response_msg), 500 
-                #chekc the initial value in JWT ,if true means update first time
-                initial = Utils_obj.get_member_initial_from_jwt() 
-                if initial == True:
-                    connection = db.get_cnx() 
-                    change_initial = Auth_connection.change_initial_state(connection,email)  
-                    connection.close() 
-                    if change_initial == True:
-                        session.permanent = True
-                        #when update first time successfully,set cookie 
-                        session["id"] = user_id 
-                        session["remind"] = "yes"
-                        #generate a new JWT
-                        new_access_token = create_access_token(identity=json.dumps({'email':email,'id':user_id,'name':name,'identity':1,'initial':False}),expires_delta=datetime.timedelta(days=15))  
-                        res = make_response(json.dumps(response_msg,ensure_ascii=False),200)
-                        res.headers["access_token"] = new_access_token  
-                        return res         
-                    else:
-                        response_msg={
+                return jsonify(response_msg), 500 
+            #chekc the initial value in JWT ,if true means update first time
+            initial = Utils_obj.get_member_initial_from_jwt() 
+            if initial == True:
+                change_initial = Auth_connection.change_initial_state(email)  
+                if change_initial == True:
+                    session.permanent = True
+                    #when update first time successfully,set cookie 
+                    session["id"] = user_id 
+                    session["remind"] = "yes"
+                    #generate a new JWT
+                    new_access_token = create_access_token(identity=json.dumps({'email':email,'id':user_id,'name':name,'identity':1,'initial':False}),expires_delta=datetime.timedelta(days=15))  
+                    res = make_response(json.dumps(response_msg,ensure_ascii=False),200)
+                    res.headers["access_token"] = new_access_token  
+                    return res         
+                else:
+                    response_msg={
                                       "error":True,
                                       "message":"不好意思,資料庫暫時有問題,維修中"}
-                        return jsonify(response_msg), 500                   
-                return jsonify(response_msg), 200  
-        else:
-            response_msg={
-                        "error":True,
-                        "message":"不好意思,資料庫暫時有問題維修中"}          
-            return jsonify(response_msg), 500    
+                    return jsonify(response_msg), 500                   
+            return jsonify(response_msg), 200  
+  
 
 
 
