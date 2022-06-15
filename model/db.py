@@ -7,15 +7,10 @@ from config import MYSQL_PASSWORD
 from config import MYSQL_USER
 from config import MONGODB_URL_
 from config import CACHE_REDIS_HOST_
-from model.connection import Auth_connection
-from model.connection import Food_connection
-from model.connection import Plan_connection
-from model.connection import Record_connection
-from model.connection import Diet_connection
-from model.connection import Weight_connection
-from model.connection import Notify_connection
 from pymongo import MongoClient
 import redis
+
+
 
 TABLES = {}
 #members
@@ -164,7 +159,7 @@ class DataBase():
                 print(err.msg)
             exit(1)
 
-
+        
         cnx = self.cnxpool.get_connection()
         cursor= cnx.cursor()
         db_exist = True
@@ -182,6 +177,7 @@ class DataBase():
             cnx.close()
             if not db_exist:
                 exit(1)
+                
 
 
 
@@ -203,6 +199,7 @@ class DataBase():
             finally:
                 cursor.close()
                 cnx.close() 
+                
            
 
     @staticmethod
@@ -215,7 +212,7 @@ class DataBase():
             exit(1)
 
 
-    def get_auth_cnx(self):
+    def get_cnx(self):
         n = 0
         cnx = None
         while n < 500: 
@@ -223,126 +220,15 @@ class DataBase():
                 cnx = self.cnxpool.get_connection()
                 break
             except mysql.connector.Error as err: 
-                current_app.logger.info('get_auth_cnx => cannot get mysql connection from connection pool.')
+                current_app.logger.info('cannot get mysql connection from connection pool.')
                 n+=1
                 time.sleep(0.1)   
         if not cnx:
             return "error"
-        elif cnx.is_connected():
-            #return Auth_connection(cnx)     
+        elif cnx.is_connected():    
             return cnx
 
 
-
-
-    def get_food_cnx(self):
-        n = 0
-        cnx = None
-        while n < 500:
-            try:
-                cnx = self.cnxpool.get_connection()
-                break
-            except mysql.connector.Error as err: 
-                current_app.logger.info('get_food_cnx => cannot get mysql connection from connection pool.')
-                n+=1
-                time.sleep(0.1)   
-        if not cnx:
-            return "error"
-        elif cnx.is_connected():        
-            return cnx     
-
-
-    def get_diet_plan_cnx(self):
-        n = 0
-        cnx = None
-        while n < 500:
-            try:
-                cnx = self.cnxpool.get_connection()
-                break   
-            except mysql.connector.Error as err: 
-                current_app.logger.info('get_diet_plan_cnx => cannot get mysql connection from connection pool.')
-                n+=1
-                time.sleep(0.1) 
-        if not cnx:
-            return "error"
-        elif cnx.is_connected():        
-            #return Plan_connection(cnx)      
-            return cnx
-
-    def get_daily_record_cnx(self):
-        n = 0
-        cnx = None
-        while n < 500:
-            try:
-                cnx = self.cnxpool.get_connection()
-                break
-            except mysql.connector.Error as err: 
-                current_app.logger.info('get_daily_record_cnx => cannot get mysql connection from connection pool.')
-                n+=1
-                time.sleep(0.1)  
-        if not cnx:
-            return "error"
-        elif cnx.is_connected():        
-            #return Record_connection(cnx)
-            return cnx
-
-
-
-    def get_daily_diet_cnx(self):
-        n = 0
-        cnx = None
-        while n < 500:
-            try:
-                cnx = self.cnxpool.get_connection()
-                break
-            except mysql.connector.Error as err: 
-                current_app.logger.info('get_daily_diet_cnx => cannot get mysql connection from connection pool.')
-                n+=1
-                time.sleep(0.1)  
-        if not cnx:
-            return "error"
-        elif cnx.is_connected():
-            #return Diet_connection(cnx)
-            return cnx
-
-
-
-
-    def get_weight_cnx(self):
-        n = 0
-        cnx = None
-        while n < 500:
-            try:
-                cnx = self.cnxpool.get_connection()
-                break
-            except mysql.connector.Error as err: 
-                current_app.logger.info('get_weight_cnx => cannot get mysql connection from connection pool.')
-                n+=1
-                time.sleep(0.1) 
-        if not cnx:
-            return "error"
-        elif cnx.is_connected():          
-            #return Weight_connection(cnx)
-            return cnx
-
-
-    def get_notify_cnx(self):
-        n = 0
-        cnx = None
-        while n < 500:
-            try:
-                cnx = self.cnxpool.get_connection()
-                break
-            except mysql.connector.Error as err: 
-                current_app.logger.info('get_notify_cnx => cannot get mysql connection from connection pool.')
-                n+=1
-                time.sleep(0.1)   
-        if not cnx:
-            return "error"
-        elif cnx.is_connected():        
-            #return Notify_connection(cnx)
-            return cnx
-            
 db = DataBase()
 
 #------- redis---------#

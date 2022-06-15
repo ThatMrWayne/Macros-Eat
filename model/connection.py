@@ -1,12 +1,6 @@
 import mysql.connector
 from flask import current_app
 
-
-#base class
-#class Connection:
-#    def __init__(self,cnx):
-#        self.cnx = cnx
-
                  
 
 class Auth_connection():
@@ -22,12 +16,10 @@ class Auth_connection():
         try:
             cursor.execute(query, {'email': email})
             result = cursor.fetchone()
-        except mysql.connector.Error as err:
-            print(err)
+        except mysql.connector.Error as err: 
             msg = err.msg
         finally:
             cursor.close()
-            #self.cnx.close()
             if msg:
                 return "error"
             elif result:
@@ -55,7 +47,6 @@ class Auth_connection():
             cnx.rollback()
         finally:
             cursor.close()
-            #self.cnx.close()
             if msg:    
                 return "error"
             elif result:
@@ -78,7 +69,6 @@ class Auth_connection():
             msg = err.msg
         finally:
             cursor.close()
-            #self.cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -99,11 +89,10 @@ class Auth_connection():
         try:
             cursor.execute(query, input_data)
             result = cursor.fetchone()          
-        except mysql.connector.Error as err:
+        except mysql.connector.Error as err:    
             msg = err.msg
         finally:
             cursor.close()
-            #self.cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -121,12 +110,11 @@ class Auth_connection():
             cursor.execute(query, input_data)
             cnx.commit()
             result = True
-        except mysql.connector.Error as err:
+        except mysql.connector.Error as err:     
             msg = err.msg
             cnx.rollback()
         finally:
             cursor.close()
-            #self.cnx.close()
             if msg:   
                 return "error"
             elif result:
@@ -135,7 +123,7 @@ class Auth_connection():
     @staticmethod
     def change_initial_state(cnx,email):
         msg = None
-        cursor = cnx.cnx.cursor()
+        cursor = cnx.cursor()
         cursor.execute("USE {}".format('macroseat'))
         query = "UPDATE members SET initial = %(initial)s WHERE email=%(email)s" 
         input_data = {'initial': False,"email": email}
@@ -143,12 +131,11 @@ class Auth_connection():
             cursor.execute(query, input_data)
             cnx.commit()
             result = True
-        except mysql.connector.Error as err:
+        except mysql.connector.Error as err:    
             msg = err.msg
             cnx.rollback()
         finally:
             cursor.close()
-            #self.cnx.close()
             if msg:   
                 return "error"
             elif result:
@@ -166,12 +153,11 @@ class Food_connection():
             cursor.execute(query, input_data)
             cnx.commit()
             result = True
-        except mysql.connector.Error as err:
+        except mysql.connector.Error as err:   
             msg = err.msg
             cnx.rollback()
         finally:
             cursor.close()
-            #self.cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -188,16 +174,15 @@ class Food_connection():
             cursor.execute(query, input_data)
             result = cursor.rowcount
             cnx.commit()
-            if result!=1: #food doesn;t exist or doesn't belong to member
+            if result!=1: #food doesn't exist or doesn't belong to member
                 result = False 
             else: 
                 result = True
-        except mysql.connector.Error as err:
+        except mysql.connector.Error as err:     
             msg = err.msg
             cnx.rollback()
         finally:
             cursor.close()
-            #self.cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -228,8 +213,7 @@ class Food_connection():
         except mysql.connector.Error as err:
             msg = err.msg      
         finally:
-            cursor.close()
-            #cnx.close()   
+            cursor.close()   
             if msg:
                 return "error"
             else:
@@ -258,8 +242,7 @@ class Food_connection():
         except mysql.connector.Error as err:
             msg = err.msg      
         finally:
-            cursor.close()
-            #self.cnx.close()   
+            cursor.close()  
             if msg:
                 return "error"
             else:
@@ -283,7 +266,6 @@ class Plan_connection():
             cnx.rollback()
         finally:
             cursor.close()
-            #self.cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -309,7 +291,6 @@ class Plan_connection():
             cnx.rollback()
         finally:
             cursor.close()
-            #self.cnx.close()
             if msg:   
                 return "error"
             elif result:
@@ -337,7 +318,6 @@ class Plan_connection():
             cnx.rollback()
         finally:
             cursor.close()
-            #self.cnx.close()
             if msg:   
                 return "error"
             elif result == True:
@@ -369,8 +349,7 @@ class Plan_connection():
         except mysql.connector.Error as err:
             msg = err.msg      
         finally:
-            cursor.close()
-            #self.cnx.close()   
+            cursor.close()   
             if msg:
                 return "error"
             else:
@@ -394,7 +373,6 @@ class Record_connection():
             cnx.rollback()
         finally:
             cursor.close()
-            #self.cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -420,7 +398,6 @@ class Record_connection():
             cnx.rollback()
         finally:
             cursor.close()
-            #self.cnx.close()
             if msg:    
                 return "error"
             elif result:
@@ -442,8 +419,7 @@ class Record_connection():
         except mysql.connector.Error as err:
             msg = err.msg      
         finally:
-            cursor.close()
-            #self.cnx.close()   
+            cursor.close()   
             if msg:
                 return "error"
             else:
@@ -482,7 +458,6 @@ class Diet_connection():
             cnx.rollback()
         finally:
             cursor.close()
-            #self.cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -516,7 +491,6 @@ class Diet_connection():
             cnx.rollback()
         finally:
             cursor.close()
-            #self.cnx.close()
             if msg:   
                 return "error"
             elif result:
@@ -538,8 +512,7 @@ class Diet_connection():
         except mysql.connector.Error as err:
             msg = err.msg      
         finally:
-            cursor.close()
-            #self.cnx.close()   
+            cursor.close()  
             if msg:
                 return "error"
             else:
@@ -571,7 +544,6 @@ class Weight_connection():
             cnx.rollback()
         finally:
             cursor.close()
-            #self.cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -597,7 +569,6 @@ class Weight_connection():
             cnx.rollback()
         finally:
             cursor.close()
-            #self.cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -618,8 +589,7 @@ class Weight_connection():
         except mysql.connector.Error as err:
             msg = err.msg      
         finally:
-            cursor.close()
-            #self.cnx.close()   
+            cursor.close()   
             if msg:
                 return "error"
             else:
@@ -668,7 +638,6 @@ class Notify_connection():
             cnx.rollback()
         finally:
             cursor.close()
-            #self.cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -692,7 +661,6 @@ class Notify_connection():
             cnx.rollback()
         finally:
             cursor.close()
-            #self.cnx.close()
             if msg: 
                 return "error"
             elif result:

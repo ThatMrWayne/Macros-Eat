@@ -4,7 +4,6 @@ from flask import jsonify
 from flask_jwt_extended import verify_jwt_in_request
 from functools import wraps
 from model import db
-#from model.connection import Connection
 from utils import Utils_obj
 from model import Weight_connection
 
@@ -33,8 +32,7 @@ def handle_get_weight(request):
                     "error": True,
                     "message": "未提供日期或日期格式錯誤"
                 }), 400
-    connection = db.get_weight_cnx() 
-    #if isinstance(connection,Connection):
+    connection = db.get_cnx() 
     if connection != "error":
         user_id = Utils_obj.get_member_id_from_jwt(request)    
         data = Weight_connection.get_weight_info(connection,start_date,end_date,user_id)
@@ -49,8 +47,7 @@ def handle_get_weight(request):
                 return jsonify({"weight_record":None})
             else: 
                 result = {"weight_record":data}
-                return jsonify(result), 200                  
-    #elif connection == "error":  
+                return jsonify(result), 200                   
     else:
         response_msg={
                 "error":True,
@@ -83,8 +80,7 @@ def handle_update_weight(request):
                           "error":True,
                           "message":"更新失敗,體重不正確"}              
             return jsonify(response_msg), 400
-        connection = db.get_weight_cnx() 
-        #if isinstance(connection,Connection): 
+        connection = db.get_cnx() 
         if connection != "error":    
             user_id = Utils_obj.get_member_id_from_jwt(request)
             result = Weight_connection.update_weight(connection,input,user_id)
@@ -101,8 +97,7 @@ def handle_update_weight(request):
                 response_msg={
                             "error":True,
                             "message":"該日體重不存在"}             
-                return jsonify(response_msg), 400    
-        #elif connection == "error":  
+                return jsonify(response_msg), 400     
         else:
             response_msg={
                         "error":True,
@@ -132,8 +127,7 @@ def handle_add_weight(request):
                           "error":True,
                           "message":"更新失敗,體重不正確"}
             return jsonify(response_msg), 400
-        connection = db.get_weight_cnx()
-        # if isinstance(connection,Connection): 
+        connection = db.get_cnx() 
         if connection != "error":
             user_id = Utils_obj.get_member_id_from_jwt(request)
             result = Weight_connection.insert_new_weight(connection,input,user_id)
@@ -150,8 +144,7 @@ def handle_add_weight(request):
                 response_msg={
                             "error":True,
                             "message":"已有該日紀錄"}
-                return jsonify(response_msg), 400
-        #elif connection == "error":  
+                return jsonify(response_msg), 400 
         else:
             response_msg={
                         "error":True,

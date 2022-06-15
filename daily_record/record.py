@@ -8,7 +8,6 @@ from flask_jwt_extended import verify_jwt_in_request
 from functools import wraps
 from model import db
 from model import redis_db
-#from model.connection import Connection
 from utils import Utils_obj
 from flask import current_app
 from model import Record_connection
@@ -121,8 +120,7 @@ def handle_add_record(request):
                             "error":True,
                             "message":"新增紀錄失敗,新增資料有誤"}  
             return jsonify(response_msg), 400 
-        connection = db.get_daily_record_cnx() 
-        #if isinstance(connection,Connection): 
+        connection = db.get_cnx() 
         if connection != "error":
             user_id = Utils_obj.get_member_id_from_jwt(request)
             result = Record_connection.insert_new_record(connection,request_data,user_id)
@@ -138,7 +136,6 @@ def handle_add_record(request):
                 redis_db.redis_instance.hdel(redis_key,str(timestamp))
                 response_msg={"ok": True}
                 return jsonify(response_msg), 201 
-        #elif connection == "error": 
         else:
             response_msg={
                         "error":True,
@@ -148,8 +145,7 @@ def handle_add_record(request):
 
 #(day record + intake record)
 def handle_get_record(datetimestamp,user_id):
-    connection = db.get_daily_record_cnx() 
-    #if isinstance(connection,Connection):   
+    connection = db.get_cnx()  
     if connection != "error":
         data = Record_connection.get_record_info(connection,datetimestamp,user_id)
         connection.close()
@@ -163,8 +159,7 @@ def handle_get_record(datetimestamp,user_id):
                 return jsonify({"day_record":None,"food_record":None}), 200
             else: #there is record with/without intake record
                 result = organize_record_data(data)
-                return jsonify(result), 200                     
-   #elif connection == "error":  
+                return jsonify(result), 200                      
     else:
         response_msg={
                 "error":True,
@@ -195,8 +190,7 @@ def handle_update_record(request):
                             "error":True,
                             "message":"更新失敗,更新資料不正確"}  
             return jsonify(response_msg), 400
-        connection = db.get_daily_record_cnx() 
-        #if isinstance(connection,Connection): 
+        connection = db.get_cnx()  
         if connection != "error":
             user_id = Utils_obj.get_member_id_from_jwt(request)
             result = Record_connection.update_record(connection,input,user_id)
@@ -217,7 +211,6 @@ def handle_update_record(request):
                             "error":True,
                             "message":"該日紀錄不存在"}  
                 return jsonify(response_msg), 400    
-        #elif connection == "error": 
         else:
             response_msg={
                         "error":True,

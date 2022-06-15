@@ -1390,6 +1390,9 @@ function show_weight_section(){
         right_record.remove();
     }else if(start_record){
         start_record.remove();
+        let get_start = document.querySelector(".get-start");
+        get_start.remove();
+
     };
     //change "record-container" to "grid-template-column=1fr"
     let record_container = document.querySelector(".record-container");

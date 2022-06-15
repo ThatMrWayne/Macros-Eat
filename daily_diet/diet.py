@@ -5,7 +5,6 @@ from flask_jwt_extended import verify_jwt_in_request
 from functools import wraps
 from model import db
 from model import redis_db
-#from model.connection import Connection
 from utils import Utils_obj
 from model import Diet_connection
 
@@ -62,8 +61,7 @@ def verify_diet(input):
 
 
 def handle_get_diet(request):
-    connection = db.get_daily_diet_cnx() 
-    #if isinstance(connection,Connection):
+    connection = db.get_cnx() 
     if connection != "error":     
         user_id = Utils_obj.get_member_id_from_jwt(request)
         datetimestamp = request.args.get('datetime')  
@@ -85,7 +83,6 @@ def handle_get_diet(request):
             else: #means record existed (with/without food record)
                 result = organize_diet_data(data)
                 return jsonify(result), 200                      
-    #elif connection == "error": 
     else:
         response_msg={
                       "error":True,
@@ -114,8 +111,7 @@ def handle_add_diet(request):
                           "error":True,
                           "message":"新增紀錄失敗,新增資料有誤"}  
             return jsonify(response_msg), 400 
-        connection = db.get_daily_diet_cnx() 
-        #if isinstance(connection,Connection): 
+        connection = db.get_cnx() 
         if connection != "error":
             user_id = Utils_obj.get_member_id_from_jwt(request)
             result = Diet_connection.insert_new_diet(connection,request_data,user_id)
@@ -136,7 +132,6 @@ def handle_add_diet(request):
                               "error":True,
                               "message":"該紀錄代號不存在或該紀錄代號不屬於此會員"}  
                 return jsonify(response_msg), 400 
-        #elif connection == "error": 
         else: 
             response_msg={
                           "error":True,
@@ -151,8 +146,7 @@ def handle_delete_diet(request):
                           "error":True,
                           "message":"刪除失敗,沒有給intake_id or datetime or record_id"}
             return jsonify(response_msg), 400 
-        connection = db.get_daily_diet_cnx()  
-        #if isinstance(connection,Connection): 
+        connection = db.get_cnx()  
         if connection != "error":
             user_id = Utils_obj.get_member_id_from_jwt(request)
             result = Diet_connection.delete_diet(connection,intake_id,user_id,record_id) 
@@ -172,7 +166,6 @@ def handle_delete_diet(request):
                               "error":True,
                               "message":"此intake_id不存在或不屬於該會員"}
                 return jsonify(response_msg), 400                
-        #elif connection == "error": 
         else:
             response_msg={
                           "error":True,
