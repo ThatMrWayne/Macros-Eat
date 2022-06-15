@@ -74,45 +74,34 @@ def authorize():
     name = userinfo["name"]
     initial=0	
     # do something with the token and profile
-    connection1 = db.get_auth_cnx()
     #if isinstance(connection1,Connection): 
-    if connection1 != "error":
-        result = Auth_connection.confirm_member_information(connection1,email,1) 
-        connection1.close()
-        if result == "error": 
-                    response_msg={
+    result = Auth_connection.confirm_member_information(email,1) 
+    if result == "error": 
+                response_msg={
                             "error":True,
                             "message":"不好意思,資料庫暫時有問題,維修中"}
-                    return jsonify(response_msg), 500 
-        elif result: 
-            if result["hash_password"] != "123": #表示已經用這個email註冊過,不能再用一樣的email goole登入
-                response_msg={
+                return jsonify(response_msg), 500 
+    elif result: 
+        if result["hash_password"] != "123": #表示已經用這個email註冊過,不能再用一樣的email goole登入
+            response_msg={
                             "error":True,
                             "message":"This email has been signed up. Please use another one."}
-                return jsonify(response_msg), 400 			
-            else:
-                if result["initial"]==1: #代表還沒填資料
-                    initial=1	
-                session["temp"]=1					
-        else: #表示沒有此會員,第一次用google登入,插到會員資料庫
-            connection2 = db.get_auth_cnx()
-            result_ = Auth_connection.insert_new_member(connection2,name, email,"123",1,0)
-            connection2.close()			
-            if result_ == "error": #如果回傳結果是"error",代表資料庫insert時發生錯誤
-                response_msg={
+            return jsonify(response_msg), 400 			
+        else:
+            if result["initial"]==1: #代表還沒填資料
+                initial=1	
+            session["temp"]=1					
+    else: #表示沒有此會員,第一次用google登入,插到會員資料庫
+        result_ = Auth_connection.insert_new_member(name, email,"123",1,0)		
+        if result_ == "error": #如果回傳結果是"error",代表資料庫insert時發生錯誤
+            response_msg={
 							"error":True,
 							"message":"不好意思,資料庫暫時有問題,維修中"}
-                return jsonify(response_msg), 500 							
-            elif result_ == True: #如果檢查回傳結果是true代表新增會員到資料庫成功,
-                initial=1
-                session["temp"]=1
-    #elif connection1 == "error": #如果沒有順利取得連線
-    else:
-            response_msg={
-                        "error":True,
-                        "message":"不好意思,資料庫暫時有問題,維修中"}              
-            return jsonify(response_msg), 500     		   					
-    return render_template("callback.html",email=email,initial = initial)
+            return jsonify(response_msg), 500 							
+        elif result_ == True: #如果檢查回傳結果是true代表新增會員到資料庫成功,
+            initial=1
+            session["temp"]=1
+    return render_template("callback.html",email=email,initial = initial)		
 
 
 
@@ -127,57 +116,46 @@ def get_jwt():
                     "message":"登入失敗"} 
         return jsonify(response_msg), 400 
     email = request_data.get("email")
-    initial = request_data.get("initial")	
-    connection = db.get_auth_cnx()	
-    #if isinstance(connection,Connection): #如果有順利取得連線	
-    if connection != "error":
-        result = Auth_connection.confirm_member_information(connection,email,1) #先確認有沒有這個email帳號 
-        connection.close()
-        if result == "error": #代表查詢失敗
-            current_app.logger.info("查詢失敗")
+    initial = request_data.get("initial")			
+    result = Auth_connection.confirm_member_information(email,1) #先確認有沒有這個email帳號 
+    if result == "error": #代表查詢失敗
+        current_app.logger.info("查詢失敗")
+        response_msg={
+            "error":True,
+            "message":"不好意思,資料庫暫時有問題,維修中"}
+        del session["temp"]	
+        return jsonify(response_msg), 500 
+    elif result: 
+        if result["hash_password"] != "123": #表示已經用這個email註冊過,不能再用一樣的email goole登入
+            current_app.logger.info("這個email註冊過")
             response_msg={
-                "error":True,
-                "message":"不好意思,資料庫暫時有問題,維修中"}
-            del session["temp"]	
-            return jsonify(response_msg), 500 
-        elif result: 
-            if result["hash_password"] != "123": #表示已經用這個email註冊過,不能再用一樣的email goole登入
-                current_app.logger.info("這個email註冊過")
-                response_msg={
                         "error":True,
                         "message":"This email has been signed up. Please use another one."}
-                del session["temp"]		
-                return jsonify(response_msg), 400
-            else:  #成功,可以拿jwt
-                current_app.logger.info("成功")
-                del session["temp"]
-                if initial == 1:
-                    access_token = create_access_token(identity=json.dumps({'email':email,'id':result["member_id"],'name':result["name"],'identity':1,'initial':True}),expires_delta=datetime.timedelta(days=15))		
-                else:
-                    session.permanent = True
-                    session["id"] = result["member_id"] #在登入的時候就給cookie
-                    access_token = create_access_token(identity=json.dumps({'email':email,'id':result["member_id"],'name':result["name"],'identity':1,'initial':False}),expires_delta=datetime.timedelta(days=15))		
-                data = json.dumps(
+            del session["temp"]		
+            return jsonify(response_msg), 400
+        else:  #成功,可以拿jwt
+            current_app.logger.info("成功")
+            del session["temp"]
+            if initial == 1:
+                access_token = create_access_token(identity=json.dumps({'email':email,'id':result["member_id"],'name':result["name"],'identity':1,'initial':True}),expires_delta=datetime.timedelta(days=15))		
+            else:
+                session.permanent = True
+                session["id"] = result["member_id"] #在登入的時候就給cookie
+                access_token = create_access_token(identity=json.dumps({'email':email,'id':result["member_id"],'name':result["name"],'identity':1,'initial':False}),expires_delta=datetime.timedelta(days=15))		
+            data = json.dumps(
                                 {"room_id" : 0,
                                 "name" : result["name"],
                                 "socket_id" : [0],
                                 "status" : 0	
                                 })
-                redis_db.redis_instance.hsetnx("user",str(result["member_id"]),data)	
-        else:
-            response_msg={
-                    "error":True,
-                    "message":"登入失敗"} 
-            del session["temp"]					
-            return jsonify(response_msg), 400 			
-    #elif connection == "error": #如果沒有順利取得連線
+            redis_db.redis_instance.hsetnx("user",str(result["member_id"]),data)	
     else:
         response_msg={
-                        "error":True,
-                        "message":"不好意思,資料庫暫時有問題,維修中"}
-        del session["temp"]						
-        res=make_response(response_msg,500)               
-        return jsonify(response_msg), 500    
+                    "error":True,
+                    "message":"登入失敗"} 
+        del session["temp"]					
+        return jsonify(response_msg), 400 			
+      
     res = make_response(json.dumps({"ok":True},ensure_ascii=False),200)
     res.headers["access_token"] = access_token #把jwt塞在response header
     return res  
@@ -218,24 +196,15 @@ def create_push_subscription():
     id_ = data["id"] #從jwt取得id
     identity = data["identity"]
     subcsription = json.loads(json_data['subscription_json'])
-    cnx = db.get_notify_cnx()
-    #if isinstance(cnx,Connection): #如果有順利取得連線	
-    if cnx != "error":
-        result = Notify_connection.check_if_subscribe(cnx,identity,subcsription,id_)
-        cnx.close()
-        if result == "error":
-            response_msg={
-                            "error":True,
-                            "message":"不好意思,資料庫暫時有問題,維修中"}
-            return jsonify(response_msg), 500
-        else:
-            return jsonify(result), 200
-    #elif cnx == "error":  #如果沒有順利取得連線
-    else:	
+    result = Notify_connection.check_if_subscribe(identity,subcsription,id_)
+    if result == "error":
         response_msg={
-                "error":True,
-                "message":"不好意思,資料庫暫時有問題維修中"}          
-        return jsonify(response_msg), 500 
+                        "error":True,
+                        "message":"不好意思,資料庫暫時有問題,維修中"}
+        return jsonify(response_msg), 500
+    else:
+        return jsonify(result), 200
+
 
 @app.route("/privacy")
 def privacy():
