@@ -132,7 +132,6 @@ def handle_signup(request):
         connection = db.get_cnx() 
         if connection != "error":
             result = Auth_connection.check_if_member_exist(connection,email,identity)
-            connection.close()
             if result == "error": 
                 response_msg={
                             "error":True,
@@ -183,7 +182,6 @@ def handle_signin(request):
         if connection != "error":
             #confirm if email existed
             result = Auth_connection.confirm_member_information(connection,email,identity)
-            connection.close()
             if result == "error": 
                 response_msg={
                             "error":True,
@@ -252,7 +250,6 @@ def handle_get_user_data(request):
         user_id = Utils_obj.get_member_id_from_jwt(request) 
         user_identity = Utils_obj.get_member_identity_from_jwt(request) 
         result = Auth_connection.retrieve_member_information(connection,user_id,user_identity)
-        connection.close()
         if result == "error":
             response_msg={
                         "error":True,
@@ -295,7 +292,6 @@ def handle_update_user_data(request):
             email = Utils_obj.get_email_from_jwt(request)
             name = Utils_obj.get_member_name_from_jwt(request)
             result = Auth_connection.update_member_info(connection,input,user_id)
-            connection.close()
             if result == "error": 
                 response_msg={
                             "error":True,

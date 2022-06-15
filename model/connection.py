@@ -20,6 +20,7 @@ class Auth_connection():
             msg = err.msg
         finally:
             cursor.close()
+            cnx.close()
             if msg:
                 return "error"
             elif result:
@@ -47,6 +48,7 @@ class Auth_connection():
             cnx.rollback()
         finally:
             cursor.close()
+            cnx.close()
             if msg:    
                 return "error"
             elif result:
@@ -69,6 +71,7 @@ class Auth_connection():
             msg = err.msg
         finally:
             cursor.close()
+            cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -93,6 +96,7 @@ class Auth_connection():
             msg = err.msg
         finally:
             cursor.close()
+            cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -115,6 +119,7 @@ class Auth_connection():
             cnx.rollback()
         finally:
             cursor.close()
+            cnx.close()
             if msg:   
                 return "error"
             elif result:
@@ -136,6 +141,7 @@ class Auth_connection():
             cnx.rollback()
         finally:
             cursor.close()
+            cnx.close()
             if msg:   
                 return "error"
             elif result:
@@ -158,6 +164,7 @@ class Food_connection():
             cnx.rollback()
         finally:
             cursor.close()
+            cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -183,6 +190,7 @@ class Food_connection():
             cnx.rollback()
         finally:
             cursor.close()
+            cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -213,7 +221,8 @@ class Food_connection():
         except mysql.connector.Error as err:
             msg = err.msg      
         finally:
-            cursor.close()   
+            cursor.close()  
+            cnx.close() 
             if msg:
                 return "error"
             else:
@@ -226,7 +235,7 @@ class Food_connection():
         cursor.execute("USE {}".format('macroseat'))
         try:
             keyword_query = ("SELECT food_id, food_name, protein, fat, carbs from "
-            "food WHERE MATCH(`food_name`) AGAINST( %(food)s IN NATURAL LANGUAGE MODE ) LIMIT %(st)s, 21 ") 
+            "food WHERE MATCH(`food_name`) AGAINST( %(food)s IN BOOLEAN MODE ) LIMIT %(st)s, 21 ") 
             cursor.execute(keyword_query,{"food":keyword,'st':int(page)*20})
             food_data = cursor.fetchall() #might be empty []  
             #check if next page
@@ -243,6 +252,7 @@ class Food_connection():
             msg = err.msg      
         finally:
             cursor.close()  
+            cnx.close()
             if msg:
                 return "error"
             else:
@@ -266,6 +276,7 @@ class Plan_connection():
             cnx.rollback()
         finally:
             cursor.close()
+            cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -291,6 +302,7 @@ class Plan_connection():
             cnx.rollback()
         finally:
             cursor.close()
+            cnx.close()
             if msg:   
                 return "error"
             elif result:
@@ -318,6 +330,7 @@ class Plan_connection():
             cnx.rollback()
         finally:
             cursor.close()
+            cnx.close()
             if msg:   
                 return "error"
             elif result == True:
@@ -350,6 +363,7 @@ class Plan_connection():
             msg = err.msg      
         finally:
             cursor.close()   
+            cnx.close()
             if msg:
                 return "error"
             else:
@@ -373,6 +387,7 @@ class Record_connection():
             cnx.rollback()
         finally:
             cursor.close()
+            cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -398,6 +413,7 @@ class Record_connection():
             cnx.rollback()
         finally:
             cursor.close()
+            cnx.close()
             if msg:    
                 return "error"
             elif result:
@@ -420,6 +436,7 @@ class Record_connection():
             msg = err.msg      
         finally:
             cursor.close()   
+            cnx.close()
             if msg:
                 return "error"
             else:
@@ -458,6 +475,7 @@ class Diet_connection():
             cnx.rollback()
         finally:
             cursor.close()
+            cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -491,6 +509,7 @@ class Diet_connection():
             cnx.rollback()
         finally:
             cursor.close()
+            cnx.close()
             if msg:   
                 return "error"
             elif result:
@@ -513,6 +532,7 @@ class Diet_connection():
             msg = err.msg      
         finally:
             cursor.close()  
+            cnx.close()
             if msg:
                 return "error"
             else:
@@ -544,6 +564,7 @@ class Weight_connection():
             cnx.rollback()
         finally:
             cursor.close()
+            cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -569,6 +590,7 @@ class Weight_connection():
             cnx.rollback()
         finally:
             cursor.close()
+            cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -590,6 +612,7 @@ class Weight_connection():
             msg = err.msg      
         finally:
             cursor.close()   
+            cnx.close()
             if msg:
                 return "error"
             else:
@@ -638,6 +661,7 @@ class Notify_connection():
             cnx.rollback()
         finally:
             cursor.close()
+            cnx.close()
             if msg:  
                 return "error"
             elif result:
@@ -661,6 +685,7 @@ class Notify_connection():
             cnx.rollback()
         finally:
             cursor.close()
+            cnx.close()
             if msg: 
                 return "error"
             elif result:

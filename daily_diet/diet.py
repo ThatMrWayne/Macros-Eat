@@ -71,7 +71,6 @@ def handle_get_diet(request):
                             "message": "未提供日期或時間戳錯誤"
                             }), 400     
         data = Diet_connection.get_diet_info(connection,datetimestamp,user_id)
-        connection.close()
         if data == "error":
             response_msg={
                           "error":True,
@@ -115,7 +114,6 @@ def handle_add_diet(request):
         if connection != "error":
             user_id = Utils_obj.get_member_id_from_jwt(request)
             result = Diet_connection.insert_new_diet(connection,request_data,user_id)
-            connection.close()
             if result == "error": 
                 response_msg={
                               "error":True,
@@ -150,7 +148,6 @@ def handle_delete_diet(request):
         if connection != "error":
             user_id = Utils_obj.get_member_id_from_jwt(request)
             result = Diet_connection.delete_diet(connection,intake_id,user_id,record_id) 
-            connection.close()
             if result == "error": 
                 response_msg={
                               "error":True,

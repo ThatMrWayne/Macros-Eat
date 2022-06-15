@@ -72,7 +72,6 @@ def handle_add_food(request):
         if connection != "error":
             user_id = Utils_obj.get_member_id_from_jwt(request)
             result = Food_connection.insert_new_food(connection,request_data,user_id)
-            connection.close()
             if result == "error": 
                 response_msg={
                             "error":True,
@@ -99,7 +98,6 @@ def handle_delete_food(request):
         if connection != "error":
             user_id = Utils_obj.get_member_id_from_jwt(request)
             result = Food_connection.delete_food(connection,food_id,user_id) 
-            connection.close()
             if result == "error": 
                 response_msg={
                             "error":True,
@@ -124,7 +122,6 @@ def handle_get_my_food_data(page,user_id):
     connection = db.get_cnx()   
     if connection != "error":           
         data = Food_connection.get_my_food_info(connection,page,user_id) 
-        connection.close()
         if data == "error":
             response_msg={
                     "error":True,
@@ -145,7 +142,6 @@ def handle_get_public_food_data(request):
         if not keyword or not page:
             return jsonify({"data":[],"nextPage":None}), 200         
         data = Food_connection.get_public_food_info(connection,keyword,page)
-        connection.close()
         if data == "error":
             response_msg={
                     "error":True,

@@ -241,7 +241,7 @@ function search(){
 }
 
 
-let debounce_search = _.debounce(search, 800);
+let debounce_search = _.debounce(search, 500);
 
 
 
@@ -262,6 +262,10 @@ function pop_search_food(background){
             if(document.querySelector(".search-result")){
                 input_area.removeChild(document.querySelector(".search-result"))
             };
+            let search_loading = document.querySelector(".search-loading");
+            if(search_loading){
+                search_loading.remove();
+            };
             select_food = {"food_name":null,
                     "food_id":null, 
                     "protein":null,
@@ -278,6 +282,16 @@ function pop_search_food(background){
             can_get_public_food_scroll = true;
             public_food_page = 0;
         }else{
+            let search_loading = document.querySelector(".search-loading");
+            if(!search_loading){
+                let span = document.createElement("span");
+                span.classList.add("search-loading");
+                let img = new Image();
+                img.src="https://d2fbjpv4bzz3d2.cloudfront.net/search_loading.gif";
+                span.appendChild(img);
+                let food_name = document.getElementById("food_name");
+                food_name.after(span);
+            };
             debounce_search();   
         };    
     });

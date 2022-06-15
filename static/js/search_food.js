@@ -118,35 +118,47 @@ function render_data(data){
     if(document.querySelector(".search-result")){
         input_area.removeChild(document.querySelector(".search-result"));
     };
+    let search_loading = document.querySelector(".search-loading");
+    if(search_loading){
+        search_loading.remove();
+    };
     let div = document.createElement("div");
     div.classList.add("search-result");
-    let ul = document.createElement("ul");
-    ul.classList.add("u");
-    for(let i=0;i<data.length;i++){
-        let li = create_search_li(data[i]);
-        ul.appendChild(li);  
-    };
-    ul.addEventListener("scroll",function(){ 
-        if(this.scrollHeight-this.scrollTop <= this.clientHeight){
-            if(can_get_public_food_scroll && public_food_page){
-                can_get_public_food_scroll = false;
-                let jwt = localStorage.getItem("JWT");
-                let keyword = document.getElementById("food_name").value;
-                let promise = get_food(keyword,jwt,public_food_page);
-                promise.then((result)=>{
-                    can_get_public_food_scroll = true;
-                    let next_page = result["nextPage"];
-                    public_food_page = next_page;
-                    let ul = document.querySelector(".u");
-                    for(let i=0;i<result.data.length;i++){
-                        let li = create_search_li(result.data[i]);
-                        ul.appendChild(li);  
-                    };
-                });
-            };
+    if(data.length>0){
+        let ul = document.createElement("ul");
+        ul.classList.add("u");
+        for(let i=0;i<data.length;i++){
+            let li = create_search_li(data[i]);
+            ul.appendChild(li);  
         };
-    });
-    div.appendChild(ul);
+        ul.addEventListener("scroll",function(){ 
+            if(this.scrollHeight-this.scrollTop <= this.clientHeight){
+                if(can_get_public_food_scroll && public_food_page){
+                    can_get_public_food_scroll = false;
+                    let jwt = localStorage.getItem("JWT");
+                    let keyword = document.getElementById("food_name").value;
+                    let promise = get_food(keyword,jwt,public_food_page);
+                    promise.then((result)=>{
+                        can_get_public_food_scroll = true;
+                        let next_page = result["nextPage"];
+                        public_food_page = next_page;
+                        let ul = document.querySelector(".u");
+                        for(let i=0;i<result.data.length;i++){
+                            let li = create_search_li(result.data[i]);
+                            ul.appendChild(li);  
+                        };
+                    });
+                };
+            };
+        });
+        div.appendChild(ul);
+    }else{ //no search result
+        let no_found = document.createElement("div");
+        no_found.classList.add("u");
+        no_found.classList.add("no-found");
+        no_found.appendChild(document.createTextNode("Sorry ! No result found :("));
+        div.appendChild(no_found);
+    }    
     input_area.appendChild(div);
 };
 

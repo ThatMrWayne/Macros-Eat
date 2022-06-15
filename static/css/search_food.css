@@ -18,6 +18,12 @@
     border-radius: 6px
 }
 
+.no-found{
+    text-align: center;
+    padding-top: 100px;
+    color: dimgray;
+}
+
 
 .u > li{
     padding-top: 3px;

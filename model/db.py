@@ -160,6 +160,7 @@ class DataBase():
             exit(1)
 
         
+
         cnx = self.cnxpool.get_connection()
         cursor= cnx.cursor()
         db_exist = True
@@ -218,6 +219,7 @@ class DataBase():
         while n < 500: 
             try:
                 cnx = self.cnxpool.get_connection()
+                current_app.logger.info('n:'+str(n))
                 break
             except mysql.connector.Error as err: 
                 current_app.logger.info('cannot get mysql connection from connection pool.')
@@ -225,7 +227,8 @@ class DataBase():
                 time.sleep(0.1)   
         if not cnx:
             return "error"
-        elif cnx.is_connected():    
+        elif cnx.is_connected():  
+            current_app.logger.info('get connection success')  
             return cnx
 
 

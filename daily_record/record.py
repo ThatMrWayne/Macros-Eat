@@ -124,7 +124,6 @@ def handle_add_record(request):
         if connection != "error":
             user_id = Utils_obj.get_member_id_from_jwt(request)
             result = Record_connection.insert_new_record(connection,request_data,user_id)
-            connection.close()
             if result == "error": 
                 response_msg={
                             "error":True,
@@ -148,7 +147,6 @@ def handle_get_record(datetimestamp,user_id):
     connection = db.get_cnx()  
     if connection != "error":
         data = Record_connection.get_record_info(connection,datetimestamp,user_id)
-        connection.close()
         if data == "error":
             response_msg={
                           "error":True,
@@ -194,7 +192,6 @@ def handle_update_record(request):
         if connection != "error":
             user_id = Utils_obj.get_member_id_from_jwt(request)
             result = Record_connection.update_record(connection,input,user_id)
-            connection.close()
             if result == "error": 
                 response_msg={
                               "error":True,

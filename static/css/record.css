@@ -285,8 +285,9 @@ div.plan{
     background-color: rgb(240,240,240);
     border-style: none;
     border-bottom: 2px solid lightgray;
-    margin-left: 50px;
     padding: 0px 0px 0px 3px;
+    position: absolute;
+    right: 25px;
 }
 
 
@@ -1372,7 +1373,7 @@ table.plan-table {
     font-size: 26px;
 }
 
-/* scrolling food lloading effect */
+/* scrolling food loading effect */
 .loading{
     position: relative;
     height: 68px;
@@ -1382,5 +1383,12 @@ table.plan-table {
     top: 15px;
     left: 250px;
 }
+
+/* search loading effect*/
+.search-loading > img{
+    width:30px
+};
+
+
 
 

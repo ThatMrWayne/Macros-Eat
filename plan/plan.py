@@ -88,7 +88,6 @@ def handle_add_diet_plan(request):
             plan_name = "saved plan at " + s
             request_data["plan_name"] = plan_name
             result = Plan_connection.insert_new_diet_plan(connection,request_data,user_id)
-            connection.close()
             if result == "error": #
                 response_msg={
                             "error":True,
@@ -115,7 +114,6 @@ def handle_delete_diet_plan(request):
         if connection != "error":
             user_id = Utils_obj.get_member_id_from_jwt(request)
             result = Plan_connection.delete_diet(connection,plan_id,user_id) 
-            connection.close()
             if result == "error": 
                 response_msg={
                             "error":True,
@@ -163,7 +161,6 @@ def handle_update_diet_plan(request):
         if connection != "error":
             user_id = Utils_obj.get_member_id_from_jwt(request)
             result = Plan_connection.update_diet_info(connection,input,user_id)
-            connection.close()
             if result == "error": 
                 response_msg={
                             "error":True,
@@ -186,7 +183,6 @@ def handle_get_diet_plans(page,user_id):
     connection = db.get_cnx()    
     if connection != "error":          
         data = Plan_connection.get_diet_info(connection,page,user_id)
-        connection.close()
         if data == "error":
             response_msg={
                 "error":True,
