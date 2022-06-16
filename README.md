@@ -16,7 +16,7 @@ Test account and password : test@gmail.com / wayne123WAYNE
 
 ## Demo
 - Select a day to load in your diet plan and starts to manage your food, diet plan and diet record.
-![image](demo/demo2_1.gif)
+![image](demo/demo1.gif)
 
 - User can chat with nutritionist online in real-time or leave a message. </br>
 Supports detecting typing event and showing unread message reminder. 

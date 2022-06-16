@@ -62,15 +62,12 @@ def read_message():
             key = str(session["id"]) +"a"+id   
         #from redis
         try:
-            messages =  redis_db.redis_instance.zrange(key,0,-1) #return list,member is still string type
-            messages = list(json.loads(i) for i in messages)
-            #一次拿11筆,use binary search
-            match_index = binary_search(messages, int(etime))
-            print(match_index)
-            if match_index : #代表有前11筆
-                data = messages[match_index:match_index-11:-1]#從最新(時間最大)到最舊(時間最小)
+            messages =  redis_db.redis_instance.zrange(key,-1,int(etime),byscore=True) #return list,member is still string type
+            if messages:
+                data = messages[-1:-12:-1] #從最新(時間最大)到最舊(時間最小)
                 if len(data)==11:
-                    return jsonify({"data":data}), 200 
+                    data = list(json.loads(i) for i in data)
+                    return jsonify({"data":data}), 200
             #get from mongo
             collection = mongo_db.db.message_history
             pipeline_read=[

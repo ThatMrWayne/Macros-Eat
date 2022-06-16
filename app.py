@@ -72,9 +72,7 @@ def authorize():
     userinfo = token.get('userinfo')
     email = userinfo["email"]
     name = userinfo["name"]
-    initial=0	
-    # do something with the token and profile
-    #if isinstance(connection1,Connection): 
+    initial=0	 
     result = Auth_connection.confirm_member_information(email,1) 
     if result == "error": 
                 response_msg={
