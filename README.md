@@ -15,9 +15,11 @@ Test account and password : test@gmail.com / wayne123WAYNE
 
 
 ## Demo
-
+- Select a day to load in your diet plan and starts to manage your food, diet plan and diet record.
 ![image](demo/demo2_1.gif)
 
+- User can chat with nutritionist online in real-time or leave a message. </br>
+Supports detecting typing event and showing unread message reminder. 
 ![image](demo/demo1_1.gif)
 
 
@@ -27,15 +29,16 @@ Test account and password : test@gmail.com / wayne123WAYNE
 
 - [Main Features](#main-features)
 - [Backend Technique](#backend-technique)
-  - [Infrastructure](#infrastructure)
-  - [Environment](#environment)
-  - [Cloud Service (AWS)](#cloud-service-(AWS))
+  - [Deployment](#deployment)
+  - [Language / Web Framework](#language--web-framework)
+  - [WSGI Server](#wsgi-server)
+  - [AWS Cloud Service](#aws-cloud-service)
   - [Database](#database)
   - [Networking](networking)
   - [Third Party Library](#third-party-library)
   - [Version Control](#version-control)
   - [Key Points](#key-points)
-- [Architecture](#Architecture)
+- [Architecture](#architecture)
   - [Server Architecture](#server-architecture)
   - [Socket Architecture](#socket-architecture)
 - [Database Schema](#database-schema)
@@ -64,7 +67,7 @@ Test account and password : test@gmail.com / wayne123WAYNE
   - Web notification on receiving message.
 ### Backend Technique
 
-#### Infrastructure
+#### Deployment
 - Containerize 
 - docker-compose 
 
@@ -74,7 +77,7 @@ Test account and password : test@gmail.com / wayne123WAYNE
 #### WSGI Server
 - Gunicorn
 
-#### Cloud Service (AWS)
+#### AWS Cloud Service
 - EC2
 - RDS
 - S3, CloudFront
@@ -98,31 +101,33 @@ Test account and password : test@gmail.com / wayne123WAYNE
 - Celery
 - oauthlib
 
-#### Version Cotrol
+#### Version Control
 - Git/GitHub
 
 #### Key Points
-- MVC Pattern
-- Socket IO
+- Socket.IO
 
 
 
 
 
-## Architecture
+### Architecture
 
-- Server Architecture
-![Logo](https://d2fbjpv4bzz3d2.cloudfront.net/server_archi.png)
+#### Server Architecture
+![Logo](https://d2fbjpv4bzz3d2.cloudfront.net/architecture.drawio.png)
 
-- Socket Architecture
+#### Socket Architecture
 
-#### User and nutritionist get online.
+- User and nutritionist get online.</br>
+  </br>
 ![Logo](demo/socket2.drawio.png)
 
-#### Retrieving historical messages.
+- Retrieving historical messages.</br>
+  </br>
 ![Logo](demo/socket.drawio.png)
 
-#### Send messages.
+- Send messages.</br>
+  </br>
 ![Logo](https://d2fbjpv4bzz3d2.cloudfront.net/socket3.drawio.png)
 
 
