@@ -144,9 +144,10 @@ Supports detecting typing event and showing unread message reminder.
 - Third Party Library
   - chart.js 
   - moment.js 
+  - lodash
 ## API Doc
 
-[API doc](https://app.swaggerhub.com/apis/mrwayne/macros-eat/1.0.0-oas3)
+[API doc](https://app.swaggerhub.com/apis-docs/mrwayne/macros-eat/1.0.0-oas3)
 ## Contact
 
 👨🏻‍💻 許哲瑋 Che Wei Hsu 
