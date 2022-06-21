@@ -1,0 +1,6 @@
+from controller.notification.notify import notify
+from controller.notification.notify import trigger_push_notifications_for_subscriptions
+
+
+notify_blueprint = notify
+trigger_push = trigger_push_notifications_for_subscriptions
