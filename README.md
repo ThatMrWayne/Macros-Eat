@@ -65,7 +65,8 @@ Supports detecting typing event and showing unread message reminder.
   - Supports tracing historical messages.
   - User can see all nutritionists but nutritionists can only see users who have consulting history with them.
   - Web notification on receiving message.
-### Backend Technique
+
+## Backend Technique
 
 #### Deployment
 - Containerize 
@@ -111,7 +112,7 @@ Supports detecting typing event and showing unread message reminder.
 
 
 
-### Architecture
+## Architecture
 
 #### Server Architecture
 ![Logo](https://d2fbjpv4bzz3d2.cloudfront.net/architecture.drawio.png)
