@@ -1,227 +1,22 @@
-import logging as logg
 import datetime
+import logging as logg
 from flask import *
-from flask_jwt_extended import JWTManager
-from flask_jwt_extended import decode_token
-from flask_socketio import SocketIO
-from flask_socketio import emit
-from flask_jwt_extended import create_access_token
-from authen import auth_blueprint
-from food import food_blueprint
-from daily_record import record_blueprint
-from daily_diet import diet_blueprint
-from plan import plan_blueprint
-from weight import weight_blueprint
-from message import message_blueprint
-import config
-from model import db
 from model import redis_db
-from model import Auth_connection
 from model import Notify_connection
-from celery_factory.make_celery import make_celery
-from webpush_handler import trigger_push_notifications_for_subscriptions
-from authlib.integrations.flask_client import OAuth
+from flask_socketio import emit
+from flask_socketio import SocketIO
+from controller import create_app
+from flask_jwt_extended import decode_token
+from controller.notification import trigger_push
 
 
-
-app=Flask(__name__,static_folder="static",static_url_path="/")
-
-#config for flask object
-app.config.from_object(config.ProductionConfig)
-
-#attach celery object
-celery_obj = make_celery(app)
-app.celery = celery_obj
-
-#blueprint register
-app.register_blueprint(auth_blueprint)
-app.register_blueprint(food_blueprint)
-app.register_blueprint(record_blueprint)
-app.register_blueprint(plan_blueprint)
-app.register_blueprint(diet_blueprint)
-app.register_blueprint(weight_blueprint)
-app.register_blueprint(message_blueprint)
-
-# attach JWT
-jwt = JWTManager(app)
+app = create_app()
 
 # Flask_socketio 
 socketio = SocketIO(app,cors_allowed_origins='*',ping_timeout=20)
 
-#oauth
-oauth = OAuth(app)
-oauth.register(
-    name='google',
-	client_id=app.config["GOOGLE_CLIENT_ID"],
-    client_secret=app.config["GOOGLE_CLIENT_SECRET"],
-    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
-    client_kwargs={
-        'scope': 'openid email profile'
-    }
-)
-
-
-@app.route('/login/google')
-def google_login():
-    redirect_uri = "https://www.macroseat.xyz/callback"
-    return oauth.google.authorize_redirect(redirect_uri)
-
-@app.route('/callback')
-def authorize():
-    token = oauth.google.authorize_access_token()
-    userinfo = token.get('userinfo')
-    email = userinfo["email"]
-    name = userinfo["name"]
-    initial=0	 
-    result = Auth_connection.confirm_member_information(email,1) 
-    if result == "error": 
-                response_msg={
-                            "error":True,
-                            "message":"不好意思,資料庫暫時有問題,維修中"}
-                return jsonify(response_msg), 500 
-    elif result: 
-        if result["hash_password"] != "123": #表示已經用這個email註冊過,不能再用一樣的email goole登入
-            response_msg={
-                            "error":True,
-                            "message":"This email has been signed up. Please use another one."}
-            return jsonify(response_msg), 400 			
-        else:
-            if result["initial"]==1: #代表還沒填資料
-                initial=1	
-            session["temp"]=1					
-    else: #表示沒有此會員,第一次用google登入,插到會員資料庫
-        result_ = Auth_connection.insert_new_member(name, email,"123",1,0)		
-        if result_ == "error": #如果回傳結果是"error",代表資料庫insert時發生錯誤
-            response_msg={
-							"error":True,
-							"message":"不好意思,資料庫暫時有問題,維修中"}
-            return jsonify(response_msg), 500 							
-        elif result_ == True: #如果檢查回傳結果是true代表新增會員到資料庫成功,
-            initial=1
-            session["temp"]=1
-    return render_template("callback.html",email=email,initial = initial)		
-
-
-
-@app.route("/token",methods=["POST"])
-def get_jwt():
-    try:
-        temp = session["temp"]
-        request_data = request.get_json()
-    except:
-        response_msg={
-                    "error":True,
-                    "message":"登入失敗"} 
-        return jsonify(response_msg), 400 
-    email = request_data.get("email")
-    initial = request_data.get("initial")			
-    result = Auth_connection.confirm_member_information(email,1) #先確認有沒有這個email帳號 
-    if result == "error": #代表查詢失敗
-        current_app.logger.info("查詢失敗")
-        response_msg={
-            "error":True,
-            "message":"不好意思,資料庫暫時有問題,維修中"}
-        del session["temp"]	
-        return jsonify(response_msg), 500 
-    elif result: 
-        if result["hash_password"] != "123": #表示已經用這個email註冊過,不能再用一樣的email goole登入
-            current_app.logger.info("這個email註冊過")
-            response_msg={
-                        "error":True,
-                        "message":"This email has been signed up. Please use another one."}
-            del session["temp"]		
-            return jsonify(response_msg), 400
-        else:  #成功,可以拿jwt
-            current_app.logger.info("成功")
-            del session["temp"]
-            if initial == 1:
-                access_token = create_access_token(identity=json.dumps({'email':email,'id':result["member_id"],'name':result["name"],'identity':1,'initial':True}),expires_delta=datetime.timedelta(days=15))		
-            else:
-                session.permanent = True
-                session["id"] = result["member_id"] #在登入的時候就給cookie
-                access_token = create_access_token(identity=json.dumps({'email':email,'id':result["member_id"],'name':result["name"],'identity':1,'initial':False}),expires_delta=datetime.timedelta(days=15))		
-            data = json.dumps(
-                                {"room_id" : 0,
-                                "name" : result["name"],
-                                "socket_id" : [0],
-                                "status" : 0	
-                                })
-            redis_db.redis_instance.hsetnx("user",str(result["member_id"]),data)	
-    else:
-        response_msg={
-                    "error":True,
-                    "message":"登入失敗"} 
-        del session["temp"]					
-        return jsonify(response_msg), 400 			
-      
-    res = make_response(json.dumps({"ok":True},ensure_ascii=False),200)
-    res.headers["access_token"] = access_token #把jwt塞在response header
-    return res  
-
-
-
-
-@app.route("/")
-def index():
-	return render_template("index.html")
-
-@app.route("/record")
-def record():
-	remind = session.get("remind")
-	if remind:
-		del session["remind"]
-		return render_template("record.html",remind = remind)
-	else:
-		return render_template("record.html",remind = "no")
-
-
-@app.route("/helper")
-def helper():
-	return render_template("helper.html")
-
-@app.route("/again")
-def again():
-	return render_template("openagain.html")
-
-
-
-@app.route("/api/push-subscriptions", methods=["POST"])
-def create_push_subscription():
-    json_data = request.get_json()
-    jwt = json_data["token"]
-    decode_JWT = decode_token(jwt)
-    data=json.loads(decode_JWT["sub"]) 
-    id_ = data["id"] #從jwt取得id
-    identity = data["identity"]
-    subcsription = json.loads(json_data['subscription_json'])
-    result = Notify_connection.check_if_subscribe(identity,subcsription,id_)
-    if result == "error":
-        response_msg={
-                        "error":True,
-                        "message":"不好意思,資料庫暫時有問題,維修中"}
-        return jsonify(response_msg), 500
-    else:
-        return jsonify(result), 200
-
-
-@app.route("/privacy")
-def privacy():
-	return render_template("privacy.html")		
-
-@app.route("/terms")
-def terms():
-	return render_template("terms.html")		
-
-
-
-
-
-
-
 
 #-----------socketIO event handler ---------#
-
-
 #-----------------使用者-----------------#
 
 #使用者登出下線
@@ -342,7 +137,6 @@ def auth_connect_(auth):
 @socketio.on('message_to_nutri',namespace='/user')
 def msg_to_nutri_(payload): #payload={"message":message,"receiver":receiver,"token":jwt}
 	try:
-		print('嘿嘿嘿嘿')
 		decode_JWT = decode_token(payload["token"])
 		data=json.loads(decode_JWT["sub"]) 
 		user_name = data["name"]
@@ -385,23 +179,16 @@ def msg_to_nutri_(payload): #payload={"message":message,"receiver":receiver,"tok
 		if redis_db.redis_instance.zcard(key) > 50: #如果大於50筆					 
 			redis_db.redis_instance.zpopmin(key) #從pop掉value最小,時間最早的那筆訊息
 		#web notification
-		cnx = db.get_notify_cnx()
-		#if isinstance(cnx,Connection): #如果有順利取得連線	
-		if cnx != "error":
-			result = Notify_connection.get_subscription_info(cnx,int(nutri_id),2)
-			cnx.close()
-			if result == "error":
-				current_app.logger.info('從資料庫取得subscription資料時出錯')
-			else:
-				res = trigger_push_notifications_for_subscriptions(
-					result,
-					"Message received~",
-					f"Got a new message from {user_name}."
-				)
-				current_app.logger.info(res)
-		#elif cnx == "error":  #如果沒有順利取得連線
-		else:		
-			current_app.logger.info('沒有取得web通知連線物件')
+		result = Notify_connection.get_subscription_info(int(nutri_id),2)
+		if result == "error":
+			current_app.logger.info('從資料庫取得subscription資料時出錯')
+		else:
+			res = trigger_push(
+				result,
+				"Message received~",
+				f"Got a new message from {user_name}."
+			)
+			current_app.logger.info(res)
 	except:
 		emit("authencation_fail")	
 	
@@ -628,7 +415,7 @@ def msg_to_user_(payload): #payload={"message":message,"receiver":receiver,"toke
 		if user_data["status"] == 1: #如果使用者在線,傳出去(要再看socket_id裡有沒有,有才傳)
 			socketio.emit('show_nutri_message',{"message":message,"time":message_time,"name":nutri_name,"nutri_id":nutri_id},namespace='/user',to=user_data["room_id"]) #3
 		else: #使用者不在線,馬上更新redis
-            #如果redis有對話紀錄狀態(應該說一定已經有status,因為是使用者先傳訊息給營養師)
+			#如果redis有對話紀錄狀態(應該說一定已經有status,因為是使用者先傳訊息給營養師)
 			pipe = redis_db.redis_instance.pipeline()
 			pipe.hset(message_status_key,"user_unread",message_time)
 			pipe.hincrby(message_status_key,"user_unread_count",1)
@@ -641,23 +428,16 @@ def msg_to_user_(payload): #payload={"message":message,"receiver":receiver,"toke
 		if redis_db.redis_instance.zcard(key) > 50: #如果大於50筆					 
 			redis_db.redis_instance.zpopmin(key) #從pop掉value最小,時間最早的那筆訊息
 		#web notification
-		cnx = db.get_notify_cnx()
-		#if isinstance(cnx,Connection): #如果有順利取得連線	
-		if cnx != "error":
-			result = Notify_connection.get_subscription_info(cnx,int(user_id),1)
-			cnx.close()
-			if result == "error":
-				current_app.logger.info('從資料庫取得subscription資料時出錯')
-			else:
-				res = trigger_push_notifications_for_subscriptions(
-					result,
-					"Message received~",
-					f"Got a new message from {nutri_name}."
-				)
-				current_app.logger.info(res)
-		#elif cnx == "error":  #如果沒有順利取得連線
+		result = Notify_connection.get_subscription_info(int(user_id),1)
+		if result == "error":
+			current_app.logger.info('從資料庫取得subscription資料時出錯')
 		else:
-			current_app.logger.info('沒有取得web通知連線物件')	
+			res = trigger_push(
+				result,
+				"Message received~",
+				f"Got a new message from {nutri_name}."
+			)
+			current_app.logger.info(res)
 	except:
 		emit("authencation_fail")
 
@@ -707,7 +487,10 @@ def show_typing_nutri(payload):
 		if user_data["status"] == 1: #如果在線才傳
 			socketio.emit("show_typing",{"nutri_name":nutri_name,"nutri_id":nutri_id },namespace="/user",to=user_data["room_id"])
 	except:
-		emit("authencation_fail")
+		emit("authencation_fail")	
+
+
+
 
 
 
