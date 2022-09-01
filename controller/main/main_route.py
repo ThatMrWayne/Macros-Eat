@@ -47,7 +47,7 @@ def terms():
 
 @main.route('/login/google')
 def google_login():
-    redirect_uri = "https://www.macroseat.xyz/callback"
+    redirect_uri = "https://macroseat.xyz/callback"
     return current_app.oauth.google.authorize_redirect(redirect_uri)    
 
 
