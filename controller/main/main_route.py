@@ -11,6 +11,7 @@ from flask import make_response
 from model import Auth_connection
 from flask_jwt_extended import create_access_token
 
+
 main = Blueprint('main',__name__,template_folder="templates")
 
 @main.route("/")
